@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Correspondent Dashboard - University Sports Network</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-blue-800 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="text-xl font-bold">University Sports Network</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="hover:text-blue-200">Home</a>
+                    <a href="about.html" class="hover:text-blue-200">About</a>
+                    <a href="contact.html" class="hover:text-blue-200">Contact</a>
+                    <a href="dashboard.html" class="hover:text-blue-200">Dashboard</a>
+                    <a href="correspondent-dashboard.html" class="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700">Correspondent Portal</a>
+                    <a href="login.html" class="hover:text-blue-200">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Header -->
+    <section class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <h1 class="text-3xl font-bold text-gray-900">Correspondent Dashboard</h1>
+            <p class="text-gray-600 mt-2">Manage your sports coverage and upload content</p>
+        </div>
+    </section>
+
+    <!-- Dashboard Content -->
+    <section class="py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Profile Card -->
+                <div class="bg-white rounded-lg shadow-md p-6" data-aos="fade-up">
+                    <div class="flex items-center mb-6">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                            <i data-feather="user" class="text-blue-600"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-semibold">Your Profile</h2>
+                            <p class="text-gray-600">Manage your correspondent account</p>
+                        </div>
+                    </div>
+                    <a href="#profile" class="block w-full bg-blue-600 text-white text-center py-2 rounded hover:bg-blue-700">
+                        Edit Profile
+                    </a>
+                </div>
+
+                <!-- Excel Upload Card -->
+                <div class="bg-white rounded-lg shadow-md p-6" data-aos="fade-up" data-aos-delay="200">
+                    <div class="flex items-center mb-6">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                            <i data-feather="file-text" class="text-green-600"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-semibold">Upload Data</h2>
+                            <p class="text-gray-600">Upload Excel files with game statistics</p>
+                        </div>
+                    </div>
+                    <a href="#excel-upload" class="block w-full bg-green-600 text-white text-center py-2 rounded hover:bg-green-700">
+                        Upload Excel
+                    </a>
+                </div>
+
+                <!-- Video Upload Card -->
+                <div class="bg-white rounded-lg shadow-md p-6" data-aos="fade-up" data-aos-delay="400">
+                    <div class="flex items-center mb-6">
+                        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mr-4">
+                            <i data-feather="video" class="text-red-600"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-semibold">Upload Videos</h2>
+                            <p class="text-gray-600">Upload game videos to Google Drive</p>
+                        </div>
+                    </div>
+                    <a href="#video-upload" class="block w-full bg-red-600 text-white text-center py-2 rounded hover:bg-red-700">
+                        Upload Video
+                    </a>
+                </div>
+            </div>
+
+            <!-- Live Commentary Section -->
+            <div class="mt-12 bg-white rounded-lg shadow-md p-6" data-aos="fade-up">
+                <h2 class="text-2xl font-semibold mb-6">Live Sports Commentary</h2>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Select Game</label>
+                        <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option>Harvard vs Yale - Basketball</option>
+                            <option>Stanford vs Berkeley - Soccer</option>
+                            <option>MIT vs Princeton - Volleyball</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Live Commentary</label>
+                        <textarea class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" rows="4" placeholder="Enter your live commentary here..."></textarea>
+                    </div>
+                    <button class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+                        Start Live Commentary
+                    </button>
+                </div>
+            </div>
+
+            <!-- Profile Management Section -->
+            <div id="profile" class="mt-12 bg-white rounded-lg shadow-md p-6" data-aos="fade-up">
+                <h2 class="text-2xl font-semibold mb-6">Profile Management</h2>
+                <form class="space-y-4">
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">First Name</label>
+                            <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md" value="John">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Last Name</label>
+                            <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md" value="Doe">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" class="w-full px-3 py-2 border border-gray-300 rounded-md" value="john.doe@example.com">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">University</label>
+                        <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md" value="Harvard University">
+                    </div>
+                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+                        Update Profile
+                    </button>
+                </form>
+            </div>
+
+            <!-- Excel Upload Section -->
+            <div id="excel-upload" class="mt-12 bg-white rounded-lg shadow-md p-6" data-aos="fade-up">
+                <h2 class="text-2xl font-semibold mb-6">Upload Excel Data</h2>
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <i data-feather="upload-cloud" class="w-12 h-12 text-gray-400 mx-auto mb-4"></i>
+                    <p class="text-gray-600 mb-4">Drag and drop your Excel file here, or click to browse</p>
+                    <input type="file" accept=".xlsx,.xls,.csv" class="hidden" id="excel-file">
+                    <label for="excel-file" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 cursor-pointer">
+                        Browse Files
+                    </label>
+                </div>
+            </div>
+
+            <!-- Video Upload Section -->
+            <div id="video-upload" class="mt-12 bg-white rounded-lg shadow-md p-6" data-aos="fade-up">
+                <h2 class="text-2xl font-semibold mb-6">Upload Video to Google Drive</h2>
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <i data-feather="video" class="w-12 h-12 text-gray-400 mx-auto mb-4"></i>
+                    <p class="text-gray-600 mb-4">Select video file to upload to Google Drive</p>
+                    <input type="file" accept="video/*" class="hidden" id="video-file">
+                    <label for="video-file" class="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 cursor-pointer">
+                        Select Video
+                    </label>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">University Sports Network</h3>
+                    <p class="text-gray-400">Connecting universities through sports</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="text-gray-400 hover:text-white">Home</a></li>
+                        <li><a href="about.html" class="text-gray-400 hover:text-white">About</a></li>
+                        <li><a href="contact.html" class="text-gray-400 hover:text-white">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Account</h4>
+                    <ul class="space-y-2">
+                        <li><a href="login.html" class="text-gray-400 hover:text-white">Login</a></li>
+                        <li><a href="register.html" class="text-gray-400 hover:text-white">Register</a></li>
+                        <li><a href="dashboard.html" class="text-gray-400 hover:text-white">Dashboard</a></li>
+                        <li><a href="fan-page.html" class="text-gray-400 hover:text-white">Fan Pages</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Contact Us</h4>
+                    <p class="text-gray-400">Email: info@unisports.net</p>
+                    <p class="text-gray-400">Phone: (555) 123-4567</p>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 University Sports Network. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        AOS.init();
+        feather.replace();
+    </script>
+</body>
+</html>

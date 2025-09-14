@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University Sports Network - Home</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/animejs/lib/anime.iife.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.js"></script>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-blue-800 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="text-xl font-bold">University Sports Network</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="hover:text-blue-200">Home</a>
+                    <a href="about.html" class="hover:text-blue-200">About</a>
+                    <a href="contact.html" class="hover:text-blue-200">Contact</a>
+                    <a href="login.html" class="hover:text-blue-200">Login</a>
+                    <a href="register.html" class="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700">Register</a>
+                    <a href="dashboard.html" class="hover:text-blue-200">Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative bg-gradient-to-r from-blue-700 to-blue-900 text-white py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl md:text-6xl font-bold mb-6" data-aos="fade-up">University Sports Live</h1>
+            <p class="text-xl mb-8" data-aos="fade-up" data-aos-delay="200">Real-time updates, scores, and live coverage of university sports across the nation</p>
+            <div class="flex justify-center space-x-4" data-aos="fade-up" data-aos-delay="400">
+                <a href="#live-games" class="bg-white text-blue-800 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100">Live Games</a>
+                <a href="register.html" class="border-2 border-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-800">Become Correspondent</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Games Section -->
+    <section id="live-games" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center mb-12">Live Games & Updates</h2>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Game Card 1 -->
+                <div class="bg-gray-100 rounded-lg shadow-md p-6" data-aos="fade-up">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="bg-red-500 text-white px-3 py-1 rounded-full text-sm">LIVE</span>
+                        <span class="text-gray-600">Basketball</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Harvard vs Yale</h3>
+                    <p class="text-gray-600 mb-4">Final Quarter - 2:34 remaining</p>
+                    <div class="text-center mb-4">
+                        <span class="text-3xl font-bold">72 - 68</span>
+                    </div>
+                    <a href="#" class="block text-center bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Watch Live</a>
+                </div>
+
+                <!-- Game Card 2 -->
+                <div class="bg-gray-100 rounded-lg shadow-md p-6" data-aos="fade-up" data-aos-delay="200">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="bg-red-500 text-white px-3 py-1 rounded-full text-sm">LIVE</span>
+                        <span class="text-gray-600">Soccer</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Stanford vs Berkeley</h3>
+                    <p class="text-gray-600 mb-4">Second Half - 67'</p>
+                    <div class="text-center mb-4">
+                        <span class="text-3xl font-bold">2 - 1</span>
+                    </div>
+                    <a href="#" class="block text-center bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Watch Live</a>
+                </div>
+
+                <!-- Game Card 3 -->
+                <div class="bg-gray-100 rounded-lg shadow-md p-6" data-aos="fade-up" data-aos-delay="400">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm">UPCOMING</span>
+                        <span class="text-gray-600">Volleyball</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">MIT vs Princeton</h3>
+                    <p class="text-gray-600 mb-4">Starts in 45 minutes</p>
+                    <div class="text-center mb-4">
+                        <span class="text-3xl font-bold">0 - 0</span>
+                    </div>
+                    <a href="#" class="block text-center bg-gray-600 text-white py-2 rounded hover:bg-gray-700">View Details</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Map Section -->
+    <section class="py-16 bg-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center mb-12">Live Games Map</h2>
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div id="map" class="h-96 rounded-lg"></div>
+                <p class="text-center text-gray-600 mt-4">Click on any pin to view game details and streaming links</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center mb-12">Why Choose Our Platform</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="text-center" data-aos="fade-up">
+                    <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-feather="video" class="text-blue-600"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Live Streaming</h3>
+                    <p class="text-gray-600">Watch university sports events live from anywhere</p>
+                </div>
+                <div class="text-center" data-aos="fade-up" data-aos-delay="200">
+                    <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-feather="map-pin" class="text-blue-600"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Interactive Map</h3>
+                    <p class="text-gray-600">Find games near you with our interactive map</p>
+                </div>
+                <div class="text-center" data-aos="fade-up" data-aos-delay="400">
+                    <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-feather="users" class="text-blue-600"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Community</h3>
+                    <p class="text-gray-600">Join a community of sports enthusiasts and correspondents</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">University Sports Network</h3>
+                    <p class="text-gray-400">Connecting universities through sports</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="index.html" class="text-gray-400 hover:text-white">Home</a></li>
+                        <li><a href="about.html" class="text-gray-400 hover:text-white">About</a></li>
+                        <li><a href="contact.html" class="text-gray-400 hover:text-white">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Account</h4>
+                    <ul class="space-y-2">
+                        <li><a href="login.html" class="text-gray-400 hover:text-white">Login</a></li>
+                        <li><a href="register.html" class="text-gray-400 hover:text-white">Register</a></li>
+                        <li><a href="dashboard.html" class="text-gray-400 hover:text-white">Dashboard</a></li>
+                        <li><a href="correspondent-dashboard.html" class="text-gray-400 hover:text-white">Correspondent Portal</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Contact Us</h4>
+                    <p class="text-gray-400">Email: info@unisports.net</p>
+                    <p class="text-gray-400">Phone: (555) 123-4567</p>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 University Sports Network. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 1000,
+            once: true
+        });
+
+        // Initialize Feather Icons
+        feather.replace();
+
+        // Initialize Mapbox
+        mapboxgl.accessToken = 'pk.eyJ1IjoiZXhhbXBsZSIsImEiOiJjbGF4dXp1d2owMGJ6M3BwN2NqcnJ2N3V6In0.fake_token_replace_with_real';
+        
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            center: [-98.5795, 39.8283], // Center of US
+            zoom: 3.5,
+            pitch: 45,
+            bearing: -17.6
+        });
+
+        // Add sample markers
+        map.on('load', () => {
+            // Sample game locations
+            const games = [
+                {lng: -71.1167, lat: 42.3770, title: 'Harvard vs Yale', sport: 'Basketball'},
+                {lng: -122.4194, lat: 37.7749, title: 'Stanford vs Berkeley', sport: 'Soccer'},
+                {lng: -74.6593, lat: 40.3467, title: 'MIT vs Princeton', sport: 'Volleyball'},
+                {lng: -87.6298, lat: 41.8781, title: 'Chicago vs Northwestern', sport: 'Football'},
+                {lng: -118.2437, lat: 34.0522, title: 'UCLA vs USC', sport: 'Basketball'}
+            ];
+
+            games.forEach((game, index) => {
+                const el = document.createElement('div');
+                el.className = 'marker';
+                el.style.backgroundImage = 'url(https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png)';
+                el.style.width = '50px';
+                el.style.height = '50px';
+                el.style.backgroundSize = '100%';
+
+                new mapboxgl.Marker(el)
+                    .setLngLat([game.lng, game.lat])
+                    .setPopup(new mapboxgl.Popup({ offset: 25 })
+                        .setHTML(`
+                            <h3>${game.title}</h3>
+                            <p>Sport: ${game.sport}</p>
+                            <a href="#" class="text-blue-600 hover:underline">Watch Live</a>
+                        `))
+                    .addTo(map);
+            });
+        });
+    </script>
+</body>
+</html>

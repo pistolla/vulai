@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniSports Live | Home</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+    <style>
+        .hero-gradient {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1d4ed8 100%);
+        }
+        .map-container {
+            perspective: 1000px;
+        }
+        .tilted-map {
+            transform: rotateX(60deg) rotateZ(-15deg);
+            transform-style: preserve-3d;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        .pin {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: #ef4444;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: rotate(-45deg) scale(1); }
+            50% { transform: rotate(-45deg) scale(1.2); }
+            100% { transform: rotate(-45deg) scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i data-feather="activity" class="text-blue-600 h-8 w-8"></i>
+                        <span class="ml-2 text-xl font-bold text-blue-600">UniSports Live</span>
+                    </div>
+                </div>
+                <div class="hidden md:ml-6 md:flex md:items-center md:space-x-8">
+                    <a href="index.html" class="text-blue-600 border-b-2 border-blue-600 px-3 py-2 text-sm font-medium">Home</a>
+                    <a href="about.html" class="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">About</a>
+                    <a href="contact.html" class="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">Contact</a>
+                    <a href="login.html" class="text-gray-500 hover:text-blue-600 px-3 py-2 text-sm font-medium">Login</a>
+                    <a href="register.html" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">Register</a>
+                </div>
+                <div class="-mr-2 flex items-center md:hidden">
+                    <button type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500" aria-controls="mobile-menu" aria-expanded="false">
+                        <i data-feather="menu"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div id="hero" class="hero-gradient text-white">
+        <div class="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h1 class="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl" data-aos="fade-down">
+                    University Sports Live Updates
+                </h1>
+                <p class="mt-6 max-w-lg mx-auto text-xl" data-aos="fade-up" data-aos-delay="100">
+                    Real-time scores, news, and highlights from universities across the country
+                </p>
+                <div class="mt-10 flex justify-center space-x-4" data-aos="fade-up" data-aos-delay="200">
+                    <a href="dashboard.html" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-blue-700 bg-white hover:bg-gray-50">
+                        View Dashboard
+                    </a>
+                    <a href="register.html" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-800 hover:bg-blue-900">
+                        Get Started
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Updates Section -->
+    <div class="bg-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl" data-aos="fade-up">
+                    Live Updates
+                </h2>
+                <div class="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    <!-- Update Card 1 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+                        <div class="p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-blue-500 rounded-md p-2">
+                                    <i data-feather="alert-circle" class="h-6 w-6 text-white"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-gray-900">Basketball Finals</h3>
+                                    <p class="mt-1 text-sm text-gray-500">Stanford vs Harvard</p>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex justify-between items-center">
+                                <span class="text-2xl font-bold">72 - 68</span>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                                    Live
+                                </span>
+                            </div>
+                            <div class="mt-4">
+                                <p class="text-sm text-gray-500">Q4: 3:45 remaining</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Update Card 2 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden" data-aos="fade-up" data-aos-delay="200">
+                        <div class="p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-green-500 rounded-md p-2">
+                                    <i data-feather="zap" class="h-6 w-6 text-white"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-gray-900">Soccer Semifinals</h3>
+                                    <p class="mt-1 text-sm text-gray-500">UCLA vs Michigan</p>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex justify-between items-center">
+                                <span class="text-2xl font-bold">1 - 0</span>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                                    Live
+                                </span>
+                            </div>
+                            <div class="mt-4">
+                                <p class="text-sm text-gray-500">2nd Half: 15:30 remaining</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Update Card 3 -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden" data-aos="fade-up" data-aos-delay="300">
+                        <div class="p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-yellow-500 rounded-md p-2">
+                                    <i data-feather="clock" class="h-6 w-6 text-white"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-gray-900">Swimming Championship</h3>
+                                    <p class="mt-1 text-sm text-gray-500">Day 2 Preliminaries</p>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex justify-between items-center">
+                                <span class="text-2xl font-bold">Starting Soon</span>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                    10:00 AM
+                                </span>
+                            </div>
+                            <div class="mt-4">
+                                <p class="text-sm text-gray-500">200m Freestyle Heats</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Preview Section -->
+    <div class="bg-gray-100 py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl" data-aos="fade-up">
+                    Game Locations Across the Country
+                </h2>
+                <p class="mt-4 max-w-2xl text-xl text-gray-500 mx-auto" data-aos="fade-up" data-aos-delay="100">
+                    Interactive map showing all upcoming and live university sports events
+                </p>
+            </div>
+            <div class="map-container" data-aos="zoom-in">
+                <div class="relative tilted-map bg-white p-4 rounded-lg mx-auto" style="width: 800px; height: 500px; background-image: url('http://static.photos/blue/800x500/42'); background-size: cover;">
+                    <!-- Map pins -->
+                    <div class="pin" style="top: 30%; left: 20%;" data-tooltip="Stanford vs Harvard - Basketball"></div>
+                    <div class="pin" style="top: 45%; left: 35%;" data-tooltip="UCLA vs Michigan - Soccer"></div>
+                    <div class="pin" style="top: 60%; left: 55%;" data-tooltip="Texas vs Florida - Swimming"></div>
+                    <div class="pin" style="top: 25%; left: 70%;" data-tooltip="Yale vs Princeton - Tennis"></div>
+                    <div class="pin" style="top: 75%; left: 40%;" data-tooltip="Ohio State vs Penn State - Volleyball"></div>
+                </div>
+            </div>
+            <div class="mt-12 text-center">
+                <a href="dashboard.html" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+                    Explore Full Interactive Map
+                    <i data-feather="arrow-right" class="ml-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Navigation</h3>
+                    <ul class="mt-4 space-y-2">
+                        <li><a href="index.html" class="text-base text-gray-300 hover:text-white">Home</a></li>
+                        <li><a href="about.html" class="text-base text-gray-300 hover:text-white">About</a></li>
+                        <li><a href="contact.html" class="text-base text-gray-300 hover:text-white">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Account</h3>
+                    <ul class="mt-4 space-y-2">
+                        <li><a href="login.html" class="text-base text-gray-300 hover:text-white">Login</a></li>
+                        <li><a href="register.html" class="text-base text-gray-300 hover:text-white">Register</a></li>
+                        <li><a href="dashboard.html" class="text-base text-gray-300 hover:text-white">Dashboard</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Legal</h3>
+                    <ul class="mt-4 space-y-2">
+                        <li><a href="#" class="text-base text-gray-300 hover:text-white">Privacy</a></li>
+                        <li><a href="#" class="text-base text-gray-300 hover:text-white">Terms</a></li>
+                        <li><a href="#" class="text-base text-gray-300 hover:text-white">Cookie Policy</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Connect</h3>
+                    <div class="mt-4 flex space-x-6">
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <i data-feather="twitter"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <i data-feather="facebook"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <i data-feather="instagram"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white">
+                            <i data-feather="youtube"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-12 border-t border-gray-700 pt-8">
+                <p class="text-base text-gray-400 text-center">
+                    &copy; 2023 UniSports Live. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        AOS.init();
+        feather.replace();
+        
+        // Initialize Vanta.js effect
+        VANTA.NET({
+            el: "#hero",
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            scale: 1.00,
+            scaleMobile: 1.00,
+            color: 0x3b82f6,
+            backgroundColor: 0x1e3a8a,
+            points: 12.00,
+            maxDistance: 22.00,
+            spacing: 17.00
+        });
+    </script>
+</body>
+</html>
