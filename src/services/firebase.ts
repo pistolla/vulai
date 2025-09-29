@@ -13,6 +13,7 @@ import {
 } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { AuthUser, UserProfile, UserRole } from '@/models/User';
+import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAfueNrXFi1MR5RwbLSYVOwAkW2IfiM9RI",
@@ -108,3 +109,4 @@ export const subscribeAuth = (cb: (u: AuthUser | null) => void) =>
   export const loginGoogle   = () => socialLogin(googleProvider);
   export const loginFacebook = () => socialLogin(facebookProvider);
   export const loginTwitter  = () => socialLogin(twitterProvider);
+  export const storage = getStorage();
