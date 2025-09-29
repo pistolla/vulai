@@ -1,0 +1,183 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 380" fill="none">
+  <defs>
+    <!-- Artificial turf texture pattern -->
+    <pattern id="turfPattern" patternUnits="userSpaceOnUse" width="16" height="16">
+      <rect width="16" height="16" fill="#2F5F3F"/>
+      <rect x="0" y="0" width="8" height="16" fill="#3A7050" opacity="0.5"/>
+      <rect x="0" y="0" width="16" height="8" fill="#4A8060" opacity="0.3"/>
+    </pattern>
+    
+    <!-- Goal net pattern -->
+    <pattern id="netPattern" patternUnits="userSpaceOnUse" width="8" height="8">
+      <rect width="8" height="8" fill="none"/>
+      <path d="M0,0 L8,8 M8,0 L0,8" stroke="white" stroke-width="0.5" opacity="0.6"/>
+    </pattern>
+    
+    <!-- Goal post gradient -->
+    <linearGradient id="goalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E0E0E0"/>
+      <stop offset="50%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#C0C0C0"/>
+    </linearGradient>
+    
+    <!-- Shadow filter -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+      <feOffset dx="2" dy="2" result="offset"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Field background -->
+  <rect x="20" y="20" width="560" height="340" fill="#2F5F3F" stroke="white" stroke-width="3"/>
+  <rect x="20" y="20" width="560" height="340" fill="url(#turfPattern)" opacity="0.8"/>
+  
+  <!-- Sidelines and backlines -->
+  <rect x="20" y="20" width="560" height="340" stroke="white" stroke-width="3" fill="none"/>
+  
+  <!-- Center line -->
+  <line x1="300" y1="20" x2="300" y2="360" stroke="white" stroke-width="3"/>
+  
+  <!-- 25-yard lines -->
+  <line x1="150" y1="20" x2="150" y2="360" stroke="white" stroke-width="2" stroke-dasharray="10,5"/>
+  <line x1="450" y1="20" x2="450" y2="360" stroke="white" stroke-width="2" stroke-dasharray="10,5"/>
+  
+  <!-- Center circle -->
+  <circle cx="300" cy="190" r="30" stroke="white" stroke-width="2" fill="none"/>
+  <circle cx="300" cy="190" r="2" fill="white"/>
+  
+  <!-- Shooting circles (D-shaped areas) -->
+  <g>
+    <!-- Left shooting circle -->
+    <path d="M 20 130 A 60 60 0 0 1 20 250" stroke="white" stroke-width="2" fill="none"/>
+    <line x1="20" y1="130" x2="80" y2="130" stroke="white" stroke-width="2"/>
+    <line x1="20" y1="250" x2="80" y2="250" stroke="white" stroke-width="2"/>
+    <path d="M 80 130 A 60 60 0 0 1 80 250" stroke="white" stroke-width="2" fill="none"/>
+    
+    <!-- Right shooting circle -->
+    <path d="M 580 130 A 60 60 0 0 0 580 250" stroke="white" stroke-width="2" fill="none"/>
+    <line x1="580" y1="130" x2="520" y2="130" stroke="white" stroke-width="2"/>
+    <line x1="580" y1="250" x2="520" y2="250" stroke="white" stroke-width="2"/>
+    <path d="M 520 130 A 60 60 0 0 0 520 250" stroke="white" stroke-width="2" fill="none"/>
+  </g>
+  
+  <!-- Goals -->
+  <g>
+    <!-- Left goal -->
+    <rect x="15" y="165" width="5" height="50" fill="url(#goalGradient)" stroke="white" stroke-width="1" filter="url(#shadow)"/>
+    <rect x="15" y="165" width="8" height="50" fill="url(#netPattern)" opacity="0.4"/>
+    <!-- Goal posts -->
+    <rect x="20" y="163" width="2" height="3" fill="white"/>
+    <rect x="20" y="212" width="2" height="3" fill="white"/>
+    <!-- Crossbar -->
+    <rect x="20" y="163" width="2" height="52" stroke="white" stroke-width="1" fill="none"/>
+    
+    <!-- Right goal -->
+    <rect x="580" y="165" width="5" height="50" fill="url(#goalGradient)" stroke="white" stroke-width="1" filter="url(#shadow)"/>
+    <rect x="577" y="165" width="8" height="50" fill="url(#netPattern)" opacity="0.4"/>
+    <!-- Goal posts -->
+    <rect x="578" y="163" width="2" height="3" fill="white"/>
+    <rect x="578" y="212" width="2" height="3" fill="white"/>
+    <!-- Crossbar -->
+    <rect x="578" y="163" width="2" height="52" stroke="white" stroke-width="1" fill="none"/>
+  </g>
+  
+  <!-- Penalty spots -->
+  <circle cx="45" cy="190" r="2" fill="white"/>
+  <circle cx="555" cy="190" r="2" fill="white"/>
+  
+  <!-- Corner arcs -->
+  <g>
+    <path d="M 30 20 A 10 10 0 0 0 20 30" stroke="white" stroke-width="2" fill="none"/>
+    <path d="M 570 20 A 10 10 0 0 1 580 30" stroke="white" stroke-width="2" fill="none"/>
+    <path d="M 30 360 A 10 10 0 0 1 20 350" stroke="white" stroke-width="2" fill="none"/>
+    <path d="M 570 360 A 10 10 0 0 0 580 350" stroke="white" stroke-width="2" fill="none"/>
+  </g>
+  
+  <!-- 5-meter marks for free hits -->
+  <g stroke="white" stroke-width="2" opacity="0.8">
+    <!-- Along center line -->
+    <line x1="295" y1="20" x2="305" y2="20"/>
+    <line x1="295" y1="360" x2="305" y2="360"/>
+    
+    <!-- 5m marks from shooting circles -->
+    <line x1="85" y1="185" x2="95" y2="185"/>
+    <line x1="85" y1="195" x2="95" y2="195"/>
+    <line x1="505" y1="185" x2="515" y2="185"/>
+    <line x1="505" y1="195" x2="515" y2="195"/>
+  </g>
+  
+  <!-- Hash marks along sidelines for lineouts/throw-ins -->
+  <g stroke="white" stroke-width="1" opacity="0.6">
+    <!-- Top sideline -->
+    <line x1="75" y1="20" x2="75" y2="25"/>
+    <line x1="150" y1="20" x2="150" y2="25"/>
+    <line x1="225" y1="20" x2="225" y2="25"/>
+    <line x1="300" y1="20" x2="300" y2="25"/>
+    <line x1="375" y1="20" x2="375" y2="25"/>
+    <line x1="450" y1="20" x2="450" y2="25"/>
+    <line x1="525" y1="20" x2="525" y2="25"/>
+    
+    <!-- Bottom sideline -->
+    <line x1="75" y1="360" x2="75" y2="355"/>
+    <line x1="150" y1="360" x2="150" y2="355"/>
+    <line x1="225" y1="360" x2="225" y2="355"/>
+    <line x1="300" y1="360" x2="300" y2="355"/>
+    <line x1="375" y1="360" x2="375" y2="355"/>
+    <line x1="450" y1="360" x2="450" y2="355"/>
+    <line x1="525" y1="360" x2="525" y2="355"/>
+  </g>
+  
+  <!-- Corner flags -->
+  <g>
+    <!-- Top left -->
+    <rect x="18" y="15" width="4" height="3" fill="#FFD700"/>
+    <line x1="20" y1="18" x2="20" y2="22" stroke="white" stroke-width="1"/>
+    
+    <!-- Top right -->
+    <rect x="578" y="15" width="4" height="3" fill="#FFD700"/>
+    <line x1="580" y1="18" x2="580" y2="22" stroke="white" stroke-width="1"/>
+    
+    <!-- Bottom left -->
+    <rect x="18" y="362" width="4" height="3" fill="#FFD700"/>
+    <line x1="20" y1="358" x2="20" y2="362" stroke="white" stroke-width="1"/>
+    
+    <!-- Bottom right -->
+    <rect x="578" y="362" width="4" height="3" fill="#FFD700"/>
+    <line x1="580" y1="358" x2="580" y2="362" stroke="white" stroke-width="1"/>
+  </g>
+  
+  <!-- Dotted lines for coaching areas -->
+  <g stroke="white" stroke-width="1" stroke-dasharray="2,3" opacity="0.5">
+    <line x1="20" y1="80" x2="580" y2="80"/>
+    <line x1="20" y1="300" x2="580" y2="300"/>
+  </g>
+  
+  <!-- Distance markers -->
+  <g fill="white" font-family="Arial, sans-serif" font-size="9" text-anchor="middle" opacity="0.7">
+    <text x="75" y="12">25yd</text>
+    <text x="150" y="12">25yd</text>
+    <text x="300" y="12">Centre</text>
+    <text x="450" y="12">25yd</text>
+    <text x="525" y="12">25yd</text>
+  </g>
+  
+  <!-- Substitution areas -->
+  <g>
+    <rect x="280" y="17" width="40" height="6" stroke="white" stroke-width="1" fill="none" opacity="0.6"/>
+    <rect x="280" y="357" width="40" height="6" stroke="white" stroke-width="1" fill="none" opacity="0.6"/>
+    <text x="300" y="21" fill="white" font-family="Arial, sans-serif" font-size="6" text-anchor="middle" opacity="0.8">SUB</text>
+    <text x="300" y="364" fill="white" font-family="Arial, sans-serif" font-size="6" text-anchor="middle" opacity="0.8">SUB</text>
+  </g>
+  
+  <!-- Field lighting effects -->
+  <ellipse cx="300" cy="190" rx="250" ry="140" fill="white" fill-opacity="0.02"/>
+  <ellipse cx="80" cy="190" rx="50" ry="80" fill="white" fill-opacity="0.02"/>
+  <ellipse cx="520" cy="190" rx="50" ry="80" fill="white" fill-opacity="0.02"/>
+</svg>

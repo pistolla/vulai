@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 360" fill="none">
+  <defs>
+    <!-- Grass texture pattern -->
+    <pattern id="rugbyGrassPattern" patternUnits="userSpaceOnUse" width="24" height="24">
+      <rect width="24" height="24" fill="#2E8B57"/>
+      <rect x="0" y="0" width="12" height="24" fill="#3CB371" opacity="0.4"/>
+    </pattern>
+    
+    <!-- Goal post gradients -->
+    <linearGradient id="postGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFD700"/>
+      <stop offset="50%" stop-color="#FFA500"/>
+      <stop offset="100%" stop-color="#FF8C00"/>
+    </linearGradient>
+    
+    <!-- Shadow filter -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+      <feOffset dx="1" dy="1" result="offset"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Field background -->
+  <rect x="20" y="20" width="560" height="320" fill="#2E8B57" stroke="white" stroke-width="3"/>
+  <rect x="20" y="20" width="560" height="320" fill="url(#rugbyGrassPattern)" opacity="0.7"/>
+  
+  <!-- In-goal areas (try zones) -->
+  <rect x="20" y="20" width="60" height="320" fill="#228B22" stroke="white" stroke-width="2" opacity="0.8"/>
+  <rect x="520" y="20" width="60" height="320" fill="#228B22" stroke="white" stroke-width="2" opacity="0.8"/>
+  
+  <!-- Main playing field -->
+  <rect x="80" y="20" width="440" height="320" stroke="white" stroke-width="2" fill="none"/>
+  
+  <!-- Try lines (goal lines) -->
+  <line x1="80" y1="20" x2="80" y2="340" stroke="white" stroke-width="3"/>
+  <line x1="520" y1="20" x2="520" y2="340" stroke="white" stroke-width="3"/>
+  
+  <!-- Halfway line -->
+  <line x1="300" y1="20" x2="300" y2="340" stroke="white" stroke-width="2"/>
+  
+  <!-- 22-meter lines -->
+  <line x1="190" y1="20" x2="190" y2="340" stroke="white" stroke-width="2" stroke-dasharray="8,4"/>
+  <line x1="410" y1="20" x2="410" y2="340" stroke="white" stroke-width="2" stroke-dasharray="8,4"/>
+  
+  <!-- 10-meter lines from halfway -->
+  <line x1="245" y1="20" x2="245" y2="340" stroke="white" stroke-width="1" stroke-dasharray="4,4" opacity="0.7"/>
+  <line x1="355" y1="20" x2="355" y2="340" stroke="white" stroke-width="1" stroke-dasharray="4,4" opacity="0.7"/>
+  
+  <!-- 5-meter lines from try lines -->
+  <line x1="135" y1="20" x2="135" y2="340" stroke="white" stroke-width="1" stroke-dasharray="2,2" opacity="0.6"/>
+  <line x1="465" y1="20" x2="465" y2="340" stroke="white" stroke-width="1" stroke-dasharray="2,2" opacity="0.6"/>
+  
+  <!-- Touch lines (sidelines) -->
+  <line x1="20" y1="20" x2="580" y2="20" stroke="white" stroke-width="3"/>
+  <line x1="20" y1="340" x2="580" y2="340" stroke="white" stroke-width="3"/>
+  
+  <!-- Center spot -->
+  <circle cx="300" cy="180" r="3" fill="white"/>
+  
+  <!-- Goal posts -->
+  <g>
+    <!-- Left goal posts -->
+    <rect x="77" y="160" width="6" height="40" fill="url(#postGradient)" filter="url(#shadow)"/>
+    <rect x="77" y="160" width="6" height="4" fill="#FFD700"/>
+    <rect x="77" y="196" width="6" height="4" fill="#FFD700"/>
+    <!-- Crossbar -->
+    <rect x="77" y="157" width="6" height="3" fill="#FFD700"/>
+    <!-- Uprights extending upward -->
+    <rect x="79" y="140" width="2" height="20" fill="#FFD700"/>
+    <rect x="79" y="200" width="2" height="20" fill="#FFD700"/>
+    
+    <!-- Right goal posts -->
+    <rect x="517" y="160" width="6" height="40" fill="url(#postGradient)" filter="url(#shadow)"/>
+    <rect x="517" y="160" width="6" height="4" fill="#FFD700"/>
+    <rect x="517" y="196" width="6" height="4" fill="#FFD700"/>
+    <!-- Crossbar -->
+    <rect x="517" y="157" width="6" height="3" fill="#FFD700"/>
+    <!-- Uprights extending upward -->
+    <rect x="519" y="140" width="2" height="20" fill="#FFD700"/>
+    <rect x="519" y="200" width="2" height="20" fill="#FFD700"/>
+  </g>
+  
+  <!-- Corner flags -->
+  <g>
+    <!-- Top left -->
+    <rect x="18" y="15" width="6" height="4" fill="#FF0000"/>
+    <line x1="20" y1="19" x2="20" y2="25" stroke="#FFFFFF" stroke-width="1"/>
+    
+    <!-- Top right -->
+    <rect x="576" y="15" width="6" height="4" fill="#FF0000"/>
+    <line x1="578" y1="19" x2="578" y2="25" stroke="#FFFFFF" stroke-width="1"/>
+    
+    <!-- Bottom left -->
+    <rect x="18" y="341" width="6" height="4" fill="#FF0000"/>
+    <line x1="20" y1="337" x2="20" y2="341" stroke="#FFFFFF" stroke-width="1"/>
+    
+    <!-- Bottom right -->
+    <rect x="576" y="341" width="6" height="4" fill="#FF0000"/>
+    <line x1="578" y1="337" x2="578" y2="341" stroke="#FFFFFF" stroke-width="1"/>
+  </g>
+  
+  <!-- Try zone markings (hash marks) -->
+  <g stroke="white" stroke-width="1" opacity="0.6">
+    <!-- Left try zone -->
+    <line x1="30" y1="80" x2="35" y2="80"/>
+    <line x1="30" y1="120" x2="35" y2="120"/>
+    <line x1="30" y1="160" x2="35" y2="160"/>
+    <line x1="30" y1="200" x2="35" y2="200"/>
+    <line x1="30" y1="240" x2="35" y2="240"/>
+    <line x1="30" y1="280" x2="35" y2="280"/>
+    
+    <!-- Right try zone -->
+    <line x1="565" y1="80" x2="570" y2="80"/>
+    <line x1="565" y1="120" x2="570" y2="120"/>
+    <line x1="565" y1="160" x2="570" y2="160"/>
+    <line x1="565" y1="200" x2="570" y2="200"/>
+    <line x1="565" y1="240" x2="570" y2="240"/>
+    <line x1="565" y1="280" x2="570" y2="280"/>
+  </g>
+  
+  <!-- Scrum marks on halfway line -->
+  <g>
+    <circle cx="280" cy="180" r="2" fill="white" opacity="0.8"/>
+    <circle cx="300" cy="180" r="2" fill="white" opacity="0.8"/>
+    <circle cx="320" cy="180" r="2" fill="white" opacity="0.8"/>
+  </g>
+  
+  <!-- Field lighting effects -->
+  <ellipse cx="300" cy="180" rx="220" ry="120" fill="white" fill-opacity="0.03"/>
+  <ellipse cx="135" cy="180" rx="40" ry="80" fill="white" fill-opacity="0.02"/>
+  <ellipse cx="465" cy="180" rx="40" ry="80" fill="white" fill-opacity="0.02"/>
+  
+  <!-- Distance markers along sidelines -->
+  <g fill="white" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" opacity="0.7">
+    <text x="80" y="15">0</text>
+    <text x="135" y="15">5</text>
+    <text x="190" y="15">22</text>
+    <text x="245" y="15">10</text>
+    <text x="300" y="15">50</text>
+    <text x="355" y="15">10</text>
+    <text x="410" y="15">22</text>
+    <text x="465" y="15">5</text>
+    <text x="520" y="15">0</text>
+  </g>
+</svg>

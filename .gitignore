@@ -1,0 +1,123 @@
+# ------------------------------------------------------------------
+#  NEXT.JS  (Pages + App Router)
+# ------------------------------------------------------------------
+.next/
+out/
+*.tsbuildinfo
+.next-env.d.ts
+
+# ------------------------------------------------------------------
+#  NODE / PACKAGE MANAGERS
+# ------------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Lock files (choose ONE to ignore, keep the other for CI)
+# package-lock.json      # npm
+# yarn.lock              # yarn
+# pnpm-lock.yaml         # pnpm
+
+# ------------------------------------------------------------------
+#  ENVIRONMENT  (never commit real secrets)
+# ------------------------------------------------------------------
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+
+# ------------------------------------------------------------------
+#  FIREBASE  (admin keys & runtime)
+# ------------------------------------------------------------------
+serviceAccountKey.json
+.firebase/
+.firebaserc
+firebase-debug.log
+ui-debug.log
+.firestore.indexes.log
+.firestore.rules.log
+
+# ------------------------------------------------------------------
+#  BUILD / CACHE / MISC
+# ------------------------------------------------------------------
+dist/
+build/
+.cache/
+*.log
+*.pid
+*.seed
+*.pid.lock
+.DS_Store
+Thumbs.db
+
+# ------------------------------------------------------------------
+#  TESTS / COVERAGE
+# ------------------------------------------------------------------
+coverage/
+.nyc_output/
+cypress/videos/
+cypress/screenshots/
+playwright-report/
+test-results/
+junit.xml
+
+# ------------------------------------------------------------------
+#  IDE  (VS Code, IntelliJ, macOS, Windows, Linux)
+# ------------------------------------------------------------------
+.vscode/settings.json
+.idea/
+*.iml
+*.swp
+*.swo
+*~
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# ------------------------------------------------------------------
+#  TYPESCRIPT / LINT CACHE
+# ------------------------------------------------------------------
+*.tsbuildinfo
+.eslintcache
+.stylelintcache
+
+# ------------------------------------------------------------------
+#  OPTIONAL  (uncomment if you use these)
+# ------------------------------------------------------------------
+# .vercel
+# .netlify
+# .serverless
+# .terraform
+# .cache/
+# public/sw.js
+# public/workbox-*.js
+# public 
