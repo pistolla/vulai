@@ -2,13 +2,14 @@ import { createListenerMiddleware } from '@reduxjs/toolkit';
 import { subscribeAuth } from '@/services/firebase';
 import { setUser } from './slices/authSlice';
 import { setAdminData, clearAdminData } from './slices/adminSlice';
-import { setCorrespondentData, clearCorrespondentData } from './slices/correspondentSlice';
+import { setCorrespondentData, clearCorrespondentData, setActiveCommentary } from './slices/correspondentSlice';
 import { setFanData, clearFanData } from './slices/fanSlice';
 import { setSportTeamData, clearSportTeamData } from './slices/sportTeamSlice';
 import { loadAdminData, loadCorrespondentData, loadFanData, loadSportTeamData } from '@/services/firestore';
-import { onSnapshot, collection, query, where } from 'firebase/firestore';
+import { onSnapshot, collection, query, where, doc } from 'firebase/firestore';
 import { db } from '@/services/firebase';
 import { setGames, updateFixture } from '@/store/slices/gamesSlice';
+import { LiveCommentary } from '@/models';
 
 export const listenerMiddleware = createListenerMiddleware();
 
@@ -41,8 +42,6 @@ listenerMiddleware.startListening({
           break;
         }
         case 'correspondent':
-            /* optional: keep commentary in sync across tabs */
-            const corr = getState().auth.user!;
             const unsub = onSnapshot(doc(db,'liveCommentary',/*fixtureId*/), (snap)=>{
                 if(snap.exists()){
                     listenerApi.dispatch(setActiveCommentary(snap.data() as LiveCommentary));
