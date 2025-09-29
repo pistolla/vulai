@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.9.0",
-    "@splidejs/react-splide": "^4.1.4",
+    "@splidejs/react-splide": "0.7.12",
     "@splidejs/splide": "^4.1.4",
     "@types/styled-jsx": "^3.4.4",
     "animejs": "^3.2.1",
