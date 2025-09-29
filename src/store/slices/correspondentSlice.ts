@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { CorrespondentDashboard, LiveCommentary, FixtureVideo } from '@/models';
-import { pushCommentaryEvent, attachDriveVideo } from '@/store/thunks';
+import { pushCommentaryEvent, attachDriveVideo } from '@/store/correspondentThunk';
 
 interface ExtendedCorrState extends CorrespondentDashboard {
   activeCommentary: LiveCommentary | null;

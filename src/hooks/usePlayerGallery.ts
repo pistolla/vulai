@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
-import { db } from '@/services/firestore';
+import { db } from '@/services/firebase';
 
 export interface GalleryImage {
   id: string;

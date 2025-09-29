@@ -28,7 +28,6 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 
 if (!getApps().length) initializeApp(firebaseConfig);
 export const auth = getAuth();

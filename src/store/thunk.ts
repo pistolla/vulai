@@ -13,7 +13,7 @@ export const publishArticle = createAsyncThunk(
     const ref = doc(db, 'news', doc(collection(db, '_')).id);
     const payload = { ...article, id: ref.id, authorId, publishedAt: serverTimestamp() };
     await setDoc(ref, payload);
-    return payload as News;
+    return payload as unknown as News;
   }
 );
 

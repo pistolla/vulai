@@ -2,6 +2,7 @@ import { db } from './firebase';
 import {
   collection,
   doc,
+  getDoc,
   getDocs,
   query,
   where,
@@ -47,7 +48,7 @@ export const loadCorrespondentData = async (uid: string) => {
 export const loadFanData = async (uid: string) => {
   const [tickets, followed, feed] = await Promise.all([
     getDocs(query(col<Ticket>('tickets'), where('fanId', '==', uid))),
-    getDocs(doc(db, 'fans', uid)).then((d) => (d.exists() ? d.data().followedTeams ?? [] : [])),
+    getDoc(doc(db, 'fans', uid)).then((d) => (d.exists() ? d.data().followedTeams ?? [] : [])),
     getDocs(
       query(
         col<News>('news'),

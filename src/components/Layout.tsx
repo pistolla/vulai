@@ -129,12 +129,13 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
                   }`} />
                 </a>
               ))}
-              <button 
-                onClick={showComingSoon}
+              <a 
+              type="button"
+                href="/register"
                 className="bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white px-4 py-2 rounded-lg hover:from-unill-purple-600 hover:to-unill-yellow-600 transition-all transform hover:scale-105"
               >
                 Join Now
-              </button>
+              </a>
             </div>
             
             {/* Mobile Menu Button */}

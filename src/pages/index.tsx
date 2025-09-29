@@ -316,25 +316,6 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      <style jsx>{`
-        .sport-card {
-          opacity: 0;
-          transform: translateY(30px);
-          transition: all 0.6s ease;
-        }
-        
-        .sport-card.animate-in {
-          opacity: 1;
-          transform: translateY(0);
-        }
-        
-        .filter-btn.active {
-          background: linear-gradient(135deg, #a855f7, #f59e0b);
-          color: white;
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
-        }
-      `}</style>
     </Layout>
   );
 };
