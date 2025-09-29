@@ -26,8 +26,8 @@ export interface Athlete {
 }
 
 export interface Fixture {
-  homeTeamName: ReactNode;
-  awayTeamName: ReactNode;
+  homeTeamName: string;
+  awayTeamName: string;
   id: string;
   homeTeamId: string;
   awayTeamId: string;
