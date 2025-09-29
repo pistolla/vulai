@@ -54,8 +54,8 @@ export default function AdminDashboardPage() {
       case 'dashboard': return <DashboardTab stats={stats} live={live} users={users} upcoming={upcoming} openGame={(g: any) => open('gameDetails', g)} />;
       case 'users':     return <UsersTab rows={users} approve={(uid: any) => dispatch(approveUserT(uid))} deleteU={(uid: any) => dispatch(deleteUserT(uid))} openAdd={() => open('addUser')} />;
       case 'merchandise': return <MerchTab items={merch} create={(item: any) => dispatch(createMerchT(item))} remove={(id: any) => dispatch(removeMerchT(id))} />;
-      case 'review':    return <ReviewTab rows={reviews} approve={(id => dispatch(approveReviewT(id))} reject={id => dispatch(rejectReviewT(id))} />;
-      case 'games':     return <GamesTab live={live} upcoming={upcoming} updateScore={(id,h,a)=>dispatch(updateScoreT({id,home:h,away:a}))} startG={id=>dispatch(startGameT(id))} endG={id=>dispatch(endGameT(id))} />;
+      case 'review':    return <ReviewTab rows={reviews} approve={(id: any) => dispatch(approveReviewT(id))} reject={(id: any) => dispatch(rejectReviewT(id))} />;
+      case 'games':     return <GamesTab live={live} upcoming={upcoming} updateScore={(id: any,h: any,a: any)=>dispatch(updateScoreT({id,home:h,away:a}))} startG={(id: any)=>dispatch(startGameT(id))} endG={(id: any)=>dispatch(endGameT(id))} />;
       default:          return null;
     }
   };
