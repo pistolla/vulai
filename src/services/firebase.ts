@@ -14,8 +14,6 @@ import {
 import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { AuthUser, UserProfile, UserRole } from '@/models/User';
 
-
-import { getAnalytics } from "firebase/analytics";
 const firebaseConfig = {
   apiKey: "AIzaSyAfueNrXFi1MR5RwbLSYVOwAkW2IfiM9RI",
   authDomain: "unill-20c41.firebaseapp.com",
@@ -89,7 +87,7 @@ export const subscribeAuth = (cb: (u: AuthUser | null) => void) =>
   const socialLogin = async (provider: GoogleAuthProvider | FacebookAuthProvider | TwitterAuthProvider) => {
     const cred = await signInWithPopup(auth, provider);
     const uid  = cred.user.uid;
-  
+
     /* create / merge profile doc */
     await setDoc(
       doc(db, 'users', uid),
@@ -102,7 +100,9 @@ export const subscribeAuth = (cb: (u: AuthUser | null) => void) =>
       },
       { merge: true }
     );
-    return mapRawUser({ uid, ...cred.user });
+    const snap = await getDoc(doc(db, 'users', uid));
+    if (!snap.exists()) throw new Error('Profile creation failed');
+    return mapRawUser({ uid, ...snap.data() });
   };
   
   export const loginGoogle   = () => socialLogin(googleProvider);
