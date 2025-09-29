@@ -9,6 +9,7 @@ import AOS from 'aos';
 import 'aos/dist/aos.css';
 import feather from 'feather-icons';
 import FanGuard from '@/guards/FanGuard';
+import { ChatMessage } from '@/services/firestoreFan';
 
 /* ---------- types ---------- */
 type TeamTheme = 'crimson' | 'blue' | 'cardinal' | 'gold';
@@ -24,13 +25,14 @@ const themes: Record<TeamTheme, Record<string, string>> = {
 export default function FanPage() {
   const dispatch = useAppDispatch();
   const user        = useAppSelector(s => s.auth.user);
-  const { merch, followedTeams, myTickets, newsFeed } = useAppSelector(s => s.fan);
+  const { followedTeams, myTickets, newsFeed } = useAppSelector(s => s.fan);
+  const merch = useAppSelector(s => s.merch.items);
   const { upcoming } = useAppSelector(s => s.games);
 
   /* ---------- local state ---------- */
   const [theme, setTheme] = useState<TeamTheme>('crimson');
   const [chatMsg, setChatMsg]     = useState('');
-  const [chatMessages, setChatMessages] = useState<Array<{id:string; text:string; user:string; createdAt:string}>>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const selectedFixture = upcoming[0]; // demo: first upcoming game
 
   /* ---------- init ---------- */

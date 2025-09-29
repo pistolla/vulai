@@ -2,7 +2,7 @@ import { collection, onSnapshot, addDoc, serverTimestamp, orderBy, query } from 
 import { db } from './firebase';
 
 export interface ChatMessage {
-  id?: string;
+  id: string;
   user: string;
   text: string;
   createdAt: any;
