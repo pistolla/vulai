@@ -10,7 +10,7 @@ import {
   approveUserT,
   deleteUserT,
   createMerchT,
-  deleteMerchT,
+  removeMerchT,
   approveReviewT,
   rejectReviewT,
   updateScoreT,
@@ -51,10 +51,10 @@ export default function AdminDashboardPage() {
   /* ---------- Tab content ---------- */
   const renderContent = () => {
     switch (activeTab) {
-      case 'dashboard': return <DashboardTab stats={stats} live={live} users={users} upcoming={upcoming} openGame={g => open('gameDetails', g)} />;
-      case 'users':     return <UsersTab rows={users} approve={uid => dispatch(approveUserT(uid))} deleteU={uid => dispatch(deleteUserT(uid))} openAdd={() => open('addUser')} />;
-      case 'merchandise': return <MerchTab items={merch} create={item => dispatch(createMerchT(item))} remove={id => dispatch(deleteMerchT(id))} />;
-      case 'review':    return <ReviewTab rows={reviews} approve={id => dispatch(approveReviewT(id))} reject={id => dispatch(rejectReviewT(id))} />;
+      case 'dashboard': return <DashboardTab stats={stats} live={live} users={users} upcoming={upcoming} openGame={(g: any) => open('gameDetails', g)} />;
+      case 'users':     return <UsersTab rows={users} approve={(uid: any) => dispatch(approveUserT(uid))} deleteU={(uid: any) => dispatch(deleteUserT(uid))} openAdd={() => open('addUser')} />;
+      case 'merchandise': return <MerchTab items={merch} create={(item: any) => dispatch(createMerchT(item))} remove={(id: any) => dispatch(removeMerchT(id))} />;
+      case 'review':    return <ReviewTab rows={reviews} approve={(id => dispatch(approveReviewT(id))} reject={id => dispatch(rejectReviewT(id))} />;
       case 'games':     return <GamesTab live={live} upcoming={upcoming} updateScore={(id,h,a)=>dispatch(updateScoreT({id,home:h,away:a}))} startG={id=>dispatch(startGameT(id))} endG={id=>dispatch(endGameT(id))} />;
       default:          return null;
     }
