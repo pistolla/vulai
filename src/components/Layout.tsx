@@ -17,6 +17,8 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
     { name: 'Sports', href: '/sports', current: router.pathname === '/sports' },
     { name: 'Schedule', href: '/schedule', current: router.pathname === '/schedule' },
     { name: 'Teams', href: '/teams', current: router.pathname === '/teams' },
+    { name: 'About', href: '/about', current: router.pathname === '/about' },
+    { name: 'Contact', href: '/contact', current: router.pathname === '/contact' },
   ];
 
   const showComingSoon = () => {
@@ -166,12 +168,12 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
                     {item.name}
                   </a>
                 ))}
-                <button 
-                  onClick={showComingSoon}
+                <a 
+                  href="/login"
                   className="w-full text-left px-3 py-2 text-white hover:text-unill-yellow-400"
                 >
-                  Join Now
-                </button>
+                  Login
+                </a>
               </div>
             </div>
           )}
