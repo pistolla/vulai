@@ -27,7 +27,7 @@ const HomePage: React.FC = () => {
     <Layout title="Home" description="Discover excellence in university athletics at Unill Sports">
       {/* Hero Section */}
       <section className="min-h-screen flex items-center justify-center relative overflow-hidden" style={{ backgroundImage: `url(${banner.src})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-        <div className="absolute inset-0 bg-black opacity-50"></div>
+        <div className="absolute inset-0 bg-black opacity-30"></div>
         <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
           <div className="animate-float">
             <h1 className="text-5xl md:text-9xl font-black italic mb-6 leading-tight bg-gradient-to-r from-unill-purple-400 to-unill-yellow-500 bg-clip-text text-transparent" style={{ fontFamily: 'Redwing', fontWeight: 'bold' }}>

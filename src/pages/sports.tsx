@@ -239,29 +239,29 @@ const SportsPage: React.FC = () => {
                   <>
                     <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-lg">
                       <div className="w-12 h-12 bg-gradient-to-br from-unill-yellow-400 to-unill-purple-500 rounded-lg flex items-center justify-center">
-                        <span className="text-xl">🏈</span>
+                        <span className="text-xl">⚽</span>
                       </div>
                       <div>
-                        <h4 className="font-semibold">Football</h4>
-                        <p className="text-sm text-gray-400">Official size and weight</p>
+                        <h4 className="font-semibold">Soccer Ball</h4>
+                        <p className="text-sm text-gray-400">Official size 5 ball</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-lg">
                       <div className="w-12 h-12 bg-gradient-to-br from-unill-purple-400 to-blue-500 rounded-lg flex items-center justify-center">
-                        <span className="text-xl">🪖</span>
+                        <span className="text-xl">🦵</span>
                       </div>
                       <div>
-                        <h4 className="font-semibold">Helmet</h4>
-                        <p className="text-sm text-gray-400">Safety-certified with face mask</p>
+                        <h4 className="font-semibold">Shin Guards</h4>
+                        <p className="text-sm text-gray-400">Protective shin guards</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-lg">
                       <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-blue-500 rounded-lg flex items-center justify-center">
-                        <span className="text-xl">🦵</span>
+                        <span className="text-xl">👟</span>
                       </div>
                       <div>
-                        <h4 className="font-semibold">Pads</h4>
-                        <p className="text-sm text-gray-400">Shoulder, knee, and thigh protection</p>
+                        <h4 className="font-semibold">Cleats</h4>
+                        <p className="text-sm text-gray-400">Soccer-specific footwear</p>
                       </div>
                     </div>
                   </>
@@ -300,7 +300,7 @@ const SportsPage: React.FC = () => {
                 <div className="border-l-3 border-unill-yellow-400 pl-4 mb-4">
                   <h4 className="font-semibold mb-2">Objective</h4>
                   <p className="text-gray-300">
-                    {selectedSport.id === 'football' && 'Score points by advancing the ball into the opponent\'s end zone via running or passing.'}
+                    {selectedSport.id === 'football' && 'Score goals by getting the ball into the opponent\'s net while preventing them from scoring.'}
                     {selectedSport.id === 'basketball' && 'Score points by shooting the ball through the opponent\'s hoop while preventing them from scoring.'}
                     {selectedSport.id === 'volleyball' && 'Score points by grounding the ball on the opponent\'s court while preventing them from doing the same.'}
                   </p>
@@ -308,7 +308,7 @@ const SportsPage: React.FC = () => {
                 <div className="border-l-3 border-unill-yellow-400 pl-4 mb-4">
                   <h4 className="font-semibold mb-2">Game Duration</h4>
                   <p className="text-gray-300">
-                    {selectedSport.id === 'football' && 'Four 15-minute quarters with halftime break. Clock stops for various game situations.'}
+                    {selectedSport.id === 'football' && 'Two 45-minute halves with a 15-minute halftime break.'}
                     {selectedSport.id === 'basketball' && 'Four 10-minute quarters with breaks between quarters and halftime.'}
                     {selectedSport.id === 'volleyball' && 'Best of 5 sets, first to 25 points (win by 2), fifth set to 15 points.'}
                   </p>
@@ -316,7 +316,7 @@ const SportsPage: React.FC = () => {
                 <div className="border-l-3 border-unill-yellow-400 pl-4 mb-4">
                   <h4 className="font-semibold mb-2">Scoring</h4>
                   <p className="text-gray-300">
-                    {selectedSport.id === 'football' && 'Touchdown (6 points), extra point (1 or 2), field goal (3), safety (2 points).'}
+                    {selectedSport.id === 'football' && 'Goal (1 point).'}
                     {selectedSport.id === 'basketball' && 'Field goal (2 or 3 points), free throw (1 point).'}
                     {selectedSport.id === 'volleyball' && 'Rally scoring - every serve results in a point for one team.'}
                   </p>

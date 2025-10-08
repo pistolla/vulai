@@ -6,7 +6,7 @@ export const sportsData: Sport[] = [
     name: 'Football',
     category: 'team',
     description: 'American football with 11-player teams competing in high-energy matches',
-    image: '/resources/football.jpg',
+    image: '/images/soccer.png',
     players: 11,
     season: 'Fall',
     positions: ['Quarterback', 'Running Back', 'Wide Receiver', 'Defensive Line', 'Linebacker', 'Defensive Back'],
