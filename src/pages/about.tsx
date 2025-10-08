@@ -6,7 +6,7 @@ const AboutPage: React.FC = () => {
 return (
     <Layout title="Sports Programs" description="Explore comprehensive university sports programs including Football, Basketball, Volleyball, Rugby, Hockey, Badminton, Table Tennis, Chess, Athletics and more">
       
-    <section className="pt-24 pb-16 bg-gradient-to-r from-unill-purple-800 to-unill-purple-900 text-white">
+    <section className="pt-24 pb-16 bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">About Unill Sports</h1>
             <p className="text-xl">Fostering excellence in university athletics since our founding</p>

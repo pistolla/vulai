@@ -5,14 +5,16 @@ import ContactForm from '@/components/ContactForm';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import feather from 'feather-icons';
+import Layout from '../components/Layout';
 
 export default function ContactPage() {
   useEffect(() => { AOS.init({ once: true }); feather.replace(); }, []);
 
   return (
-    <>
+    <Layout title="Sports Programs" description="Explore comprehensive university sports programs including Football, Basketball, Volleyball, Rugby, Hockey, Badminton, Table Tennis, Chess, Athletics and more">
+      
       {/* ------- HERO  (identical HTML → JSX) ------- */}
-      <div className="contact-hero text-white">
+      <div className="contact-hero bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white">
         <div className="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl" data-aos="fade-down">
@@ -70,14 +72,12 @@ export default function ContactPage() {
 
       {/* ------- CUSTOM CSS  (identical HTML → JSX) ------- */}
       <style jsx global>{`
-        .contact-hero {
-          background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1d4ed8 100%);
-        }
+        
         .contact-card {
           box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
       `}</style>
-    </>
+    </Layout>
   );
 }
 
