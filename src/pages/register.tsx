@@ -3,10 +3,11 @@
 import { useEffect, useState, FormEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/router';
 import { useAppDispatch } from '@/hooks/redux';
-import { register } from '@/services/firebase'; // thin Promise-based helper we built earlier
+import { register, fetchUniversities } from '@/services/firebase'; // thin Promise-based helper we built earlier
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import feather from 'feather-icons';
+import Select from 'react-select';
 
 type Role = 'fan' | 'correspondent';
 
@@ -19,20 +20,29 @@ export default function RegisterPage() {
   const [firstName, setFirstName] = useState('');
   const [lastName,  setLastName]  = useState('');
   const [email,     setEmail]     = useState('');
-  const [university,setUniversity]= useState('');
+  const [university,setUniversity]= useState<{value: string, label: string} | null>(null);
   const [password,  setPassword]  = useState('');
   const [confirm,   setConfirm]   = useState('');
   const [agree,     setAgree]     = useState(false);
   const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState('');
+  const [universities, setUniversities] = useState<{value: string, label: string}[]>([]);
 
   /* ---------- init animations ---------- */
   useEffect(() => { AOS.init({ once: true }); feather.replace(); }, []);
+
+  /* ---------- fetch universities ---------- */
+  useEffect(() => {
+    fetchUniversities().then(unis => {
+      setUniversities(unis.map(u => ({ value: u.id, label: u.name })));
+    });
+  }, []);
 
   /* ---------- submit ---------- */
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
+    if (!university) return setError('Please select a university');
     if (password !== confirm) return setError('Passwords do not match');
     if (!agree) return setError('You must accept the terms');
     setLoading(true);
@@ -44,7 +54,7 @@ export default function RegisterPage() {
         role,
         {
           displayName: `${firstName} ${lastName}`,
-          universityId: university, // we store this in Firestore
+          universityId: university?.value, // we store this in Firestore
         }
       );
       router.replace('/admin'); // role-guard will route to correct dashboard
@@ -132,12 +142,13 @@ export default function RegisterPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">University</label>
-                <input
-                  type="text"
+                <Select
                   value={university}
-                  onChange={(e) => setUniversity(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Your university"
+                  onChange={setUniversity}
+                  options={universities}
+                  className="w-full"
+                  placeholder="Select your university"
+                  isSearchable
                   required
                 />
               </div>

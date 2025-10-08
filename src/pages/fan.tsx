@@ -10,6 +10,7 @@ import 'aos/dist/aos.css';
 import feather from 'feather-icons';
 import FanGuard from '@/guards/FanGuard';
 import { ChatMessage } from '@/services/firestoreFan';
+import UserHeader from '@/components/UserHeader';
 
 /* ---------- types ---------- */
 type TeamTheme = 'crimson' | 'blue' | 'cardinal' | 'gold';
@@ -84,6 +85,7 @@ export default function FanPage() {
 
   return (
     <FanGuard>
+      <UserHeader />
       {/* ------- HERO ------- */}
       <section className="team-theme py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

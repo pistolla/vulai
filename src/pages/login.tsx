@@ -59,7 +59,7 @@ export default function LoginPage() {
     <>
       {/* ------- HERO ------- */}
       <div className="login-hero bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white">
-        <div className="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto py-10 px-4 sm:py-24 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl" data-aos="fade-down">
               Welcome Back

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import CorrespondentGuard from '@/guards/CorrespondentGuard'; // role guard
+import UserHeader from '@/components/UserHeader';
 import { uploadAthleteCsv, attachDriveVideo, startLiveCommentary, pushCommentaryEvent, endLiveCommentary } from '@/store/correspondentThunk';
 import { fetchGames } from '@/store/adminThunk'; // shared thunk
 import AOS from 'aos';
@@ -71,6 +72,7 @@ export default function CorrespondentDashboardPage() {
 
   return (
     <CorrespondentGuard>
+      <UserHeader />
       {/* ------- HEADER ------- */}
       <section className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

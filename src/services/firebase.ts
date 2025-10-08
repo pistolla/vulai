@@ -13,6 +13,7 @@ import {
 } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { AuthUser, UserProfile, UserRole } from '@/models/User';
+import { University } from '@/models';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
@@ -108,5 +109,10 @@ export const subscribeAuth = (cb: (u: AuthUser | null) => void) =>
   
   export const loginGoogle   = () => socialLogin(googleProvider);
   export const loginFacebook = () => socialLogin(facebookProvider);
+export const fetchUniversities = async (): Promise<University[]> => {
+  const { getDocs, collection } = await import('firebase/firestore');
+  const snap = await getDocs(collection(db, 'universities'));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() } as University));
+};
   export const loginTwitter  = () => socialLogin(twitterProvider);
   export const storage = getStorage();

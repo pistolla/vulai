@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import AdminGuard from '@/guards/AdminGuard';
+import UserHeader from '@/components/UserHeader';
 import {
   fetchDashboard,
   fetchUsers,
@@ -62,31 +63,7 @@ export default function AdminDashboardPage() {
 
   return (
     <AdminGuard>
-      {/* ------- SAME HEADER AS HTML ------- */}
-      <header className="bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <div className="flex items-center space-x-3">
-              <img src="/images/logo.png" alt="Unill Sports" className="h-10 w-10" />
-              <a href="/"><span className="text-xl font-bold bg-gradient-to-r from-unill-purple-400 to-unill-yellow-500 bg-clip-text text-transparent">
-                Unill Sports
-              </span></a>
-            </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1 rounded-full">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                <span className="text-sm text-gray-600">{stats.liveGames} Live Games</span>
-              </div>
-              <span className="text-sm text-gray-600">Admin Portal</span>
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-medium">A</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <UserHeader />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* ------- TABS ------- */}
