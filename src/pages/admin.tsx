@@ -63,16 +63,16 @@ export default function AdminDashboardPage() {
   return (
     <AdminGuard>
       {/* ------- SAME HEADER AS HTML ------- */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg mr-3">
-                <svg className="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z" /></svg>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">University Sports Network</h1>
-              </div>
+              <div className="flex items-center space-x-3">
+              <img src="/images/logo.png" alt="Unill Sports" className="h-10 w-10" />
+              <a href="/"><span className="text-xl font-bold bg-gradient-to-r from-unill-purple-400 to-unill-yellow-500 bg-clip-text text-transparent">
+                Unill Sports
+              </span></a>
+            </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1 rounded-full">

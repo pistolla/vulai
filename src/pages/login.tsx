@@ -20,7 +20,7 @@ export default function LoginPage() {
   const [error, setError]       = useState('');
 
   /* ---------- redirect if already authenticated ---------- */
-  useEffect(() => { if (user) router.replace('/dashboard'); }, [user, router]);
+  useEffect(() => { if (user) router.replace('/admin'); }, [user, router]);
 
   /* ---------- animations ---------- */
   useEffect(() => { AOS.init({ once: true }); feather.replace(); }, []);
@@ -32,7 +32,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
-      router.replace('/dashboard');
+      router.replace('/admin');
     } catch (err: any) {
       setError(err.message || 'Login failed');
     } finally {
@@ -47,7 +47,7 @@ export default function LoginPage() {
     try {
       const fn = { google: loginGoogle, facebook: loginFacebook, twitter: loginTwitter }[provider];
       await fn();
-      router.replace('/dashboard');
+      router.replace('/admin');
     } catch (err: any) {
       setError(err.message || 'Social login failed');
     } finally {
@@ -58,7 +58,7 @@ export default function LoginPage() {
   return (
     <>
       {/* ------- HERO ------- */}
-      <div className="login-hero text-white">
+      <div className="login-hero bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white">
         <div className="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl" data-aos="fade-down">
@@ -72,7 +72,7 @@ export default function LoginPage() {
       </div>
 
       {/* ------- LOGIN CARD ------- */}
-      <div className="py-16">
+      <div className="py-4 bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white">
         <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white login-card rounded-lg shadow-xl overflow-hidden" data-aos="zoom-in">
             <div className="py-8 px-6 sm:p-10">
@@ -101,7 +101,7 @@ export default function LoginPage() {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="py-3 px-4 block w-full pl-10 shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md"
+                        className="py-3 px-4 block w-full pl-10 shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md text-gray-700"
                         placeholder="Email address"
                       />
                     </div>
@@ -122,7 +122,7 @@ export default function LoginPage() {
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="py-3 px-4 block w-full pl-10 shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md"
+                        className="py-3 px-4 block w-full pl-10 shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md text-gray-700"
                         placeholder="Password"
                       />
                     </div>
@@ -209,9 +209,7 @@ export default function LoginPage() {
 
       {/* ------- CUSTOM CSS ------- */}
       <style jsx global>{`
-        .login-hero {
-          background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1d4ed8 100%);
-        }
+        
         .login-card {
           box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }

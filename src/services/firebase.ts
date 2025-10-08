@@ -55,8 +55,8 @@ export const register = async (
     email,
     role,
     universityId: meta.universityId,
-    teamId: meta.teamId,
-    displayName: meta.displayName || email.split('@')[0],
+    displayName: meta.displayName || email.split('@')[0]
+
   };
   await setDoc(doc(db, 'users', cred.user.uid), profile);
   return mapRawUser({ uid: cred.user.uid, ...profile });

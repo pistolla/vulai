@@ -4,6 +4,13 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
+@font-face {
+  font-family: 'Redwing';
+  src: url('/fonts/Redwing-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+}
+
 :root {
   --primary-navy: #1a2332;
   --secondary-gold: #f4a261;

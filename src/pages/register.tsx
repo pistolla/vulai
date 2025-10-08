@@ -47,7 +47,7 @@ export default function RegisterPage() {
           universityId: university, // we store this in Firestore
         }
       );
-      router.replace('/dashboard'); // role-guard will route to correct dashboard
+      router.replace('/admin'); // role-guard will route to correct dashboard
     } catch (err: any) {
       setError(err.message || 'Registration failed');
     } finally {
@@ -58,7 +58,7 @@ export default function RegisterPage() {
   return (
     <>
       {/* ------- HERO ------- */}
-      <section className="bg-gradient-to-r from-blue-700 to-blue-900 text-white py-20">
+      <section className="bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">Register</h1>
           <p className="text-xl">Join the University Sports Network community</p>
@@ -66,7 +66,7 @@ export default function RegisterPage() {
       </section>
 
       {/* ------- FORM ------- */}
-      <section className="py-16 bg-white">
+      <section className="py-8 bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-gray-50 rounded-lg shadow-md p-8" data-aos="fade-up">
             <h2 className="text-2xl font-bold text-center mb-8">Create Your Account</h2>

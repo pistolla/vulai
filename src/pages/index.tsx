@@ -2,38 +2,11 @@ import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { sportsData } from '../data/sports';
 import { Sport } from '../types';
+import banner from '../images/banner.gif';
 
 const HomePage: React.FC = () => {
   const [currentFilter, setCurrentFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [typedText, setTypedText] = useState<string>('');
-
-  useEffect(() => {
-    // Initialize Typed.js for hero text
-    if (typeof window !== 'undefined') {
-      const script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.12/typed.min.js';
-      script.onload = () => {
-        const Typed = (window as any).Typed;
-        new Typed('#hero-text', {
-          strings: [
-            'Welcome to Unill Sports',
-            'Discover Your Athletic Potential',
-            'Join the University\'s Finest Teams',
-            'Compete at the Highest Level'
-          ],
-          typeSpeed: 50,
-          backSpeed: 30,
-          backDelay: 2000,
-          loop: true,
-          onStringTyped: (arrayPos: number, self: any) => {
-            setTypedText(self.strings[arrayPos]);
-          }
-        });
-      };
-      document.head.appendChild(script);
-    }
-  }, []);
 
   const showComingSoon = () => {
     alert('Coming soon! This feature is under development.');
@@ -50,18 +23,15 @@ const HomePage: React.FC = () => {
   const showSportDetails = (sport: Sport) => {
     alert(`${sport.name} details coming soon!`);
   };
-
   return (
     <Layout title="Home" description="Discover excellence in university athletics at Unill Sports">
       {/* Hero Section */}
-      <section className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-unill-purple-900 via-unill-purple-800 to-unill-purple-900">
-        <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40"></div>
+      <section className="min-h-screen flex items-center justify-center relative overflow-hidden" style={{ backgroundImage: `url(${banner.src})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        <div className="absolute inset-0 bg-black opacity-50"></div>
         <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
           <div className="animate-float">
-            <h1 className="text-5xl md:text-7xl font-black mb-6 leading-tight">
-              <span id="hero-text" className="bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
-                Welcome to Unill Sports
-              </span>
+            <h1 className="text-5xl md:text-9xl font-black italic mb-6 leading-tight bg-gradient-to-r from-unill-purple-400 to-unill-yellow-500 bg-clip-text text-transparent" style={{ fontFamily: 'Redwing', fontWeight: 'bold' }}>
+              UNI limelight Sports
             </h1>
           </div>
           <p className="text-xl md:text-2xl mb-8 text-gray-200 max-w-2xl mx-auto leading-relaxed">

@@ -108,9 +108,9 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
             {/* Logo */}
             <div className="flex items-center space-x-3">
               <img src="/resources/logo.png" alt="Unill Sports" className="h-10 w-10" />
-              <span className="text-xl font-bold bg-gradient-to-r from-unill-purple-400 to-unill-yellow-500 bg-clip-text text-transparent">
+              <a href="/"><span className="text-xl font-bold bg-gradient-to-r from-unill-purple-400 to-unill-yellow-500 bg-clip-text text-transparent">
                 Unill Sports
-              </span>
+              </span></a>
             </div>
             
             {/* Desktop Navigation */}
@@ -131,10 +131,10 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
               ))}
               <a 
               type="button"
-                href="/register"
+                href="/login"
                 className="bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white px-4 py-2 rounded-lg hover:from-unill-purple-600 hover:to-unill-yellow-600 transition-all transform hover:scale-105"
               >
-                Join Now
+                Login
               </a>
             </div>
             
@@ -201,7 +201,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
           <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <FooterColumn title="Navigation" links={[{label:'Home',href:'/'}, {label:'About',href:'/about'}, {label:'Contact',href:'/contact'}]} />
-            <FooterColumn title="Account" links={[{label:'Login',href:'/login'}, {label:'Register',href:'/register'}, {label:'Dashboard',href:'/dashboard'}]} />
+            <FooterColumn title="Account" links={[{label:'Login',href:'/login'}, {label:'Register',href:'/register'}, {label:'Dashboard',href:'/admin'}]} />
             <FooterColumn title="Legal" links={[{label:'Privacy',href:'#'}, {label:'Terms',href:'#'}, {label:'Cookie Policy',href:'#'}]} />
             <FooterSocial />
           </div>
