@@ -20,7 +20,16 @@ export default function LoginPage() {
   const [error, setError]       = useState('');
 
   /* ---------- redirect if already authenticated ---------- */
-  useEffect(() => { if (user) router.replace('/admin'); }, [user, router]);
+  useEffect(() => {
+    if (user) {
+      switch (user.role) {
+        case 'admin': router.replace('/admin'); break;
+        case 'correspondent': router.replace('/correspondent'); break;
+        case 'fan': router.replace('/fan'); break;
+        default: router.replace('/login');
+      }
+    }
+  }, [user, router]);
 
   /* ---------- animations ---------- */
   useEffect(() => { AOS.init({ once: true }); feather.replace(); }, []);
@@ -31,8 +40,13 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
-      router.replace('/admin');
+      const user = await login(email, password);
+      switch (user.role) {
+        case 'admin': router.replace('/admin'); break;
+        case 'correspondent': router.replace('/correspondent'); break;
+        case 'fan': router.replace('/fan'); break;
+        default: router.replace('/login');
+      }
     } catch (err: any) {
       setError(err.message || 'Login failed');
     } finally {
@@ -46,8 +60,13 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const fn = { google: loginGoogle, facebook: loginFacebook, twitter: loginTwitter }[provider];
-      await fn();
-      router.replace('/admin');
+      const user = await fn();
+      switch (user.role) {
+        case 'admin': router.replace('/admin'); break;
+        case 'correspondent': router.replace('/correspondent'); break;
+        case 'fan': router.replace('/fan'); break;
+        default: router.replace('/login');
+      }
     } catch (err: any) {
       setError(err.message || 'Social login failed');
     } finally {
@@ -58,12 +77,18 @@ export default function LoginPage() {
   return (
     <>
       {/* ------- HERO ------- */}
-      <div className="login-hero bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white">
+      <div className="login-hero bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white relative">
+        <div className="absolute top-4 left-4">
+          <a href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+            <img src="/images/logo.png" alt="Unill Sports" className="h-8 w-8" />
+            <span className="text-lg font-semibold">Unill Sports</span>
+          </a>
+        </div>
         <div className="max-w-7xl mx-auto py-10 px-4 sm:py-24 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl" data-aos="fade-down">
-              Welcome Back
-            </h1>
+            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl" data-aos="fade-down" style={{ fontFamily: 'Redwing', fontWeight: 'bold' }}>
+                Welcome Back
+              </h1>
             <p className="mt-6 max-w-lg mx-auto text-xl" data-aos="fade-up" data-aos-delay="100">
               Sign in to access your personalized university sports dashboard
             </p>

@@ -10,6 +10,7 @@ import {
   GoogleAuthProvider,
   FacebookAuthProvider,
   TwitterAuthProvider,
+  sendEmailVerification,
 } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { AuthUser, UserProfile, UserRole } from '@/models/User';
@@ -52,6 +53,7 @@ export const register = async (
   meta: { universityId?: string; teamId?: string; displayName?: string }
 ): Promise<AuthUser> => {
   const cred: UserCredential = await createUserWithEmailAndPassword(auth, email, password);
+  await sendEmailVerification(cred.user); // Send verification email
   const profile: UserProfile = {
     email,
     role,
@@ -65,6 +67,9 @@ export const register = async (
 
 export const login = async (email: string, password: string): Promise<AuthUser> => {
   const cred = await signInWithEmailAndPassword(auth, email, password);
+  if (!cred.user.emailVerified) {
+    throw new Error('Please verify your email before logging in. Check your inbox for the verification link.');
+  }
   const snap = await getDoc(doc(db, 'users', cred.user.uid));
   if (!snap.exists()) throw new Error('No profile');
   return mapRawUser({ uid: cred.user.uid, ...snap.data() });

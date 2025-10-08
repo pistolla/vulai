@@ -26,6 +26,7 @@ export default function RegisterPage() {
   const [agree,     setAgree]     = useState(false);
   const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState('');
+  const [success,   setSuccess]   = useState('');
   const [universities, setUniversities] = useState<{value: string, label: string}[]>([]);
 
   /* ---------- init animations ---------- */
@@ -42,6 +43,7 @@ export default function RegisterPage() {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     if (!university) return setError('Please select a university');
     if (password !== confirm) return setError('Passwords do not match');
     if (!agree) return setError('You must accept the terms');
@@ -57,7 +59,7 @@ export default function RegisterPage() {
           universityId: university?.value, // we store this in Firestore
         }
       );
-      router.replace('/admin'); // role-guard will route to correct dashboard
+      setSuccess('Registration successful! Please check your email and click the verification link to complete your account setup. You can then log in.');
     } catch (err: any) {
       setError(err.message || 'Registration failed');
     } finally {
@@ -68,9 +70,15 @@ export default function RegisterPage() {
   return (
     <>
       {/* ------- HERO ------- */}
-      <section className="bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white py-10">
+      <section className="bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white py-10 relative">
+        <div className="absolute top-4 left-4">
+          <a href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+            <img src="/images/logo.png" alt="Unill Sports" className="h-8 w-8" />
+            <span className="text-lg font-semibold">Unill Sports</span>
+          </a>
+        </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">Register</h1>
+          <h1 className="text-4xl md:text-6xl font-bold mb-6" style={{ fontFamily: 'Redwing', fontWeight: 'bold' }}>Register</h1>
           <p className="text-xl">Join the University Sports Network community</p>
         </div>
       </section>
@@ -193,6 +201,7 @@ export default function RegisterPage() {
               </div>
 
               {error && <p className="text-red-600 text-sm">{error}</p>}
+              {success && <p className="text-green-600 text-sm">{success}</p>}
 
               <button
                 type="submit"

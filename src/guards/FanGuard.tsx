@@ -7,21 +7,22 @@ interface Props {
 }
 
 export default function FanGuard({ children }: Props) {
-  const user = useAppSelector(s => s.auth.user);
+  const { user, status } = useAppSelector(s => s.auth);
   const router = useRouter();
 
   useEffect(() => {
+    if (status === 'loading') return; // wait for auth to load
     if (!user) {
       router.replace('/login');
       return;
     }
     if (user.role !== 'fan') {
-      router.replace('/403'); // or any “access denied” page you have
+      router.replace('/403'); // or any "access denied" page you have
     }
-  }, [user, router]);
+  }, [user, status, router]);
 
-  /* don’t render until check is done */
-  if (!user || user.role !== 'fan') return null;
+  /* don't render until check is done */
+  if (status === 'loading' || !user || user.role !== 'fan') return null;
 
   return <>{children}</>;
 }
