@@ -55,6 +55,7 @@ export default function LoginPage() {
     }
   };
 
+
   /* ---------- social providers ---------- */
   const social = async (provider: 'google' | 'facebook' | 'twitter') => {
     setError('');
@@ -103,8 +104,8 @@ export default function LoginPage() {
           <div className="bg-white login-card rounded-lg shadow-xl overflow-hidden" data-aos="zoom-in">
             <div className="py-8 px-6 sm:p-10">
               <div className="text-center">
-                <h2 className="text-3xl font-extrabold text-gray-900">Sign in to your account</h2>
-                <p className="mt-2 text-sm text-gray-600">
+                <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white">Sign in to your account</h2>
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
                   Or <a href="/register" className="font-medium text-blue-600 hover:text-blue-500">create a new account</a>
                 </p>
               </div>
@@ -127,7 +128,7 @@ export default function LoginPage() {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="py-3 px-4 block w-full pl-10 shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md text-gray-700"
+                        className="py-3 px-4 block w-full pl-10 shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md text-gray-700 dark:text-white"
                         placeholder="Email address"
                       />
                     </div>
@@ -148,7 +149,7 @@ export default function LoginPage() {
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="py-3 px-4 block w-full pl-10 pr-10 shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md text-white"
+                        className="py-3 px-4 block w-full pl-10 pr-10 shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md text-gray-700 dark:text-white"
                         placeholder="Password"
                       />
                       <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
@@ -184,12 +185,15 @@ export default function LoginPage() {
                       onChange={(e) => setRemember(e.target.checked)}
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
-                    <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+                    <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900 dark:text-white">
                       Remember me
                     </label>
                   </div>
                   <div className="text-sm">
-                    <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+                    <a
+                      href="/forgot-password"
+                      className="font-medium text-blue-600 hover:text-blue-500"
+                    >
                       Forgot your password?
                     </a>
                   </div>
@@ -214,7 +218,7 @@ export default function LoginPage() {
                     <div className="w-full border-t border-gray-300" />
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                    <span className="px-2 bg-white text-gray-500 dark:bg-gray-800 dark:text-gray-300">Or continue with</span>
                   </div>
                 </div>
 

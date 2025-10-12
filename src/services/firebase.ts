@@ -11,6 +11,7 @@ import {
   FacebookAuthProvider,
   TwitterAuthProvider,
   sendEmailVerification,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { AuthUser, UserProfile, UserRole } from '@/models/User';
@@ -73,6 +74,10 @@ export const login = async (email: string, password: string): Promise<AuthUser> 
   const snap = await getDoc(doc(db, 'users', cred.user.uid));
   if (!snap.exists()) throw new Error('No profile');
   return mapRawUser({ uid: cred.user.uid, ...snap.data() });
+};
+
+export const resetPassword = async (email: string): Promise<void> => {
+  await sendPasswordResetEmail(auth, email);
 };
 
 export const signOut = () => fbSignOut(auth);

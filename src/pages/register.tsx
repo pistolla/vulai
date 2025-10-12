@@ -89,11 +89,11 @@ export default function RegisterPage() {
       <section className="py-8 bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-gray-50 rounded-lg shadow-md p-8" data-aos="fade-up">
-            <h2 className="text-2xl font-bold text-center mb-8">Create Your Account</h2>
+            <h2 className="text-2xl font-bold text-center mb-8 text-gray-900 dark:text-white">Create Your Account</h2>
 
             {/* Role Selection */}
             <div className="mb-8">
-              <label className="block text-sm font-medium text-gray-700 mb-4">Account Type</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Account Type</label>
               <div className="grid md:grid-cols-2 gap-4">
                 <RoleCard
                   icon="user"
@@ -115,23 +115,23 @@ export default function RegisterPage() {
             <form className="space-y-6" onSubmit={onSubmit}>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">First Name</label>
                   <input
                     type="text"
                     value={firstName}
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setFirstName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 dark:text-white"
                     placeholder="First name"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Last Name</label>
                   <input
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 dark:text-white"
                     placeholder="Last name"
                     required
                   />
@@ -139,19 +139,19 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Address</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 dark:text-white"
                   placeholder="your.email@example.com"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">University</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">University</label>
                 <Select
                   value={university}
                   onChange={setUniversity}
@@ -160,18 +160,55 @@ export default function RegisterPage() {
                   placeholder="Select your university"
                   isSearchable
                   required
+                  styles={{
+                    control: (provided, state) => ({
+                      ...provided,
+                      borderColor: '#d1d5db',
+                      '&:hover': {
+                        borderColor: '#3b82f6',
+                      },
+                      boxShadow: state.isFocused ? '0 0 0 1px #3b82f6' : 'none',
+                      color: '#374151',
+                    }),
+                    singleValue: (provided) => ({
+                      ...provided,
+                      color: '#374151',
+                    }),
+                    placeholder: (provided) => ({
+                      ...provided,
+                      color: '#9ca3af',
+                    }),
+                    option: (provided, state) => ({
+                      ...provided,
+                      color: '#374151',
+                      backgroundColor: state.isSelected ? '#dbeafe' : state.isFocused ? '#f3f4f6' : 'white',
+                      '&:hover': {
+                        backgroundColor: '#f3f4f6',
+                      },
+                    }),
+                    menu: (provided) => ({
+                      ...provided,
+                      border: '1px solid #d1d5db',
+                      borderRadius: '0.375rem',
+                      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                    }),
+                    input: (provided) => ({
+                      ...provided,
+                      color: '#374151',
+                    }),
+                  }}
                 />
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 dark:text-white"
                       placeholder="Create password"
                       required
                     />
@@ -194,13 +231,13 @@ export default function RegisterPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Confirm Password</label>
                   <div className="relative">
                     <input
                       type={showConfirmPassword ? "text" : "password"}
                       value={confirm}
                       onChange={(e) => setConfirm(e.target.value)}
-                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 dark:text-white"
                       placeholder="Confirm password"
                       required
                     />
@@ -233,7 +270,7 @@ export default function RegisterPage() {
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   required
                 />
-                <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
+                <label htmlFor="terms" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
                   I agree to the <a href="#" className="text-blue-600 hover:text-blue-500">Terms of Service</a> and <a href="#" className="text-blue-600 hover:text-blue-500">Privacy Policy</a>
                 </label>
               </div>
@@ -251,7 +288,7 @@ export default function RegisterPage() {
             </form>
 
             <div className="mt-6 text-center">
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 Already have an account?{' '}
                 <a href="/login" className="text-blue-600 hover:text-blue-500">
                   Sign in here
@@ -291,7 +328,7 @@ function RoleCard({
       }`}
     >
       <i data-feather={icon} className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-      <h3 className="font-semibold">{title}</h3>
+      <h3 className="font-semibold text-gray-600">{title}</h3>
       <p className="text-sm text-gray-600">{desc}</p>
     </div>
   );
