@@ -81,7 +81,7 @@ export default function LoginPage() {
       <div className="login-hero bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white relative">
         <div className="absolute top-4 left-4">
           <a href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-            <img src="/images/logo.png" alt="Unill Sports" className="h-8 w-8" />
+            <img src="/images/logo.png" alt="Unill Sports" className="h-8 w-20" />
             <span className="text-lg font-semibold">Unill Sports</span>
           </a>
         </div>
@@ -98,7 +98,7 @@ export default function LoginPage() {
       </div>
 
       {/* ------- LOGIN CARD ------- */}
-      <div className="py-4 bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white">
+      <div className="py-8 bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white">
         <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white login-card rounded-lg shadow-xl overflow-hidden" data-aos="zoom-in">
             <div className="py-8 px-6 sm:p-10">
