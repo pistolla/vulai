@@ -26,7 +26,10 @@ export const store = configureStore({
     sportTeam: sportTeamSlice,
     contact: contactSlice
   },
-  middleware: (gDM) => gDM().prepend(listenerMiddleware.middleware),
+  middleware: (gDM) => gDM({
+    serializableCheck: false,
+    immutableCheck: false,
+  }).prepend(listenerMiddleware.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

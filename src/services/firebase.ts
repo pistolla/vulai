@@ -80,7 +80,14 @@ export const resetPassword = async (email: string): Promise<void> => {
   await sendPasswordResetEmail(auth, email);
 };
 
-export const signOut = () => fbSignOut(auth);
+export const signOut = async () => {
+  try {
+    await fbSignOut(auth);
+  } catch (error) {
+    console.error('Error signing out:', error);
+    throw error;
+  }
+};
 
 /* client-side only – called once in store */
 export const subscribeAuth = (cb: (u: AuthUser | null) => void) =>

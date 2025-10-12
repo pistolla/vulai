@@ -18,11 +18,11 @@ listenerMiddleware.startListening({
   predicate: () => true, // runs once
   effect: async (_, listenerApi) => {
       const q = query(collection(db,'fixtures'), where('status','==','live'));
-    onSnapshot(q, snap => {
+    const unsubLive = onSnapshot(q, snap => {
       const live = snap.docs.map(d => ({id:d.id,...d.data()} as any));
       listenerApi.dispatch(setGames({ live, upcoming:[] })); // merge in component
     });
-      
+
     subscribeAuth(async (user) => {
       listenerApi.dispatch(setUser(user));
 

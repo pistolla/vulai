@@ -2,7 +2,20 @@ import { useState, useEffect, useRef } from 'react';
 import { useAppSelector } from '@/hooks/redux';
 import { signOut } from '@/services/firebase';
 
-export default function UserHeader() {
+type TeamTheme = 'crimson' | 'blue' | 'cardinal' | 'gold';
+
+const themes: Record<TeamTheme, Record<string, string>> = {
+  crimson: { primary: '#990000', secondary: '#ffffff', accent: '#13294b' },
+  blue:    { primary: '#003366', secondary: '#ffffff', accent: '#990000' },
+  cardinal:{ primary: '#8C1515', secondary: '#ffffff', accent: '#4D4D4D' },
+  gold:    { primary: '#FFB81C', secondary: '#000000', accent: '#00539B' },
+};
+
+interface UserHeaderProps {
+  theme?: TeamTheme;
+}
+
+export default function UserHeader({ theme = 'crimson' }: UserHeaderProps) {
   const user = useAppSelector(s => s.auth.user);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -21,17 +34,20 @@ export default function UserHeader() {
 
   const handleLogout = async () => {
     await signOut();
+    window.location.href = '/';
   };
 
+  const currentTheme = themes[theme];
+
   return (
-    <header className="bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white shadow-sm border-b border-gray-200">
+    <header style={{ background: `linear-gradient(to right, ${currentTheme.primary}, ${currentTheme.accent})` }} className="text-white shadow-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <div className="flex items-center space-x-3">
+            <a href="/" className="flex items-center space-x-3">
               <img src="/images/logo.png" alt="Unill Sports" className="h-10 w-20" />
               <span className="text-xl font-bold">Unill Sports</span>
-            </div>
+            </a>
           </div>
           <div className="flex items-center space-x-4">
             <div className="text-right">
