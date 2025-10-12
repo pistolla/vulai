@@ -115,7 +115,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
   return (
     <>
       <Head>
-        <title>{title} - Unill Sports</title>
+        <title>{title} - Uni Limelight Sports</title>
         <meta name="description" content={description} />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="icon" href="/images/logo.png" />
@@ -130,9 +130,9 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center space-x-3">
-              <img src="/images/logo.png" alt="Unill Sports" className="h-10 w-20" />
-              <a href="/"><span className="text-xl font-bold bg-gradient-to-r from-unill-purple-400 to-unill-yellow-500 bg-clip-text text-transparent">
-                Unill Sports
+              <img src="/images/logo.png" alt="Uni Limelight Sports" className="h-10 w-20" />
+              <a href="/"><span className="pb-0 text-3xl font-bold bg-gradient-to-r from-unill-purple-400 to-unill-yellow-500 bg-clip-text text-transparent">
+              Uni Limelight Sports
               </span></a>
             </div>
             
@@ -267,6 +267,12 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
                       <p className="text-sm font-medium">{user.displayName || user.email}</p>
                       <p className="text-xs opacity-75 capitalize">{user.role}</p>
                     </div>
+                    <a
+                      href="/profile"
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Profile Settings
+                    </a>
                     <button
                       onClick={handleLogout}
                       className="w-full text-left px-3 py-2 text-white hover:text-unill-yellow-400"
@@ -299,8 +305,8 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-6">
               <img src="/images/logo.png" alt="Unill Sports" className="h-12 w-20" />
-              <span className="text-2xl font-bold bg-gradient-to-r from-unill-purple-400 to-unill-yellow-500 bg-clip-text text-transparent">
-                Unill Sports
+              <span className="text-3xl font-bold bg-gradient-to-r from-unill-purple-400 to-unill-yellow-500 bg-clip-text text-transparent">
+                Uni Limelight Sports
               </span>
             </div>
             <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-2xl mx-auto">

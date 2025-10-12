@@ -46,7 +46,7 @@ export default function UserHeader({ theme = 'crimson' }: UserHeaderProps) {
           <div className="flex items-center">
             <a href="/" className="flex items-center space-x-3">
               <img src="/images/logo.png" alt="Unill Sports" className="h-10 w-20" />
-              <span className="text-xl font-bold">Unill Sports</span>
+              <span className="text-3xl font-bold bg-gradient-to-r from-unill-purple-400 to-unill-yellow-500 bg-clip-text text-transparent">Uni Limelight Sports</span>
             </a>
           </div>
           <div className="flex items-center space-x-4">
