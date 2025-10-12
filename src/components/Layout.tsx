@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { useTheme } from './ThemeProvider';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,6 +11,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children, title, description = "University sports excellence at Unill" }) => {
   const router = useRouter();
+  const { theme, toggleTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navigation = [
@@ -104,7 +106,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
       <div id="particle-bg" />
 
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/20 backdrop-blur-md border-b border-white/10">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/20 dark:bg-gray-900/80 backdrop-blur-md border-b border-white/10 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
@@ -131,7 +133,23 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
                   }`} />
                 </a>
               ))}
-              <a 
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className="p-2 text-white hover:text-unill-yellow-400 transition-colors"
+                aria-label="Toggle theme"
+              >
+                {theme === 'light' ? (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                ) : (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                )}
+              </button>
+              <a
               type="button"
                 href="/login"
                 className="bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white px-4 py-2 rounded-lg hover:from-unill-purple-600 hover:to-unill-yellow-600 transition-all transform hover:scale-105"
@@ -155,7 +173,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
           
           {/* Mobile Menu */}
           {isMobileMenuOpen && (
-            <div className="md:hidden bg-black/30 backdrop-blur-md">
+            <div className="md:hidden bg-white/30 dark:bg-black/30 backdrop-blur-md">
               <div className="px-2 pt-2 pb-3 space-y-1">
                 {navigation.map((item) => (
                   <a
@@ -168,7 +186,27 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
                     {item.name}
                   </a>
                 ))}
-                <a 
+                <button
+                  onClick={toggleTheme}
+                  className="w-full text-left px-3 py-2 text-white hover:text-unill-yellow-400 flex items-center space-x-2"
+                >
+                  {theme === 'light' ? (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                      </svg>
+                      <span>Dark Mode</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                      </svg>
+                      <span>Light Mode</span>
+                    </>
+                  )}
+                </button>
+                <a
                   href="/login"
                   className="w-full text-left px-3 py-2 text-white hover:text-unill-yellow-400"
                 >
@@ -181,12 +219,12 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
       </nav>
 
       {/* Main Content */}
-      <main className="min-h-screen">
+      <main className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
         {children}
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      <footer className="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-6">
@@ -195,8 +233,8 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
                 Unill Sports
               </span>
             </div>
-            <p className="text-gray-400 mb-6 max-w-2xl mx-auto">
-              Fostering athletic excellence and sportsmanship through diverse university sports programs. 
+            <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-2xl mx-auto">
+              Fostering athletic excellence and sportsmanship through diverse university sports programs.
               Building champions on and off the field since our founding.
             </p>
           </div>
@@ -207,8 +245,8 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
             <FooterColumn title="Legal" links={[{label:'Privacy',href:'#'}, {label:'Terms',href:'#'}, {label:'Cookie Policy',href:'#'}]} />
             <FooterSocial />
           </div>
-          <div className="mt-12 border-t border-gray-700 pt-8">
-            <p className="text-base text-gray-400 text-center">&copy; 2023 UniSports Live. All rights reserved.</p>
+          <div className="mt-12 border-t border-gray-300 dark:border-gray-700 pt-8">
+            <p className="text-base text-gray-600 dark:text-gray-400 text-center">&copy; 2023 UniSports Live. All rights reserved.</p>
           </div>
         </div>
         </div>
@@ -221,11 +259,11 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
 function FooterColumn({ title, links }: { title: string; links: { label: string; href: string }[] }) {
   return (
     <div>
-      <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">{title}</h3>
+      <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 tracking-wider uppercase">{title}</h3>
       <ul className="mt-4 space-y-2">
         {links.map(l => (
           <li key={l.href}>
-            <a href={l.href} className="text-base text-gray-300 hover:text-white">
+            <a href={l.href} className="text-base text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
               {l.label}
             </a>
           </li>
@@ -238,12 +276,12 @@ function FooterColumn({ title, links }: { title: string; links: { label: string;
 function FooterSocial() {
   return (
     <div>
-      <h3 className="text-sm font-semibold text-gray-400 tracking-wider uppercase">Connect</h3>
+      <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 tracking-wider uppercase">Connect</h3>
       <div className="mt-4 flex space-x-6">
-        <a href="#" className="text-gray-400 hover:text-white"><i data-feather="twitter" /></a>
-        <a href="#" className="text-gray-400 hover:text-white"><i data-feather="facebook" /></a>
-        <a href="#" className="text-gray-400 hover:text-white"><i data-feather="instagram" /></a>
-        <a href="#" className="text-gray-400 hover:text-white"><i data-feather="youtube" /></a>
+        <a href="#" className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"><i data-feather="twitter" /></a>
+        <a href="#" className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"><i data-feather="facebook" /></a>
+        <a href="#" className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"><i data-feather="instagram" /></a>
+        <a href="#" className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"><i data-feather="youtube" /></a>
       </div>
     </div>
   );

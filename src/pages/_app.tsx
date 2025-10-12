@@ -3,6 +3,7 @@ import Head from 'next/head';
 import '@/styles/global.css';
 import { Provider } from 'react-redux';
 import { store } from '@/store';
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
@@ -16,7 +17,9 @@ export default function App({ Component, pageProps }: AppProps) {
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </Head>
       <Provider store={store}>
-      <Component {...pageProps} />
+        <ThemeProvider>
+          <Component {...pageProps} />
+        </ThemeProvider>
       </Provider>
     </>
   );

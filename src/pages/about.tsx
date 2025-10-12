@@ -17,14 +17,14 @@ return (
             <div className="grid md:grid-cols-2 gap-12 items-center">
                 <div data-aos="fade-right">
                     <h2 className="text-3xl font-bold mb-6 gradient-text">Our Mission</h2>
-                    <p className="text-gray-300 mb-6">
-                        Unill Sports is dedicated to fostering athletic excellence and sportsmanship through diverse university sports programs. 
-                        We believe in the power of sports to unite communities, develop character, and create unforgettable experiences 
+                    <p className="text-gray-700 dark:text-gray-300 mb-6">
+                        Unill Sports is dedicated to fostering athletic excellence and sportsmanship through diverse university sports programs.
+                        We believe in the power of sports to unite communities, develop character, and create unforgettable experiences
                         for students, alumni, and fans alike.
                     </p>
-                    <p className="text-gray-300">
-                        Our commitment extends beyond competition to include academic support, personal development, 
-                        and building champions both on and off the field. We provide state-of-the-art facilities, 
+                    <p className="text-gray-700 dark:text-gray-300">
+                        Our commitment extends beyond competition to include academic support, personal development,
+                        and building champions both on and off the field. We provide state-of-the-art facilities,
                         expert coaching, and a supportive environment where student-athletes can thrive.
                     </p>
                 </div>
@@ -35,7 +35,7 @@ return (
         </div>
     </section>
 
-    <section className="py-16 bg-black/20 backdrop-blur-sm">
+    <section className="py-16 bg-black/20 dark:bg-black/20 bg-gray-100/50 dark:bg-black/20 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-center mb-12 gradient-text">What We Offer</h2>
             <div className="grid md:grid-cols-3 gap-8">
@@ -46,7 +46,7 @@ return (
                         </svg>
                     </div>
                     <h3 className="text-xl font-semibold mb-2">Live Coverage</h3>
-                    <p className="text-gray-300">Real-time streaming and updates from games across the university</p>
+                    <p className="text-gray-700 dark:text-gray-300">Real-time streaming and updates from games across the university</p>
                 </div>
                 <div className="feature-card rounded-lg p-6 text-center" data-aos="fade-up" data-aos-delay="200">
                     <div className="bg-gradient-to-br from-unill-purple-400 to-blue-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -55,7 +55,7 @@ return (
                         </svg>
                     </div>
                     <h3 className="text-xl font-semibold mb-2">Interactive Map</h3>
-                    <p className="text-gray-300">Find and follow games happening across our university facilities</p>
+                    <p className="text-gray-700 dark:text-gray-300">Find and follow games happening across our university facilities</p>
                 </div>
                 <div className="feature-card rounded-lg p-6 text-center" data-aos="fade-up" data-aos-delay="400">
                     <div className="bg-gradient-to-br from-green-400 to-blue-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -64,7 +64,7 @@ return (
                         </svg>
                     </div>
                     <h3 className="text-xl font-semibold mb-2">Community Platform</h3>
-                    <p className="text-gray-300">Connect with fellow sports enthusiasts and university correspondents</p>
+                    <p className="text-gray-700 dark:text-gray-300">Connect with fellow sports enthusiasts and university correspondents</p>
                 </div>
             </div>
         </div>
@@ -80,7 +80,7 @@ return (
                     </div>
                     <h3 className="text-xl font-semibold gradient-text">Marcus Johnson</h3>
                     <p className="text-unill-yellow-400 mb-2">Athletic Director</p>
-                    <p className="text-gray-300 text-sm">15+ years experience in university athletics and sports management</p>
+                    <p className="text-gray-700 dark:text-gray-300 text-sm">15+ years experience in university athletics and sports management</p>
                 </div>
                 <div className="team-card rounded-lg p-8 text-center" data-aos="fade-up" data-aos-delay="200">
                     <div className="w-32 h-32 bg-gradient-to-br from-unill-purple-400 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center">
@@ -88,7 +88,7 @@ return (
                     </div>
                     <h3 className="text-xl font-semibold gradient-text">Sarah Chen</h3>
                     <p className="text-unill-yellow-400 mb-2">Head Coach Coordinator</p>
-                    <p className="text-gray-300 text-sm">Former Olympic athlete with expertise in multiple sports disciplines</p>
+                    <p className="text-gray-700 dark:text-gray-300 text-sm">Former Olympic athlete with expertise in multiple sports disciplines</p>
                 </div>
                 <div className="team-card rounded-lg p-8 text-center" data-aos="fade-up" data-aos-delay="400">
                     <div className="w-32 h-32 bg-gradient-to-br from-green-400 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center">
@@ -96,41 +96,41 @@ return (
                     </div>
                     <h3 className="text-xl font-semibold gradient-text">David Rodriguez</h3>
                     <p className="text-unill-yellow-400 mb-2">Sports Operations Manager</p>
-                    <p className="text-gray-300 text-sm">Specializes in facility management and event coordination</p>
+                    <p className="text-gray-700 dark:text-gray-300 text-sm">Specializes in facility management and event coordination</p>
                 </div>
             </div>
         </div>
     </section>
-    <section className="py-16 bg-black/20 backdrop-blur-sm">
+    <section className="py-16 bg-black/20 dark:bg-black/20 bg-gray-100/50 dark:bg-black/20 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
                 <h2 className="text-3xl font-bold mb-4 gradient-text">Our Impact</h2>
-                <p className="text-xl text-gray-300">Numbers that speak to our commitment to university athletics</p>
+                <p className="text-xl text-gray-700 dark:text-gray-300">Numbers that speak to our commitment to university athletics</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div className="text-center bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
+                <div className="text-center bg-white/10 dark:bg-white/10 bg-gray-200/50 dark:bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 dark:border-white/20 border-gray-300/50 dark:border-white/20">
                     <div className="text-5xl font-black gradient-text mb-2">12+</div>
                     <div className="text-lg font-semibold mb-2">Sports Programs</div>
-                    <div className="text-sm text-gray-300">Diverse athletic opportunities</div>
+                    <div className="text-sm text-gray-700 dark:text-gray-300">Diverse athletic opportunities</div>
                 </div>
-                
-                <div className="text-center bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
+
+                <div className="text-center bg-white/10 dark:bg-white/10 bg-gray-200/50 dark:bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 dark:border-white/20 border-gray-300/50 dark:border-white/20">
                     <div className="text-5xl font-black gradient-text mb-2">500+</div>
                     <div className="text-lg font-semibold mb-2">Student Athletes</div>
-                    <div className="text-sm text-gray-300">Active participants</div>
+                    <div className="text-sm text-gray-700 dark:text-gray-300">Active participants</div>
                 </div>
-                
-                <div className="text-center bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
+
+                <div className="text-center bg-white/10 dark:bg-white/10 bg-gray-200/50 dark:bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 dark:border-white/20 border-gray-300/50 dark:border-white/20">
                     <div className="text-5xl font-black gradient-text mb-2">35</div>
                     <div className="text-lg font-semibold mb-2">Championships</div>
-                    <div className="text-sm text-gray-300">University titles won</div>
+                    <div className="text-sm text-gray-700 dark:text-gray-300">University titles won</div>
                 </div>
-                
-                <div className="text-center bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
+
+                <div className="text-center bg-white/10 dark:bg-white/10 bg-gray-200/50 dark:bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 dark:border-white/20 border-gray-300/50 dark:border-white/20">
                     <div className="text-5xl font-black gradient-text mb-2">15</div>
                     <div className="text-lg font-semibold mb-2">Facilities</div>
-                    <div className="text-sm text-gray-300">State-of-the-art venues</div>
+                    <div className="text-sm text-gray-700 dark:text-gray-300">State-of-the-art venues</div>
                 </div>
             </div>
         </div>
@@ -140,7 +140,7 @@ return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
                 <h2 className="text-3xl font-bold mb-4 gradient-text">Our Core Values</h2>
-                <p className="text-xl text-gray-300">The principles that guide everything we do</p>
+                <p className="text-xl text-gray-700 dark:text-gray-300">The principles that guide everything we do</p>
             </div>
             
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -151,9 +151,9 @@ return (
                         </svg>
                     </div>
                     <h4 className="font-semibold mb-2">Excellence</h4>
-                    <p className="text-sm text-gray-400">Striving for the highest standards in athletics and academics</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Striving for the highest standards in athletics and academics</p>
                 </div>
-                
+
                 <div className="text-center">
                     <div className="w-16 h-16 bg-gradient-to-br from-unill-purple-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -161,9 +161,9 @@ return (
                         </svg>
                     </div>
                     <h4 className="font-semibold mb-2">Teamwork</h4>
-                    <p className="text-sm text-gray-400">Building strong relationships and working together toward common goals</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Building strong relationships and working together toward common goals</p>
                 </div>
-                
+
                 <div className="text-center">
                     <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -171,9 +171,9 @@ return (
                         </svg>
                     </div>
                     <h4 className="font-semibold mb-2">Integrity</h4>
-                    <p className="text-sm text-gray-400">Maintaining the highest ethical standards in all our activities</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Maintaining the highest ethical standards in all our activities</p>
                 </div>
-                
+
                 <div className="text-center">
                     <div className="w-16 h-16 bg-gradient-to-br from-red-400 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -181,7 +181,7 @@ return (
                         </svg>
                     </div>
                     <h4 className="font-semibold mb-2">Passion</h4>
-                    <p className="text-sm text-gray-400">Bringing energy and enthusiasm to everything we do</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Bringing energy and enthusiasm to everything we do</p>
                 </div>
             </div>
         </div>

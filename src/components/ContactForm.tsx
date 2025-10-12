@@ -32,12 +32,12 @@ export default function ContactForm() {
   }, [success, dispatch]);
 
   return (
-    <div className="bg-white contact-card rounded-lg shadow-xl overflow-hidden" data-aos="fade-left" data-aos-delay="100">
+    <div className="bg-white dark:bg-gray-800 contact-card rounded-lg shadow-xl overflow-hidden" data-aos="fade-left" data-aos-delay="100">
       <div className="py-6 px-6 sm:p-8">
-        <h3 className="text-lg font-medium text-gray-900">Send us a message</h3>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white">Send us a message</h3>
         <form onSubmit={onSubmit} className="mt-6 space-y-6">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
             <div className="mt-1">
               <input
                 type="text"
@@ -46,14 +46,14 @@ export default function ContactForm() {
                 required
                 value={form.name}
                 onChange={onChange}
-                className="py-3 px-4 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md"
+                className="py-3 px-4 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md"
                 placeholder="Your name"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
             <div className="mt-1">
               <input
                 id="email"
@@ -62,21 +62,21 @@ export default function ContactForm() {
                 required
                 value={form.email}
                 onChange={onChange}
-                className="py-3 px-4 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md"
+                className="py-3 px-4 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md"
                 placeholder="your.email@example.com"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="subject" className="block text-sm font-medium text-gray-700">Subject</label>
+            <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Subject</label>
             <div className="mt-1">
               <select
                 id="subject"
                 name="subject"
                 value={form.subject}
                 onChange={onChange}
-                className="py-3 px-4 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md"
+                className="py-3 px-4 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md"
               >
                 <option>General Inquiry</option>
                 <option>Technical Support</option>
@@ -88,7 +88,7 @@ export default function ContactForm() {
           </div>
 
           <div>
-            <label htmlFor="message" className="block text-sm font-medium text-gray-700">Message</label>
+            <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Message</label>
             <div className="mt-1">
               <textarea
                 id="message"
@@ -97,7 +97,7 @@ export default function ContactForm() {
                 required
                 value={form.message}
                 onChange={onChange}
-                className="py-3 px-4 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md"
+                className="py-3 px-4 block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md"
                 placeholder="Tell us how we can help..."
               />
             </div>
