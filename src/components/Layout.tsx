@@ -99,7 +99,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
         <title>{title} - Unill Sports</title>
         <meta name="description" content={description} />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="icon" href="/resources/logo.png" />
+        <link rel="icon" href="/images/logo.png" />
       </Head>
 
       {/* Particle Background */}
@@ -111,7 +111,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center space-x-3">
-              <img src="/resources/logo.png" alt="Unill Sports" className="h-10 w-10" />
+              <img src="/images/logo.png" alt="Unill Sports" className="h-10 w-10" />
               <a href="/"><span className="text-xl font-bold bg-gradient-to-r from-unill-purple-400 to-unill-yellow-500 bg-clip-text text-transparent">
                 Unill Sports
               </span></a>
@@ -228,7 +228,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-6">
-              <img src="/resources/logo.png" alt="Unill Sports" className="h-12 w-12" />
+              <img src="/images/logo.png" alt="Unill Sports" className="h-12 w-12" />
               <span className="text-2xl font-bold bg-gradient-to-r from-unill-purple-400 to-unill-yellow-500 bg-clip-text text-transparent">
                 Unill Sports
               </span>
