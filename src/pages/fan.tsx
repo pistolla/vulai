@@ -42,8 +42,10 @@ export default function FanPage() {
     feather.replace();
     dispatch(fetchGames());
     dispatch(fetchMerch());
-    dispatch(fetchFanData(user!.uid));
-    subscribeChat();
+    if (user) {
+      dispatch(fetchFanData(user.uid));
+      subscribeChat();
+    }
   }, [dispatch, user]);
 
   /* ---------- theme css vars ---------- */
@@ -67,9 +69,9 @@ export default function FanPage() {
   /* ---------- handlers ---------- */
   const sendChat = (e: FormEvent) => {
     e.preventDefault();
-    if (!chatMsg.trim() || !selectedFixture?.id) return;
+    if (!chatMsg.trim() || !selectedFixture?.id || !user) return;
     import('@/services/firestoreFan').then(({ sendFanChatMessage }) => {
-      sendFanChatMessage(selectedFixture.id, user!.uid, user!.displayName || 'Fan', chatMsg);
+      sendFanChatMessage(selectedFixture.id, user.uid, user.displayName || 'Fan', chatMsg);
       setChatMsg('');
     });
   };
