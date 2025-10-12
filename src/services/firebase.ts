@@ -12,8 +12,16 @@ import {
   TwitterAuthProvider,
   sendEmailVerification,
   sendPasswordResetEmail,
+  updateProfile as fbUpdateProfile,
+  updatePassword as fbUpdatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+  RecaptchaVerifier,
+  updatePhoneNumber as fbUpdatePhoneNumber,
+  PhoneAuthProvider,
+  signInWithPhoneNumber,
 } from 'firebase/auth';
-import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { AuthUser, UserProfile, UserRole } from '@/models/User';
 import { University } from '@/models';
 import { getStorage } from 'firebase/storage';
@@ -133,3 +141,73 @@ export const fetchUniversities = async (): Promise<University[]> => {
 };
   export const loginTwitter  = () => socialLogin(twitterProvider);
   export const storage = getStorage();
+
+/* ---------- Profile Management ---------- */
+export const updateProfile = async (data: { displayName?: string; universityId?: string }) => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('No authenticated user');
+
+  // Update Firebase Auth profile
+  if (data.displayName) {
+    await fbUpdateProfile(user, { displayName: data.displayName });
+  }
+
+  // Update Firestore profile
+  const profileUpdate: Partial<UserProfile> = {};
+  if (data.displayName) profileUpdate.displayName = data.displayName;
+  if (data.universityId) profileUpdate.universityId = data.universityId;
+
+  await updateDoc(doc(db, 'users', user.uid), profileUpdate);
+};
+
+export const updatePassword = async (currentPassword: string, newPassword: string) => {
+  const user = auth.currentUser;
+  if (!user || !user.email) throw new Error('No authenticated user');
+
+  // Re-authenticate user
+  const credential = EmailAuthProvider.credential(user.email, currentPassword);
+  await reauthenticateWithCredential(user, credential);
+
+  // Update password
+  await fbUpdatePassword(user, newPassword);
+};
+
+export const updatePhoneNumber = async (phoneNumber: string) => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('No authenticated user');
+
+  // For phone number updates, we need to use a verification process
+  // This is a simplified version - in production you'd want proper SMS verification
+  const phoneCredential = PhoneAuthProvider.credential('', ''); // Would need verification ID and code
+  await fbUpdatePhoneNumber(user, phoneCredential);
+
+  // Update Firestore profile
+  await updateDoc(doc(db, 'users', user.uid), { phoneNumber });
+};
+
+export const enable2FA = async () => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('No authenticated user');
+
+  // Generate a random secret for TOTP (simplified - in production use proper TOTP library)
+  const secret = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+  // Update Firestore profile
+  await updateDoc(doc(db, 'users', user.uid), {
+    twoFactorEnabled: true,
+    twoFactorSecret: secret
+  });
+
+  return secret;
+};
+
+export const disable2FA = async () => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('No authenticated user');
+
+  // Update Firestore profile
+  await updateDoc(doc(db, 'users', user.uid), {
+    twoFactorEnabled: false,
+    twoFactorSecret: null
+  });
+};

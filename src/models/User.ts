@@ -8,6 +8,8 @@ export interface AuthUser {
   teamId?: string;         // sport-team
   displayName?: string;
   photoURL?: string;
+  phoneNumber?: string;
+  twoFactorEnabled?: boolean;
 }
 
 /* Firestore document shapes */
