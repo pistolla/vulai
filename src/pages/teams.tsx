@@ -245,6 +245,12 @@ const TeamsPage: React.FC = () => {
                     <span className="text-gray-300">League:</span>
                     <span className="font-semibold">{team.league}</span>
                   </div>
+                  <button
+                    onClick={() => window.location.href = `/fan/${team.id}`}
+                    className="w-full mt-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 text-white px-4 py-2 rounded-lg font-semibold hover:from-unill-yellow-500 hover:to-unill-purple-600 transition-all"
+                  >
+                    Fan Page
+                  </button>
                 </div>
               </div>
             ))}

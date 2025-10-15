@@ -1,0 +1,158 @@
+{
+  "sports": [
+    {
+      "id": "football",
+      "name": "Football",
+      "category": "team",
+      "description": "American football with 11-player teams competing in high-energy matches",
+      "image": "/images/soccer.png",
+      "players": 11,
+      "season": "Fall",
+      "positions": ["Quarterback", "Running Back", "Wide Receiver", "Defensive Line", "Linebacker", "Defensive Back"],
+      "stats": { "wins": 8, "losses": 2, "championships": 3 }
+    },
+    {
+      "id": "basketball",
+      "name": "Basketball",
+      "category": "team",
+      "description": "Fast-paced 5v5 basketball with dynamic offense and defense",
+      "image": "/resources/basketball.jpg",
+      "players": 5,
+      "season": "Winter",
+      "positions": ["Point Guard", "Shooting Guard", "Small Forward", "Power Forward", "Center"],
+      "stats": { "wins": 15, "losses": 5, "championships": 2 }
+    },
+    {
+      "id": "volleyball",
+      "name": "Volleyball",
+      "category": "team",
+      "description": "6v6 indoor volleyball with powerful spikes and strategic plays",
+      "image": "/resources/volleyball.jpg",
+      "players": 6,
+      "season": "Fall",
+      "positions": ["Setter", "Outside Hitter", "Middle Blocker", "Opposite Hitter", "Libero"],
+      "stats": { "wins": 12, "losses": 3, "championships": 1 }
+    },
+    {
+      "id": "rugby",
+      "name": "Rugby",
+      "category": "team",
+      "description": "15-player rugby union with intense physical competition",
+      "image": "/resources/rugby.jpg",
+      "players": 15,
+      "season": "Spring",
+      "positions": ["Prop", "Hooker", "Lock", "Flanker", "Scrum-half", "Fly-half", "Centre", "Wing"],
+      "stats": { "wins": 6, "losses": 4, "championships": 1 }
+    },
+    {
+      "id": "hockey",
+      "name": "Field Hockey",
+      "category": "team",
+      "description": "11-player field hockey with fast stick work and teamwork",
+      "image": "/resources/hockey.jpg",
+      "players": 11,
+      "season": "Fall",
+      "positions": ["Goalkeeper", "Defender", "Midfielder", "Forward"],
+      "stats": { "wins": 9, "losses": 3, "championships": 2 }
+    },
+    {
+      "id": "badminton",
+      "name": "Badminton",
+      "category": "individual",
+      "description": "Singles and doubles badminton with precision and agility",
+      "image": "/resources/badminton.jpg",
+      "players": 1,
+      "season": "Spring",
+      "positions": ["Singles Player", "Doubles Partner"],
+      "stats": { "wins": 18, "losses": 7, "championships": 4 }
+    },
+    {
+      "id": "table-tennis",
+      "name": "Table Tennis",
+      "category": "individual",
+      "description": "Fast-paced table tennis with quick reflexes and strategy",
+      "image": "/resources/table-tennis.jpg",
+      "players": 1,
+      "season": "Winter",
+      "positions": ["Singles Player", "Doubles Team"],
+      "stats": { "wins": 22, "losses": 5, "championships": 5 }
+    },
+    {
+      "id": "chess",
+      "name": "Chess",
+      "category": "individual",
+      "description": "Strategic chess competitions testing mental prowess",
+      "image": "/resources/chess.jpg",
+      "players": 1,
+      "season": "Year-round",
+      "positions": ["Competitor", "Team Captain"],
+      "stats": { "wins": 25, "losses": 3, "championships": 6 }
+    },
+    {
+      "id": "athletics",
+      "name": "Athletics",
+      "category": "individual",
+      "description": "Track and field events showcasing speed, strength, and endurance",
+      "image": "/resources/athletics.jpg",
+      "players": 1,
+      "season": "Spring",
+      "positions": ["Sprinter", "Distance Runner", "Jumper", "Thrower"],
+      "stats": { "wins": 30, "losses": 8, "championships": 7 }
+    },
+    {
+      "id": "swimming",
+      "name": "Swimming",
+      "category": "individual",
+      "description": "Competitive swimming with multiple strokes and distances",
+      "image": "/resources/swimming.jpg",
+      "players": 1,
+      "season": "Winter",
+      "positions": ["Freestyle", "Backstroke", "Breaststroke", "Butterfly"],
+      "stats": { "wins": 28, "losses": 6, "championships": 8 }
+    },
+    {
+      "id": "tennis",
+      "name": "Tennis",
+      "category": "individual",
+      "description": "Singles and doubles tennis with powerful serves and volleys",
+      "image": "/resources/tennis.jpg",
+      "players": 1,
+      "season": "Spring",
+      "positions": ["Singles Player", "Doubles Partner"],
+      "stats": { "wins": 16, "losses": 4, "championships": 3 }
+    },
+    {
+      "id": "cricket",
+      "name": "Cricket",
+      "category": "team",
+      "description": "11-player cricket with batting, bowling, and fielding skills",
+      "image": "/resources/cricket.jpg",
+      "players": 11,
+      "season": "Spring",
+      "positions": ["Batsman", "Bowler", "Wicketkeeper", "All-rounder"],
+      "stats": { "wins": 7, "losses": 5, "championships": 1 }
+    }
+  ],
+  "trainingSchedule": [
+    {
+      "day": "Monday",
+      "activity": "Strength Training",
+      "time": "6:00 AM - 8:00 AM"
+    },
+    {
+      "day": "Tuesday",
+      "activity": "Practice Session",
+      "time": "4:00 PM - 7:00 PM"
+    },
+    {
+      "day": "Wednesday",
+      "activity": "Film Study",
+      "time": "7:00 PM - 9:00 PM"
+    },
+    {
+      "day": "Thursday",
+      "activity": "Scrimmage",
+      "time": "4:00 PM - 7:00 PM"
+    }
+  ]
+}

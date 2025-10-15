@@ -45,7 +45,7 @@ export default function LoginPage() {
       switch (user.role) {
         case 'admin': router.replace('/admin'); break;
         case 'correspondent': router.replace('/correspondent'); break;
-        case 'fan': router.replace('/fan'); break;
+        case 'fan': router.replace('/teams'); break;
         default: router.replace('/login');
       }
     } catch (err: any) {
@@ -66,7 +66,7 @@ export default function LoginPage() {
       switch (user.role) {
         case 'admin': router.replace('/admin'); break;
         case 'correspondent': router.replace('/correspondent'); break;
-        case 'fan': router.replace('/fan'); break;
+        case 'fan': router.replace('/teams'); break;
         default: router.replace('/login');
       }
     } catch (err: any) {
