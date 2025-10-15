@@ -32,6 +32,21 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
     alert('Coming soon! This feature is under development.');
   };
 
+  const handleSocialLink = (platform: string) => {
+    const urls = {
+      twitter: 'https://twitter.com/unisports',
+      facebook: 'https://facebook.com/unisports',
+      instagram: 'https://instagram.com/unisports',
+      youtube: 'https://youtube.com/unisports'
+    };
+    const url = urls[platform as keyof typeof urls];
+    if (url) {
+      window.open(url, '_blank');
+    } else {
+      alert(`${platform} page coming soon!`);
+    }
+  };
+
   const handleLogout = async () => {
     await signOut();
   };
@@ -318,8 +333,8 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <FooterColumn title="Navigation" links={[{label:'Home',href:'/'}, {label:'About',href:'/about'}, {label:'Contact',href:'/contact'}]} />
             <FooterColumn title="Account" links={[{label:'Login',href:'/login'}, {label:'Register',href:'/register'}, {label:'Dashboard',href:'/admin'}]} />
-            <FooterColumn title="Legal" links={[{label:'Privacy',href:'#'}, {label:'Terms',href:'#'}, {label:'Cookie Policy',href:'#'}]} />
-            <FooterSocial />
+            <FooterColumn title="Legal" links={[{label:'Privacy',href:'/privacy'}, {label:'Terms',href:'/terms'}, {label:'Cookie Policy',href:'/cookies'}]} />
+            <FooterSocial onSocialClick={handleSocialLink} />
           </div>
           <div className="mt-12 border-t border-gray-300 dark:border-gray-700 pt-8">
             <p className="text-base text-gray-600 dark:text-gray-400 text-center">&copy; 2023 UniSports Live. All rights reserved.</p>
@@ -349,15 +364,23 @@ function FooterColumn({ title, links }: { title: string; links: { label: string;
   );
 }
 
-function FooterSocial() {
+function FooterSocial({ onSocialClick }: { onSocialClick?: (platform: string) => void }) {
+  const handleClick = (platform: string) => {
+    if (onSocialClick) {
+      onSocialClick(platform);
+    } else {
+      alert('Social media pages coming soon!');
+    }
+  };
+
   return (
     <div>
       <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 tracking-wider uppercase">Connect</h3>
       <div className="mt-4 flex space-x-6">
-        <a href="#" className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"><i data-feather="twitter" /></a>
-        <a href="#" className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"><i data-feather="facebook" /></a>
-        <a href="#" className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"><i data-feather="instagram" /></a>
-        <a href="#" className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"><i data-feather="youtube" /></a>
+        <button onClick={() => handleClick('twitter')} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"><i data-feather="twitter" /></button>
+        <button onClick={() => handleClick('facebook')} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"><i data-feather="facebook" /></button>
+        <button onClick={() => handleClick('instagram')} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"><i data-feather="instagram" /></button>
+        <button onClick={() => handleClick('youtube')} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"><i data-feather="youtube" /></button>
       </div>
     </div>
   );

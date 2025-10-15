@@ -1,21 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { teamData } from '../data/sports';
+import { apiService, TeamsData } from '../services/apiService';
 import { Team, Player } from '../types';
 
 const TeamsPage: React.FC = () => {
-  const [selectedTeam, setSelectedTeam] = useState<Team>(teamData[0]);
+  const [data, setData] = useState<TeamsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [positionFilter, setPositionFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        const teamsData = await apiService.getTeamsData();
+        setData(teamsData);
+        setSelectedTeam(teamsData.teams[0]);
+      } catch (error) {
+        console.error('Failed to load teams data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+
     // Initialize charts
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
     script.onload = () => {
       setTimeout(() => {
-        initTeamCharts();
+        if (data) initTeamCharts();
       }, 1000);
     };
     document.head.appendChild(script);
@@ -25,11 +40,29 @@ const TeamsPage: React.FC = () => {
     alert('Coming soon! This feature is under development.');
   };
 
+  const handleViewHighlights = (player: Player) => {
+    // Navigate to player highlights page
+    window.location.href = `/player-highlights/${player.name.toLowerCase().replace(' ', '-')}`;
+  };
+
   const handleTeamSelect = (team: Team) => {
     setSelectedTeam(team);
     setPositionFilter('all');
     setSearchQuery('');
   };
+
+  if (loading || !data || !selectedTeam) {
+    return (
+      <Layout title="Teams & Players" description="Meet our university sports teams and players. View rosters, player profiles, statistics, and team achievements.">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-unill-yellow-400 mx-auto"></div>
+            <p className="mt-4 text-gray-300">Loading...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   const showPlayerModal = (player: Player) => {
     setSelectedPlayer(player);
@@ -170,7 +203,7 @@ const TeamsPage: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-            {teamData.map((team) => (
+            {data.teams.map((team) => (
               <div 
                 key={team.id}
                 className={`team-card bg-white/10 backdrop-blur-md rounded-lg p-8 cursor-pointer border border-white/20 transition-all hover:bg-white/15 hover:transform hover:scale-105 hover:shadow-2xl ${
@@ -391,18 +424,18 @@ const TeamsPage: React.FC = () => {
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button 
-                onClick={showComingSoon}
+              <a
+                href="/team-recruitment"
                 className="bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-unill-yellow-500 hover:to-unill-purple-600 transition-all transform hover:scale-105"
               >
                 Apply Now
-              </button>
-              <button 
-                onClick={showComingSoon}
+              </a>
+              <a
+                href="/contact"
                 className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-gray-900 transition-all transform hover:scale-105"
               >
                 Contact Coaches
-              </button>
+              </a>
             </div>
           </div>
         </div>
@@ -491,14 +524,14 @@ const TeamsPage: React.FC = () => {
               </div>
               
               <div className="flex gap-4">
-                <button 
-                  onClick={showComingSoon}
-                  className="flex-1 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-unill-yellow-500 hover:to-unill-purple-600 transition-all"
+                <a
+                  href="/contact"
+                  className="flex-1 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-unill-yellow-500 hover:to-unill-purple-600 transition-all text-center"
                 >
                   Contact Player
-                </button>
-                <button 
-                  onClick={showComingSoon}
+                </a>
+                <button
+                  onClick={() => handleViewHighlights(selectedPlayer)}
                   className="flex-1 border border-white/20 text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/10 transition-all"
                 >
                   View Highlights

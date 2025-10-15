@@ -1,25 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { sportsData } from '../data/sports';
+import { apiService, SportsData } from '../services/apiService';
 import { Sport } from '../types';
 
 const SportsPage: React.FC = () => {
-  const [selectedSport, setSelectedSport] = useState<Sport>(sportsData[0]);
+  const [data, setData] = useState<SportsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
 
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        const sportsData = await apiService.getSportsData();
+        setData(sportsData);
+        setSelectedSport(sportsData.sports[0]);
+      } catch (error) {
+        console.error('Failed to load sports data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+
     // Initialize charts when page loads
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
     script.onload = () => {
       setTimeout(() => {
-        initCharts();
+        if (data) initCharts();
       }, 1000);
     };
     document.head.appendChild(script);
   }, []);
 
   const initCharts = () => {
-    if (typeof window === 'undefined' || !(window as any).echarts) return;
+    if (typeof window === 'undefined' || !(window as any).echarts || !data) return;
 
     const echarts = (window as any).echarts;
 
@@ -44,7 +59,7 @@ const SportsPage: React.FC = () => {
         },
         xAxis: {
           type: 'category',
-          data: sportsData.map(sport => sport.name),
+          data: data.sports.map(sport => sport.name),
           axisLabel: { color: '#fff' },
           axisLine: { lineStyle: { color: '#fff' } }
         },
@@ -58,13 +73,13 @@ const SportsPage: React.FC = () => {
           {
             name: 'Wins',
             type: 'bar',
-            data: sportsData.map(sport => sport.stats.wins),
+            data: data.sports.map(sport => sport.stats.wins),
             itemStyle: { color: '#10b981' }
           },
           {
             name: 'Losses',
             type: 'bar',
-            data: sportsData.map(sport => sport.stats.losses),
+            data: data.sports.map(sport => sport.stats.losses),
             itemStyle: { color: '#ef4444' }
           }
         ]
@@ -90,12 +105,12 @@ const SportsPage: React.FC = () => {
           {
             type: 'pie',
             radius: '50%',
-            data: sportsData.map(sport => ({
+            data: data.sports.map(sport => ({
               value: sport.stats.championships,
               name: sport.name,
-              itemStyle: { 
-                color: sport.id === 'football' ? '#a855f7' : 
-                       sport.id === 'basketball' ? '#f59e0b' : 
+              itemStyle: {
+                color: sport.id === 'football' ? '#a855f7' :
+                       sport.id === 'basketball' ? '#f59e0b' :
                        sport.id === 'volleyball' ? '#2a9d8f' : '#e76f51'
               }
             })),
@@ -124,6 +139,19 @@ const SportsPage: React.FC = () => {
     setSelectedSport(sport);
   };
 
+  if (loading || !data || !selectedSport) {
+    return (
+      <Layout title="Sports Programs" description="Explore comprehensive university sports programs including Football, Basketball, Volleyball, Rugby, Hockey, Badminton, Table Tennis, Chess, Athletics and more">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-unill-yellow-400 mx-auto"></div>
+            <p className="mt-4 text-gray-300">Loading...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout title="Sports Programs" description="Explore comprehensive university sports programs including Football, Basketball, Volleyball, Rugby, Hockey, Badminton, Table Tennis, Chess, Athletics and more">
       {/* Hero Section */}
@@ -146,7 +174,7 @@ const SportsPage: React.FC = () => {
               Choose Your Sport
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-              {sportsData.map((sport) => (
+              {data.sports.map((sport) => (
                 <button 
                   key={sport.id}
                   className={`sport-selector bg-white/10 backdrop-blur-md border border-white/20 rounded-lg p-4 text-center hover:bg-white/20 transition-all ${
@@ -421,12 +449,12 @@ const SportsPage: React.FC = () => {
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button 
-                onClick={showComingSoon}
+              <a
+                href="/register"
                 className="bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-unill-yellow-500 hover:to-unill-purple-600 transition-all transform hover:scale-105"
               >
                 Register for Tryouts
-              </button>
+              </a>
               <a href="/teams" className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-gray-900 transition-all transform hover:scale-105">
                 View Team Rosters
               </a>

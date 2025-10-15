@@ -1,28 +1,57 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
-import { sportsData } from '../data/sports';
+import { apiService, HomeData } from '../services/apiService';
 import { Sport } from '../types';
 import banner from '../images/banner.gif';
 
 const HomePage: React.FC = () => {
+  const [data, setData] = useState<HomeData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [currentFilter, setCurrentFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const homeData = await apiService.getHomeData();
+        setData(homeData);
+      } catch (error) {
+        console.error('Failed to load home data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
   const showComingSoon = () => {
     alert('Coming soon! This feature is under development.');
   };
 
-  const filteredSports = sportsData.filter(sport => {
+  const filteredSports = data?.sports.filter(sport => {
     const matchesFilter = currentFilter === 'all' || sport.category === currentFilter;
-    const matchesSearch = searchQuery === '' || 
+    const matchesSearch = searchQuery === '' ||
       sport.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       sport.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesFilter && matchesSearch;
-  });
+  }) || [];
 
   const showSportDetails = (sport: Sport) => {
     alert(`${sport.name} details coming soon!`);
   };
+
+  if (loading) {
+    return (
+      <Layout title="Home" description="Discover excellence in university athletics at Unill Sports">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-unill-yellow-400 mx-auto"></div>
+            <p className="mt-4 text-gray-300">Loading...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
   return (
     <Layout title="Home" description="Discover excellence in university athletics at Unill Sports">
       {/* Hero Section */}
@@ -66,71 +95,54 @@ const HomePage: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Live Match */}
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20 animate-pulse-live">
-              <div className="flex items-center justify-between mb-4">
-                <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">LIVE</span>
-                <span className="text-sm text-gray-300">Basketball</span>
-              </div>
-              <div className="text-center">
+            {data?.matches.map((match) => (
+              <div
+                key={match.id}
+                className={`bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20 ${
+                  match.status === 'live' ? 'animate-pulse-live' : ''
+                }`}
+              >
                 <div className="flex items-center justify-between mb-4">
-                  <div className="text-center">
-                    <h4 className="font-bold text-lg">Titans</h4>
-                    <p className="text-3xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">67</p>
-                  </div>
-                  <div className="text-gray-400 text-xl">VS</div>
-                  <div className="text-center">
-                    <h4 className="font-bold text-lg">Warriors</h4>
-                    <p className="text-3xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">64</p>
-                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                    match.status === 'live' ? 'bg-red-500 text-white' :
+                    match.status === 'upcoming' ? 'bg-blue-500 text-white' :
+                    'bg-green-500 text-white'
+                  }`}>
+                    {match.status.toUpperCase()}
+                  </span>
+                  <span className="text-sm text-gray-300 capitalize">{match.sport}</span>
                 </div>
-                <p className="text-sm text-gray-300">Sports Arena • 20:00</p>
-              </div>
-            </div>
-            
-            {/* Upcoming Match */}
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20">
-              <div className="flex items-center justify-between mb-4">
-                <span className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-semibold">UPCOMING</span>
-                <span className="text-sm text-gray-300">Football</span>
-              </div>
-              <div className="text-center">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="text-center">
-                    <h4 className="font-bold text-lg">Eagles</h4>
-                    <div className="w-12 h-12 bg-gradient-to-br from-unill-yellow-400 to-unill-purple-500 rounded-full mx-auto"></div>
+                <div className="text-center">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="text-center">
+                      <h4 className="font-bold text-lg">{match.homeTeam}</h4>
+                      {match.score ? (
+                        <p className="text-3xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
+                          {match.score.home}
+                        </p>
+                      ) : (
+                        <div className="w-12 h-12 bg-gradient-to-br from-unill-yellow-400 to-unill-purple-500 rounded-full mx-auto"></div>
+                      )}
+                    </div>
+                    <div className="text-gray-400 text-xl">VS</div>
+                    <div className="text-center">
+                      <h4 className="font-bold text-lg">{match.awayTeam}</h4>
+                      {match.score ? (
+                        <p className="text-3xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
+                          {match.score.away}
+                        </p>
+                      ) : (
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full mx-auto"></div>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-gray-400 text-xl">VS</div>
-                  <div className="text-center">
-                    <h4 className="font-bold text-lg">Lions</h4>
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full mx-auto"></div>
-                  </div>
+                  <p className="text-sm text-gray-300">
+                    {match.venue} • {match.time}
+                    {match.status === 'completed' && ' • Final'}
+                  </p>
                 </div>
-                <p className="text-sm text-gray-300">Oct 15 • University Stadium • 19:00</p>
               </div>
-            </div>
-            
-            {/* Recent Result */}
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20">
-              <div className="flex items-center justify-between mb-4">
-                <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-semibold">COMPLETED</span>
-                <span className="text-sm text-gray-300">Volleyball</span>
-              </div>
-              <div className="text-center">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="text-center">
-                    <h4 className="font-bold text-lg">Spikers</h4>
-                    <p className="text-3xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">3</p>
-                  </div>
-                  <div className="text-gray-400 text-xl">VS</div>
-                  <div className="text-center">
-                    <h4 className="font-bold text-lg">Hawks</h4>
-                    <p className="text-3xl font-black text-gray-400">1</p>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-300">Oct 10 • Gymnasium • Final</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -239,25 +251,33 @@ const HomePage: React.FC = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="text-center bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
-              <div className="text-5xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent mb-2">12+</div>
+              <div className="text-5xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent mb-2">
+                {data?.stats.sportsPrograms}+
+              </div>
               <div className="text-lg font-semibold mb-2">Sports Programs</div>
               <div className="text-sm text-gray-300">Diverse athletic opportunities</div>
             </div>
-            
+
             <div className="text-center bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
-              <div className="text-5xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent mb-2">500+</div>
+              <div className="text-5xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent mb-2">
+                {data?.stats.studentAthletes}+
+              </div>
               <div className="text-lg font-semibold mb-2">Student Athletes</div>
               <div className="text-sm text-gray-300">Active participants</div>
             </div>
-            
+
             <div className="text-center bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
-              <div className="text-5xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent mb-2">35</div>
+              <div className="text-5xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent mb-2">
+                {data?.stats.championships}
+              </div>
               <div className="text-lg font-semibold mb-2">Championships</div>
               <div className="text-sm text-gray-300">University titles won</div>
             </div>
-            
+
             <div className="text-center bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
-              <div className="text-5xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent mb-2">15</div>
+              <div className="text-5xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent mb-2">
+                {data?.stats.facilities}
+              </div>
               <div className="text-lg font-semibold mb-2">Facilities</div>
               <div className="text-sm text-gray-300">State-of-the-art venues</div>
             </div>
@@ -273,12 +293,12 @@ const HomePage: React.FC = () => {
             Take your athletic journey to the next level. Join Unill Sports and become part of our winning tradition.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button 
-              onClick={showComingSoon}
+            <a
+              href="/register"
               className="bg-white text-gray-900 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-all transform hover:scale-105"
             >
               Register Now
-            </button>
+            </a>
             <a href="/teams" className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-gray-900 transition-all transform hover:scale-105">
               Meet the Teams
             </a>

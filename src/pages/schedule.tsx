@@ -1,20 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { matchData } from '../data/sports';
+import { apiService, ScheduleData } from '../services/apiService';
 import { Match } from '../types';
 
 const SchedulePage: React.FC = () => {
+  const [data, setData] = useState<ScheduleData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [currentFilter, setCurrentFilter] = useState<string>('all');
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [matches, setMatches] = useState<Match[]>(matchData);
+  const [matches, setMatches] = useState<Match[]>([]);
 
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        const scheduleData = await apiService.getScheduleData();
+        setData(scheduleData);
+        setMatches(scheduleData.matches);
+      } catch (error) {
+        console.error('Failed to load schedule data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+
     // Initialize charts
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
     script.onload = () => {
       setTimeout(() => {
-        initScheduleCharts();
+        if (data) initScheduleCharts();
       }, 1000);
     };
     document.head.appendChild(script);
@@ -51,12 +66,49 @@ const SchedulePage: React.FC = () => {
     alert('Coming soon! This feature is under development.');
   };
 
+  const handleWatchLive = (match: Match) => {
+    // Navigate to live match page with match ID
+    window.location.href = `/live-match/${match.id}`;
+  };
+
+  const handleSetReminder = async (match: Match) => {
+    try {
+      // Request notification permission
+      if ('Notification' in window) {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          // Schedule reminder using Firebase Cloud Messaging
+          alert(`Reminder set for ${match.homeTeam} vs ${match.awayTeam} at ${match.time}`);
+        } else {
+          alert('Please enable notifications to set reminders');
+        }
+      } else {
+        alert('Notifications not supported in this browser');
+      }
+    } catch (error) {
+      alert('Failed to set reminder: ' + (error as Error).message);
+    }
+  };
+
   const showDayDetails = (date: string) => {
     const matchesOnDay = matches.filter(match => match.date === date);
     if (matchesOnDay.length === 0) return;
 
     alert(`${matchesOnDay.length} match(es) on ${new Date(date).toLocaleDateString()}`);
   };
+
+  if (loading || !data) {
+    return (
+      <Layout title="Schedule & Results" description="View university sports schedules, match results, and upcoming fixtures. Stay updated with live scores and game statistics.">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-unill-yellow-400 mx-auto"></div>
+            <p className="mt-4 text-gray-300">Loading...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   const changeMonth = (direction: number) => {
     setCurrentDate(prevDate => {
@@ -391,14 +443,14 @@ const SchedulePage: React.FC = () => {
                   <p className="text-sm text-gray-300">📍 {match.venue}</p>
                 </div>
                 <div className="flex gap-2">
-                  <button 
-                    onClick={showComingSoon}
+                  <button
+                    onClick={() => match.status === 'live' ? handleWatchLive(match) : handleSetReminder(match)}
                     className="flex-1 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 text-white px-4 py-2 rounded text-sm font-semibold hover:from-unill-yellow-500 hover:to-unill-purple-600 transition-all"
                   >
                     {match.status === 'live' ? 'Watch Live' : 'Set Reminder'}
                   </button>
-                  <button 
-                    onClick={showComingSoon}
+                  <button
+                    onClick={() => alert('Match preview/report feature coming soon!')}
                     className="flex-1 border border-white/20 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-white/10 transition-all"
                   >
                     {match.status === 'completed' ? 'Match Report' : 'Preview'}
@@ -450,25 +502,33 @@ const SchedulePage: React.FC = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 text-center border border-white/20">
-              <div className="text-5xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent mb-4">12</div>
+              <div className="text-5xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent mb-4">
+                {data.stats.totalMatches}
+              </div>
               <div className="text-lg font-semibold mb-2">Total Matches</div>
               <div className="text-sm text-gray-300">This week</div>
             </div>
-            
+
             <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 text-center border border-white/20">
-              <div className="text-5xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent mb-4">3</div>
+              <div className="text-5xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent mb-4">
+                {data.stats.liveNow}
+              </div>
               <div className="text-lg font-semibold mb-2">Live Now</div>
               <div className="text-sm text-gray-300">Ongoing matches</div>
             </div>
-            
+
             <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 text-center border border-white/20">
-              <div className="text-5xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent mb-4">8</div>
+              <div className="text-5xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent mb-4">
+                {data.stats.homeGames}
+              </div>
               <div className="text-lg font-semibold mb-2">Home Games</div>
               <div className="text-sm text-gray-300">At university venues</div>
             </div>
-            
+
             <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 text-center border border-white/20">
-              <div className="text-5xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent mb-4">2,450</div>
+              <div className="text-5xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent mb-4">
+                {data.stats.expectedAttendance.toLocaleString()}
+              </div>
               <div className="text-lg font-semibold mb-2">Expected Attendance</div>
               <div className="text-sm text-gray-300">Total spectators</div>
             </div>

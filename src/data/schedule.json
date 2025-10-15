@@ -1,0 +1,43 @@
+{
+  "matches": [
+    {
+      "id": 1,
+      "sport": "football",
+      "homeTeam": "Eagles",
+      "awayTeam": "Lions",
+      "date": "2025-10-15",
+      "time": "19:00",
+      "venue": "University Stadium",
+      "status": "upcoming",
+      "score": null
+    },
+    {
+      "id": 2,
+      "sport": "basketball",
+      "homeTeam": "Titans",
+      "awayTeam": "Warriors",
+      "date": "2025-10-12",
+      "time": "20:00",
+      "venue": "Sports Arena",
+      "status": "live",
+      "score": { "home": 67, "away": 64 }
+    },
+    {
+      "id": 3,
+      "sport": "volleyball",
+      "homeTeam": "Spikers",
+      "awayTeam": "Hawks",
+      "date": "2025-10-10",
+      "time": "18:30",
+      "venue": "Gymnasium",
+      "status": "completed",
+      "score": { "home": 3, "away": 1 }
+    }
+  ],
+  "stats": {
+    "totalMatches": 12,
+    "liveNow": 3,
+    "homeGames": 8,
+    "expectedAttendance": 2450
+  }
+}

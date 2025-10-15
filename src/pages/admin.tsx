@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import AdminGuard from '@/guards/AdminGuard';
 import UserHeader from '@/components/UserHeader';
+import { apiService, AdminData } from '../services/apiService';
 import {
   fetchDashboard,
   fetchUsers,
@@ -21,6 +22,8 @@ import {
 
 export default function AdminDashboardPage() {
   const dispatch = useAppDispatch();
+  const [adminData, setAdminData] = useState<AdminData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   /* ---------- Redux state ---------- */
   const { stats }   = useAppSelector(s => s.admin);
@@ -38,6 +41,18 @@ export default function AdminDashboardPage() {
 
   /* ---------- Hydrate once ---------- */
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        const data = await apiService.getAdminData();
+        setAdminData(data);
+      } catch (error) {
+        console.error('Failed to load admin data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+
     dispatch(fetchDashboard());
     dispatch(fetchUsers());
     dispatch(fetchMerch());
@@ -51,11 +66,22 @@ export default function AdminDashboardPage() {
 
   /* ---------- Tab content ---------- */
   const renderContent = () => {
+    if (loading || !adminData) {
+      return (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading admin data...</p>
+          </div>
+        </div>
+      );
+    }
+
     switch (activeTab) {
-      case 'dashboard': return <DashboardTab stats={stats} live={live} users={users} upcoming={upcoming} openGame={(g: any) => open('gameDetails', g)} />;
-      case 'users':     return <UsersTab rows={users} approve={(uid: any) => dispatch(approveUserT(uid))} deleteU={(uid: any) => dispatch(deleteUserT(uid))} openAdd={() => open('addUser')} />;
-      case 'merchandise': return <MerchTab items={merch} create={(item: any) => dispatch(createMerchT(item))} remove={(id: any) => dispatch(removeMerchT(id))} />;
-      case 'review':    return <ReviewTab rows={reviews} approve={(id: any) => dispatch(approveReviewT(id))} reject={(id: any) => dispatch(rejectReviewT(id))} />;
+      case 'dashboard': return <DashboardTab stats={stats} live={live} users={users} upcoming={upcoming} openGame={(g: any) => open('gameDetails', g)} adminData={adminData} />;
+      case 'users':     return <UsersTab rows={users} approve={(uid: any) => dispatch(approveUserT(uid))} deleteU={(uid: any) => dispatch(deleteUserT(uid))} openAdd={() => open('addUser')} adminData={adminData} />;
+      case 'merchandise': return <MerchTab items={merch} create={(item: any) => dispatch(createMerchT(item))} remove={(id: any) => dispatch(removeMerchT(id))} adminData={adminData} />;
+      case 'review':    return <ReviewTab rows={reviews} approve={(id: any) => dispatch(approveReviewT(id))} reject={(id: any) => dispatch(rejectReviewT(id))} adminData={adminData} />;
       case 'games':     return <GamesTab live={live} upcoming={upcoming} updateScore={(id: any,h: any,a: any)=>dispatch(updateScoreT({id,home:h,away:a}))} startG={(id: any)=>dispatch(startGameT(id))} endG={(id: any)=>dispatch(endGameT(id))} />;
       default:          return null;
     }
@@ -116,15 +142,15 @@ function TabIcon({ tab }: { tab: string }) {
 /* --------------------------------------------------
    Tab panels (identical HTML → JSX)
 -------------------------------------------------- */
-function DashboardTab({ stats, live, users, upcoming, openGame }: any) {
+function DashboardTab({ stats, live, users, upcoming, openGame, adminData }: any) {
   return (
     <div id="content-dashboard" className="slide-in-left">
       {/* stats cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        <StatCard color="blue"  value={stats.users}      label="Total Users"     change="+12%" />
-        <StatCard color="green" value={stats.liveGames}  label="Live Games"      change="+3"   />
-        <StatCard color="purple"value={`KSh ${stats.merchSales}`} label="Merchandise Sales" change="+8%" />
-        <StatCard color="orange"value={stats.pendingReviews} label="Pending Reviews" change="-2"   />
+        <StatCard color="blue"  value={adminData.dashboard.stats.users}      label="Total Users"     change="+12%" />
+        <StatCard color="green" value={adminData.dashboard.stats.liveGames}  label="Live Games"      change="+3"   />
+        <StatCard color="purple"value={`KSh ${adminData.dashboard.stats.merchSales}`} label="Merchandise Sales" change="+8%" />
+        <StatCard color="orange"value={adminData.dashboard.stats.pendingReviews} label="Pending Reviews" change="-2"   />
       </div>
 
       {/* map */}
@@ -136,14 +162,14 @@ function DashboardTab({ stats, live, users, upcoming, openGame }: any) {
             <div className="w-2 h-2 bg-yellow-500 rounded-full ml-4" /><span>Upcoming</span>
           </div>
         </div>
-        <KenyaMap live={live} upcoming={upcoming} onPin={openGame} />
+        <KenyaMap live={adminData.dashboard.liveGames} upcoming={adminData.dashboard.upcomingGames} onPin={openGame} />
         <p className="text-gray-600 mt-4 text-center italic">Click on the pins to view live game details and commentary</p>
       </div>
 
       {/* bottom grids */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <ActivityFeed users={users} />
-        <Schedule upcoming={upcoming} />
+        <ActivityFeed users={adminData.dashboard.recentUsers} />
+        <Schedule upcoming={adminData.dashboard.upcomingGames} />
       </div>
     </div>
   );
@@ -231,7 +257,7 @@ function Schedule({ upcoming }: any) {
 /* --------------------------------------------------
    Other tabs (simplified JSX)
 -------------------------------------------------- */
-function UsersTab({ rows, approve, deleteU, openAdd }: any) {
+function UsersTab({ rows, approve, deleteU, openAdd, adminData }: any) {
   return (
     <div id="content-users" className="slide-in-left">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
@@ -246,7 +272,7 @@ function UsersTab({ rows, approve, deleteU, openAdd }: any) {
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
           <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
         </tr></thead><tbody className="bg-white divide-y divide-gray-200">
-          {rows.map((u: any) => (
+          {(rows.length > 0 ? rows : adminData.users).map((u: any) => (
             <tr key={u.uid}>
               <td className="px-6 py-4 whitespace-nowrap"><div className="flex items-center"><div className="w-10 h-10 bg-purple-200 rounded-full flex items-center justify-center"><span className="text-purple-700 font-medium">{u.name.slice(0,2).toUpperCase()}</span></div><div className="ml-4"><div className="text-sm font-medium text-gray-900">{u.name}</div><div className="text-sm text-gray-500">{u.university||'—'}</div></div></div></td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{u.email}</td>
@@ -264,15 +290,74 @@ function UsersTab({ rows, approve, deleteU, openAdd }: any) {
   );
 }
 
-function MerchTab({ items, remove }: any) {
+function MerchTab({ items, remove, adminData }: any) {
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newItem, setNewItem] = useState({ name: '', description: '', price: '', image: '' });
+
+  const handleAddMerch = async () => {
+    try {
+      await apiService.createMerchandise({
+        name: newItem.name,
+        description: newItem.description,
+        price: parseFloat(newItem.price),
+        image: newItem.image || '/images/default-merch.jpg'
+      });
+      alert('Merchandise added successfully!');
+      setNewItem({ name: '', description: '', price: '', image: '' });
+      setShowAddForm(false);
+    } catch (error) {
+      alert('Failed to add merchandise: ' + (error as Error).message);
+    }
+  };
+
   return (
     <div id="content-merchandise" className="slide-in-left">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
         <div><h2 className="text-2xl font-bold text-gray-900">Merchandise Management</h2><p className="text-gray-600">Create team themes, designs, and manage merchandise.</p></div>
-        <button onClick={() => alert('Add merchandise form here')} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"><svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>Add Merchandise</button>
+        <button onClick={() => setShowAddForm(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"><svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>Add Merchandise</button>
       </div>
+
+      {showAddForm && (
+        <div className="bg-gray-50 p-4 rounded-lg mb-6">
+          <h3 className="text-lg font-semibold mb-4">Add New Merchandise</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <input
+              type="text"
+              placeholder="Name"
+              value={newItem.name}
+              onChange={(e) => setNewItem({...newItem, name: e.target.value})}
+              className="px-3 py-2 border rounded"
+            />
+            <input
+              type="text"
+              placeholder="Description"
+              value={newItem.description}
+              onChange={(e) => setNewItem({...newItem, description: e.target.value})}
+              className="px-3 py-2 border rounded"
+            />
+            <input
+              type="number"
+              placeholder="Price"
+              value={newItem.price}
+              onChange={(e) => setNewItem({...newItem, price: e.target.value})}
+              className="px-3 py-2 border rounded"
+            />
+            <input
+              type="text"
+              placeholder="Image URL"
+              value={newItem.image}
+              onChange={(e) => setNewItem({...newItem, image: e.target.value})}
+              className="px-3 py-2 border rounded"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button onClick={handleAddMerch} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Add</button>
+            <button onClick={() => setShowAddForm(false)} className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Cancel</button>
+          </div>
+        </div>
+      )}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {items.map((m: any) => (
+        {(items.length > 0 ? items : adminData.merchandise).map((m: any) => (
           <div key={m.id} className="bg-white rounded-xl shadow-lg p-6 flex flex-col items-center text-center">
             <img src={m.image} alt={m.name} className="rounded-lg mb-4" />
             <h3 className="font-bold text-lg text-gray-900">{m.name}</h3><p className="text-sm text-gray-600">{m.description}</p>
@@ -285,7 +370,7 @@ function MerchTab({ items, remove }: any) {
   );
 }
 
-function ReviewTab({ rows, approve, reject }: any) {
+function ReviewTab({ rows, approve, reject, adminData }: any) {
   return (
     <div id="content-review" className="slide-in-left">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
@@ -299,7 +384,7 @@ function ReviewTab({ rows, approve, reject }: any) {
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Submitted</th>
           <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
         </tr></thead><tbody className="bg-white divide-y divide-gray-200">
-          {rows.map((r: any) => (
+          {(rows.length > 0 ? rows : adminData.reviews).map((r: any) => (
             <tr key={r.id}>
               <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm font-medium text-gray-900">{r.title}</div><div className="text-sm text-gray-500">{r.type}</div></td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{r.correspondent}</td>
@@ -315,12 +400,80 @@ function ReviewTab({ rows, approve, reject }: any) {
 }
 
 function GamesTab({ live, upcoming, updateScore, startG, endG }: any) {
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newGame, setNewGame] = useState({
+    homeTeam: '',
+    awayTeam: '',
+    sport: 'football',
+    scheduledAt: '',
+    venue: ''
+  });
+
+  const handleAddGame = async () => {
+    try {
+      // This would need to be implemented in the API service
+      alert('Add game functionality would be implemented here');
+      setNewGame({ homeTeam: '', awayTeam: '', sport: 'football', scheduledAt: '', venue: '' });
+      setShowAddForm(false);
+    } catch (error) {
+      alert('Failed to add game: ' + (error as Error).message);
+    }
+  };
+
   return (
     <div id="content-games" className="slide-in-left">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
         <div><h2 className="text-2xl font-bold text-gray-900">Game Schedule</h2><p className="text-gray-600">Update upcoming and live game information.</p></div>
-        <button onClick={() => alert('Add game form here')} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"><svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>Add New Game</button>
+        <button onClick={() => setShowAddForm(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"><svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>Add New Game</button>
       </div>
+
+      {showAddForm && (
+        <div className="bg-gray-50 p-4 rounded-lg mb-6">
+          <h3 className="text-lg font-semibold mb-4">Add New Game</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <input
+              type="text"
+              placeholder="Home Team"
+              value={newGame.homeTeam}
+              onChange={(e) => setNewGame({...newGame, homeTeam: e.target.value})}
+              className="px-3 py-2 border rounded"
+            />
+            <input
+              type="text"
+              placeholder="Away Team"
+              value={newGame.awayTeam}
+              onChange={(e) => setNewGame({...newGame, awayTeam: e.target.value})}
+              className="px-3 py-2 border rounded"
+            />
+            <select
+              value={newGame.sport}
+              onChange={(e) => setNewGame({...newGame, sport: e.target.value})}
+              className="px-3 py-2 border rounded"
+            >
+              <option value="football">Football</option>
+              <option value="basketball">Basketball</option>
+              <option value="volleyball">Volleyball</option>
+            </select>
+            <input
+              type="datetime-local"
+              value={newGame.scheduledAt}
+              onChange={(e) => setNewGame({...newGame, scheduledAt: e.target.value})}
+              className="px-3 py-2 border rounded"
+            />
+            <input
+              type="text"
+              placeholder="Venue"
+              value={newGame.venue}
+              onChange={(e) => setNewGame({...newGame, venue: e.target.value})}
+              className="px-3 py-2 border rounded"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button onClick={handleAddGame} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Add Game</button>
+            <button onClick={() => setShowAddForm(false)} className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Cancel</button>
+          </div>
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl shadow-lg p-6"><h3 className="text-xl font-bold text-gray-900 mb-4">Live Games</h3>
           {live.map((g: any) => (
@@ -349,6 +502,29 @@ function GamesTab({ live, upcoming, updateScore, startG, endG }: any) {
    Modals
 -------------------------------------------------- */
 function AddUserModal({ close }: any) {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    role: 'fan',
+    university: ''
+  });
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    try {
+      await apiService.createUser({
+        displayName: formData.name,
+        email: formData.email,
+        role: formData.role,
+        universityId: formData.university
+      });
+      alert('User created successfully!');
+      close();
+    } catch (error) {
+      alert('Failed to create user: ' + (error as Error).message);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 modal-backdrop">
@@ -357,11 +533,52 @@ function AddUserModal({ close }: any) {
             <h3 className="text-lg font-bold text-gray-900">Add New User</h3>
             <button onClick={close} className="text-gray-400 hover:text-gray-600"><svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
           </div>
-          <form onSubmit={e => { e.preventDefault(); alert('Hook to createUser thunk'); close(); }}>
-            <div className="mb-4"><label className="block text-sm font-medium text-gray-700">Full Name</label><input type="text" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" /></div>
-            <div className="mb-4"><label className="block text-sm font-medium text-gray-700">Email Address</label><input type="email" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" /></div>
-            <div className="mb-4"><label className="block text-sm font-medium text-gray-700">Role</label><select required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"><option value="correspondent">Correspondent</option><option value="fan">Fan</option></select></div>
-            <div className="flex justify-end"><button type="button" onClick={close} className="mr-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">Cancel</button><button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">Add User</button></div>
+          <form onSubmit={handleSubmit}>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">Full Name</label>
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">Email Address</label>
+              <input
+                type="email"
+                required
+                value={formData.email}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">Role</label>
+              <select
+                required
+                value={formData.role}
+                onChange={(e) => setFormData({...formData, role: e.target.value})}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              >
+                <option value="correspondent">Correspondent</option>
+                <option value="fan">Fan</option>
+              </select>
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">University</label>
+              <input
+                type="text"
+                value={formData.university}
+                onChange={(e) => setFormData({...formData, university: e.target.value})}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div className="flex justify-end">
+              <button type="button" onClick={close} className="mr-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">Cancel</button>
+              <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">Add User</button>
+            </div>
           </form>
         </div>
       </div>
