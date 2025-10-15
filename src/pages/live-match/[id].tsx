@@ -28,6 +28,13 @@ interface ChatMessage {
   createdAt: any;
 }
 
+interface CommentaryMessage {
+  id: string;
+  correspondent: string;
+  comment: string;
+  timestamp: number;
+}
+
 export default function LiveMatchPage() {
   const router = useRouter();
   const { id } = router.query;
@@ -37,6 +44,7 @@ export default function LiveMatchPage() {
   const [matchData, setMatchData] = useState<MatchData | null>(null);
   const [telemetry, setTelemetry] = useState<TelemetryData | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [commentaryMessages, setCommentaryMessages] = useState<CommentaryMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -77,8 +85,17 @@ export default function LiveMatchPage() {
         // Subscribe to fan chat
         const unsubscribe = subscribeFanChat(id as string, setChatMessages);
 
+        // Subscribe to live commentary (updates every 30 seconds)
+        const commentaryInterval = setInterval(() => {
+          fetchLiveCommentary(id as string);
+        }, 30000);
+
+        // Initial commentary fetch
+        fetchLiveCommentary(id as string);
+
         return () => {
           clearInterval(telemetryInterval);
+          clearInterval(commentaryInterval);
           unsubscribe();
         };
       } catch (error) {
@@ -139,6 +156,36 @@ export default function LiveMatchPage() {
     }
   };
 
+  const fetchLiveCommentary = async (matchId: string) => {
+    try {
+      // In a real app, this would fetch from Firebase
+      // For demo, we'll simulate commentary messages
+      const mockCommentary: CommentaryMessage[] = [
+        {
+          id: '1',
+          correspondent: 'John Smith',
+          comment: 'Great start by the Eagles! Strong defensive play in the opening minutes.',
+          timestamp: Date.now() - 30000
+        },
+        {
+          id: '2',
+          correspondent: 'Sarah Johnson',
+          comment: 'The midfield battle is intense. Both teams showing excellent tactical discipline.',
+          timestamp: Date.now() - 15000
+        },
+        {
+          id: '3',
+          correspondent: 'Mike Wilson',
+          comment: 'Beautiful cross from the left wing! Eagles captain just missed the header.',
+          timestamp: Date.now()
+        }
+      ];
+      setCommentaryMessages(mockCommentary);
+    } catch (error) {
+      console.error('Failed to fetch commentary:', error);
+    }
+  };
+
   if (loading) {
     return (
       <Layout title="Live Match">
@@ -190,9 +237,9 @@ export default function LiveMatchPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 gap-8">
             {/* Live Pitch Visualization */}
-            <div className="lg:col-span-2">
+            <div className="w-full">
               <div className="bg-white rounded-lg shadow-lg p-6">
                 <h3 className="text-xl font-bold mb-4">Live Match Visualization</h3>
                 <div className="relative">
@@ -226,37 +273,48 @@ export default function LiveMatchPage() {
               </div>
             </div>
 
-            {/* Fan Chat */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-xl font-bold mb-4">Fan Chat</h3>
-              <div className="h-96 overflow-y-auto mb-4 border rounded-lg p-4 bg-gray-50">
-                {chatMessages.map((msg) => (
-                  <div key={msg.id} className="mb-2">
-                    <span className="font-semibold text-blue-600">{msg.user}:</span>
-                    <span className="ml-2">{msg.text}</span>
+            {/* Live Commentary - Mobile: Below canvas, Desktop: Right sidebar */}
+            <div className="lg:hidden bg-white rounded-lg shadow-lg p-6 mt-8">
+              <h3 className="text-xl font-bold mb-4">Live Commentary</h3>
+              <div className="h-64 overflow-y-auto mb-4 border rounded-lg p-4 bg-gray-50">
+                {commentaryMessages.map((msg) => (
+                  <div key={msg.id} className="mb-3 p-3 bg-white rounded-lg shadow-sm border-l-4 border-blue-500">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span className="font-semibold text-blue-600 text-sm">{msg.correspondent}</span>
+                      <span className="text-xs text-gray-500">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                    <p className="text-gray-800">{msg.comment}</p>
                   </div>
                 ))}
+                {commentaryMessages.length === 0 && (
+                  <p className="text-center text-gray-500 py-8">Waiting for live commentary...</p>
+                )}
               </div>
-              {user ? (
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                    placeholder="Type a message..."
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <button
-                    onClick={handleSendMessage}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    Send
-                  </button>
+              <div className="text-xs text-gray-500 text-center">
+                Commentary updates every 30 seconds
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Commentary Sidebar */}
+          <div className="hidden lg:block fixed top-0 right-0 h-full w-80 bg-white shadow-lg border-l border-gray-200 p-6 overflow-y-auto">
+            <h3 className="text-xl font-bold mb-4">Live Commentary</h3>
+            <div className="space-y-3">
+              {commentaryMessages.map((msg) => (
+                <div key={msg.id} className="p-3 bg-gray-50 rounded-lg border-l-4 border-blue-500">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <span className="font-semibold text-blue-600 text-sm">{msg.correspondent}</span>
+                    <span className="text-xs text-gray-500">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                  </div>
+                  <p className="text-gray-800 text-sm">{msg.comment}</p>
                 </div>
-              ) : (
-                <p className="text-center text-gray-500">Login to join the chat</p>
+              ))}
+              {commentaryMessages.length === 0 && (
+                <p className="text-center text-gray-500 py-8">Waiting for live commentary...</p>
               )}
+            </div>
+            <div className="mt-4 text-xs text-gray-500 text-center">
+              Commentary updates every 30 seconds
             </div>
           </div>
         </div>
