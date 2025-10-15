@@ -297,24 +297,73 @@ export default function LiveMatchPage() {
           </div>
 
           {/* Desktop Commentary Sidebar */}
-          <div className="hidden lg:block fixed top-0 right-0 h-full w-80 bg-white shadow-lg border-l border-gray-200 p-6 overflow-y-auto">
-            <h3 className="text-xl font-bold mb-4">Live Commentary</h3>
-            <div className="space-y-3">
-              {commentaryMessages.map((msg) => (
-                <div key={msg.id} className="p-3 bg-gray-50 rounded-lg border-l-4 border-blue-500">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <span className="font-semibold text-blue-600 text-sm">{msg.correspondent}</span>
-                    <span className="text-xs text-gray-500">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+          <div className="hidden lg:block fixed top-0 right-0 h-full w-80 bg-white shadow-lg border-l border-gray-200 overflow-y-auto">
+            <div className="p-6">
+              <h3 className="text-xl font-bold mb-4">Live Commentary</h3>
+              <div className="space-y-3 mb-6">
+                {commentaryMessages.map((msg) => (
+                  <div key={msg.id} className="p-3 bg-gray-50 rounded-lg border-l-4 border-blue-500">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span className="font-semibold text-blue-600 text-sm">{msg.correspondent}</span>
+                      <span className="text-xs text-gray-500">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                    <p className="text-gray-800 text-sm">{msg.comment}</p>
                   </div>
-                  <p className="text-gray-800 text-sm">{msg.comment}</p>
-                </div>
-              ))}
-              {commentaryMessages.length === 0 && (
-                <p className="text-center text-gray-500 py-8">Waiting for live commentary...</p>
-              )}
+                ))}
+                {commentaryMessages.length === 0 && (
+                  <p className="text-center text-gray-500 py-8">Waiting for live commentary...</p>
+                )}
+              </div>
+              <div className="text-xs text-gray-500 text-center">
+                Commentary updates every 30 seconds
+              </div>
             </div>
-            <div className="mt-4 text-xs text-gray-500 text-center">
-              Commentary updates every 30 seconds
+
+            {/* Fan Chat Section in Same Sidebar */}
+            <div className="p-6 border-t border-gray-200">
+              <h3 className="text-xl font-bold mb-4">Fan Chat</h3>
+              <div className="h-80 overflow-y-auto mb-4 border border-gray-300 rounded-lg p-4 bg-gray-50">
+                <div className="space-y-3">
+                  {chatMessages.map((msg) => (
+                    <div key={msg.id} className="flex flex-col space-y-1">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs font-bold">{msg.user.charAt(0)}</span>
+                        </div>
+                        <span className="font-semibold text-sm text-gray-900">{msg.user}</span>
+                        <span className="text-xs text-gray-500">{new Date(msg.createdAt).toLocaleTimeString()}</span>
+                      </div>
+                      <div className="ml-8 p-3 bg-white rounded-lg shadow-sm border">
+                        <p className="text-sm text-gray-800">{msg.text}</p>
+                        <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                          <button className="hover:text-blue-600 flex items-center space-x-1">
+                            <span>👍</span>
+                            <span>12</span>
+                          </button>
+                          <button className="hover:text-blue-600">Reply</button>
+                          <button className="hover:text-red-600">Report</button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {user ? (
+                <form onSubmit={handleSendMessage} className="flex space-x-2">
+                  <input
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    type="text"
+                    placeholder="Share your thoughts..."
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    Post
+                  </button>
+                </form>
+              ) : (
+                <p className="text-center text-gray-500 text-sm">Login to join the chat</p>
+              )}
             </div>
           </div>
         </div>

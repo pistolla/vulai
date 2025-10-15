@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { apiService, HomeData } from '../services/apiService';
 import { Sport } from '../types';
+import { useAppSelector } from '../hooks/redux';
 import banner from '../images/banner.gif';
 
 const HomePage: React.FC = () => {
+  const user = useAppSelector(s => s.auth.user);
   const [data, setData] = useState<HomeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentFilter, setCurrentFilter] = useState<string>('all');
@@ -40,6 +42,44 @@ const HomePage: React.FC = () => {
     alert(`${sport.name} details coming soon!`);
   };
 
+  /* ---------------------------------
+    Live Match Card Component
+  ---------------------------------- */
+  function LiveMatchCard({ match }: { match: any }) {
+    return (
+      <div className="flex-shrink-0 w-80 bg-white/10 backdrop-blur-md rounded-lg p-4 border border-white/20 animate-pulse-live">
+        <div className="flex items-center justify-between mb-3">
+          <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">LIVE</span>
+          <span className="text-sm text-gray-300 capitalize">{match.sport}</span>
+        </div>
+        <div className="text-center">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-center">
+              <h4 className="font-bold text-sm">{match.homeTeam}</h4>
+              <p className="text-2xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
+                {match.score?.home ?? 0}
+              </p>
+            </div>
+            <div className="text-gray-400 text-lg">VS</div>
+            <div className="text-center">
+              <h4 className="font-bold text-sm">{match.awayTeam}</h4>
+              <p className="text-2xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
+                {match.score?.away ?? 0}
+              </p>
+            </div>
+          </div>
+          <p className="text-xs text-gray-300 mb-3">{match.venue} • {match.time}</p>
+          <button
+            onClick={() => window.location.href = `/live-match/${match.id}`}
+            className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded text-sm font-semibold hover:from-red-600 hover:to-red-700 transition-all"
+          >
+            Watch Live
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <Layout title="Home" description="Discover excellence in university athletics at Unill Sports">
@@ -66,6 +106,19 @@ const HomePage: React.FC = () => {
           <p className="text-xl md:text-2xl mb-8 text-gray-200 max-w-2xl mx-auto leading-relaxed">
             Discover excellence in university athletics. Join our diverse sports programs and compete at the highest level with state-of-the-art facilities and expert coaching.
           </p>
+
+          {/* Live Matches Slider for Logged-in Users */}
+          {user && data?.matches && data.matches.filter(m => m.status === 'live').length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-white mb-4">🔴 LIVE NOW</h2>
+              <div className="flex gap-4 overflow-x-auto scroll-snap-x mandatory pb-4 max-w-4xl">
+                {data.matches.filter(m => m.status === 'live').map((match) => (
+                  <LiveMatchCard key={match.id} match={match} />
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <a href="/sports" className="bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-unill-yellow-500 hover:to-unill-purple-600 transition-all transform hover:scale-105 animate-pulse-glow">
               Explore Sports
