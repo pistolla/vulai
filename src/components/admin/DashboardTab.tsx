@@ -18,6 +18,7 @@ function KenyaMap({ live, upcoming, onPin }: any) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const loadMatches = async () => {
@@ -51,13 +52,36 @@ function KenyaMap({ live, upcoming, onPin }: any) {
     loadMatches();
   }, []);
 
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % matches.length);
+    if (isMobile) {
+      setCurrentSlide((prev) => (prev + 1) % matches.length);
+    } else {
+      setCurrentSlide((prev) => Math.min(prev + 3, matches.length - 3));
+    }
   };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + matches.length) % matches.length);
+    if (isMobile) {
+      setCurrentSlide((prev) => (prev - 1 + matches.length) % matches.length);
+    } else {
+      setCurrentSlide((prev) => Math.max(prev - 3, 0));
+    }
   };
+
+  // Determine how many cards to show based on screen size
+  const cardsToShow = isMobile ? 1 : 3;
+  const visibleMatches = matches.slice(currentSlide, currentSlide + cardsToShow);
 
   if (loading) {
     return (
@@ -82,53 +106,100 @@ function KenyaMap({ live, upcoming, onPin }: any) {
     <div className="relative w-full h-96 bg-gradient-to-br from-green-100 to-blue-100 rounded-lg overflow-hidden shadow-lg">
       {/* Slider Container */}
       <div className="relative h-full">
-        {matches.map((match: any, index: number) => (
-          <div
-            key={match.id}
-            className={`absolute inset-0 transition-opacity duration-500 ${index === currentSlide ? 'opacity-100' : 'opacity-0'}`}
-          >
-            <MiniCard
-              title={`${match.homeTeam} vs ${match.awayTeam}`}
-              img="https://picsum.photos/seed/game/400/250"
+        {isMobile ? (
+          // Mobile: Single card slider
+          matches.map((match: any, index: number) => (
+            <div
+              key={match.id}
+              className={`absolute inset-0 transition-opacity duration-500 ${index === currentSlide ? 'opacity-100' : 'opacity-0'}`}
             >
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span>Score:</span>
-                  <span className="font-bold">{match.score ? `${match.score.home} - ${match.score.away}` : 'Not started'}</span>
+              <MiniCard
+                title={`${match.homeTeam} vs ${match.awayTeam}`}
+                img="https://picsum.photos/seed/game/400/250"
+              >
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Score:</span>
+                    <span className="font-bold">{match.score ? `${match.score.home} - ${match.score.away}` : 'Not started'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Sport:</span>
+                    <span>{match.sport}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Venue:</span>
+                    <span>{match.venue}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Date:</span>
+                    <span>{match.date}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Time:</span>
+                    <span>{match.time}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Status:</span>
+                    <span className={`px-2 py-1 rounded text-xs ${
+                      match.status === 'live' ? 'bg-red-100 text-red-800' :
+                      match.status === 'completed' ? 'bg-green-100 text-green-800' :
+                      'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {match.status}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span>Sport:</span>
-                  <span>{match.sport}</span>
+              </MiniCard>
+            </div>
+          ))
+        ) : (
+          // Desktop: Show 3 cards side by side
+          <div className="grid grid-cols-3 gap-4 h-full p-4">
+            {visibleMatches.map((match: any, index: number) => (
+              <MiniCard
+                key={match.id}
+                title={`${match.homeTeam} vs ${match.awayTeam}`}
+                img="https://picsum.photos/seed/game/400/250"
+              >
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Score:</span>
+                    <span className="font-bold">{match.score ? `${match.score.home} - ${match.score.away}` : 'Not started'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Sport:</span>
+                    <span>{match.sport}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Venue:</span>
+                    <span>{match.venue}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Date:</span>
+                    <span>{match.date}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Time:</span>
+                    <span>{match.time}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Status:</span>
+                    <span className={`px-2 py-1 rounded text-xs ${
+                      match.status === 'live' ? 'bg-red-100 text-red-800' :
+                      match.status === 'completed' ? 'bg-green-100 text-green-800' :
+                      'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {match.status}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span>Venue:</span>
-                  <span>{match.venue}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Date:</span>
-                  <span>{match.date}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Time:</span>
-                  <span>{match.time}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Status:</span>
-                  <span className={`px-2 py-1 rounded text-xs ${
-                    match.status === 'live' ? 'bg-red-100 text-red-800' :
-                    match.status === 'completed' ? 'bg-green-100 text-green-800' :
-                    'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {match.status}
-                  </span>
-                </div>
-              </div>
-            </MiniCard>
+              </MiniCard>
+            ))}
           </div>
-        ))}
+        )}
 
-        {/* Navigation Arrows */}
-        {matches.length > 1 && (
+        {/* Navigation Arrows - Only show on mobile */}
+        {isMobile && matches.length > 1 && (
           <>
             <button
               onClick={prevSlide}
@@ -149,8 +220,8 @@ function KenyaMap({ live, upcoming, onPin }: any) {
           </>
         )}
 
-        {/* Dots Indicator */}
-        {matches.length > 1 && (
+        {/* Dots Indicator - Only show on mobile */}
+        {isMobile && matches.length > 1 && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
             {matches.map((_, index) => (
               <button
@@ -162,6 +233,30 @@ function KenyaMap({ live, upcoming, onPin }: any) {
               />
             ))}
           </div>
+        )}
+
+        {/* Desktop Navigation - Show arrows when there are more matches */}
+        {!isMobile && matches.length > 3 && (
+          <>
+            <button
+              onClick={prevSlide}
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg transition-all"
+              disabled={currentSlide === 0}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={nextSlide}
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg transition-all"
+              disabled={currentSlide >= matches.length - 3}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </>
         )}
       </div>
     </div>
