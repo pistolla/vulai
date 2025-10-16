@@ -1,15 +1,31 @@
 {
   "sports": [
     {
-      "id": "football",
-      "name": "Football",
+      "id": "soccer",
+      "name": "Football (Soccer)",
       "category": "team",
-      "description": "American football with 11-player teams competing in high-energy matches",
+      "description": "The world's most popular sport, played by 11-player teams competing to score by moving the ball into the opposing goal.",
       "image": "/images/soccer.png",
       "players": 11,
-      "season": "Fall",
-      "positions": ["Quarterback", "Running Back", "Wide Receiver", "Defensive Line", "Linebacker", "Defensive Back"],
-      "stats": { "wins": 8, "losses": 2, "championships": 3 }
+      "season": "Year-round/Seasonal League",
+      "positions": [
+        "Goalkeeper",
+        "Right Back",
+        "Centre-Back (Right)",
+        "Centre-Back (Left)",
+        "Left Back",
+        "Defensive Midfielder",
+        "Right Midfielder (or Winger)",
+        "Central Midfielder",
+        "Left Midfielder (or Winger)",
+        "Attacking Midfielder (or Second Striker)",
+        "Striker (or Centre Forward)"
+      ],
+      "stats": {
+        "wins": 8,
+        "losses": 2,
+        "championships": 3
+      }
     },
     {
       "id": "basketball",

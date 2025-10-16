@@ -3,40 +3,40 @@
     {
       "id": 1,
       "sport": "football",
-      "homeTeam": "Eagles",
-      "awayTeam": "Lions",
-      "date": "2025-10-15",
-      "time": "19:00",
-      "venue": "University Stadium",
+      "homeTeam": "KU Hardnuts",
+      "awayTeam": "USIU",
+      "date": "2025-10-18",
+      "time": "15:00",
+      "venue": "Kenyatta University Main Field",
       "status": "upcoming",
       "score": null
     },
     {
       "id": 2,
       "sport": "basketball",
-      "homeTeam": "Titans",
-      "awayTeam": "Warriors",
-      "date": "2025-10-12",
+      "homeTeam": "USIU Tigers",
+      "awayTeam": "KU Pirates",
+      "date": "2025-10-16",
       "time": "20:00",
-      "venue": "Sports Arena",
+      "venue": "USIU Arena",
       "status": "live",
       "score": { "home": 67, "away": 64 }
     },
     {
       "id": 3,
       "sport": "volleyball",
-      "homeTeam": "Spikers",
-      "awayTeam": "Hawks",
+      "homeTeam": "JKUAT VolleyKats (W)",
+      "awayTeam": "KCA (W)",
       "date": "2025-10-10",
       "time": "18:30",
-      "venue": "Gymnasium",
+      "venue": "Nyayo Indoor Arena (Playoffs)",
       "status": "completed",
       "score": { "home": 3, "away": 1 }
     }
   ],
   "stats": {
     "totalMatches": 12,
-    "liveNow": 3,
+    "liveNow": 1,
     "homeGames": 8,
     "expectedAttendance": 2450
   }

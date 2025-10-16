@@ -92,6 +92,22 @@ class ApiService {
     return this.fetchWithFallback<AdminData>('/api/admin', '/data/admin.json');
   }
 
+  async getUniversities(): Promise<any[]> {
+    return this.fetchWithFallback<any>('/api/admin/universities', '/data/universities.json').then(data => data.universities || []);
+  }
+
+  async getTeams(): Promise<any[]> {
+    return this.fetchWithFallback<any>('/api/admin/teams', '/data/teams.json').then(data => data.teams || []);
+  }
+
+  async getSchedule(): Promise<any[]> {
+    return this.fetchWithFallback<any>('/api/admin/schedule', '/data/schedule.json').then(data => data.matches || []);
+  }
+
+  async getSports(): Promise<any[]> {
+    return this.fetchWithFallback<any>('/api/admin/sports', '/data/sports.json').then(data => data.sports || []);
+  }
+
   // CRUD operations for admin
   async createUser(userData: any): Promise<any> {
     try {
