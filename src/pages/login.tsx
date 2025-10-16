@@ -24,7 +24,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (user) {
       switch (user.role) {
-        case 'admin': router.replace('/admin'); break;
+        case 'admin': router.replace('/admin/page'); break;
         case 'correspondent': router.replace('/correspondent'); break;
         case 'fan': router.replace('/fan'); break;
         default: router.replace('/login');

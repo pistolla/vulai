@@ -1,10 +1,99 @@
 import { useEffect, useState } from 'react';
 import { apiService } from '@/services/apiService';
 
+// Modal Component
+function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="flex items-center justify-center min-h-screen px-4 bg-black bg-opacity-50 dark:bg-opacity-70">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">{title}</h3>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className="p-6">
+            {children}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// University Form Component
+function UniversityForm({ formData, setFormData, onSubmit, submitLabel }: any) {
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">University Name</label>
+          <input
+            type="text"
+            required
+            value={formData.name}
+            onChange={(e) => setFormData({...formData, name: e.target.value})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
+          <input
+            type="text"
+            required
+            value={formData.location}
+            onChange={(e) => setFormData({...formData, location: e.target.value})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Established Year</label>
+          <input
+            type="number"
+            value={formData.established}
+            onChange={(e) => setFormData({...formData, established: e.target.value})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Website URL</label>
+          <input
+            type="url"
+            value={formData.website}
+            onChange={(e) => setFormData({...formData, website: e.target.value})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
+        <div className="col-span-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+          <textarea
+            rows={3}
+            value={formData.description}
+            onChange={(e) => setFormData({...formData, description: e.target.value})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
+      </div>
+      <div className="flex justify-end space-x-3 pt-4">
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
+        >
+          {submitLabel}
+        </button>
+      </div>
+    </form>
+  );
+}
+
 export default function UniversitiesTab({ adminData }: any) {
   const [universities, setUniversities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [editingUniversity, setEditingUniversity] = useState<any>(null);
   const [newUniversity, setNewUniversity] = useState({
     name: '',
@@ -13,6 +102,16 @@ export default function UniversitiesTab({ adminData }: any) {
     website: '',
     description: ''
   });
+
+  const resetNewUniversity = () => {
+    setNewUniversity({
+      name: '',
+      location: '',
+      established: '',
+      website: '',
+      description: ''
+    });
+  };
 
   useEffect(() => {
     const loadUniversities = async () => {
@@ -50,8 +149,8 @@ export default function UniversitiesTab({ adminData }: any) {
     try {
       // This would need to be implemented in the API service
       alert('Add university functionality would be implemented here');
-      setNewUniversity({ name: '', location: '', established: '', website: '', description: '' });
-      setShowAddForm(false);
+      resetNewUniversity();
+      setShowAddModal(false);
     } catch (error) {
       alert('Failed to add university: ' + (error as Error).message);
     }
@@ -82,54 +181,31 @@ export default function UniversitiesTab({ adminData }: any) {
     <div id="content-universities" className="slide-in-left">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
         <div><h2 className="text-2xl font-bold text-gray-900">Universities Management</h2><p className="text-gray-600">Manage university information and details.</p></div>
-        <button onClick={() => setShowAddForm(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"><svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>Add University</button>
+        <button onClick={() => setShowAddModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"><svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>Add University</button>
       </div>
 
-      {(showAddForm || editingUniversity) && (
-        <div className="bg-gray-50 p-4 rounded-lg mb-6">
-          <h3 className="text-lg font-semibold mb-4">{editingUniversity ? 'Edit University' : 'Add New University'}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <input
-              type="text"
-              placeholder="University Name"
-              value={editingUniversity ? editingUniversity.name : newUniversity.name}
-              onChange={(e) => editingUniversity ? setEditingUniversity({...editingUniversity, name: e.target.value}) : setNewUniversity({...newUniversity, name: e.target.value})}
-              className="px-3 py-2 border rounded"
-            />
-            <input
-              type="text"
-              placeholder="Location"
-              value={editingUniversity ? editingUniversity.location : newUniversity.location}
-              onChange={(e) => editingUniversity ? setEditingUniversity({...editingUniversity, location: e.target.value}) : setNewUniversity({...newUniversity, location: e.target.value})}
-              className="px-3 py-2 border rounded"
-            />
-            <input
-              type="number"
-              placeholder="Established Year"
-              value={editingUniversity ? editingUniversity.established : newUniversity.established}
-              onChange={(e) => editingUniversity ? setEditingUniversity({...editingUniversity, established: e.target.value}) : setNewUniversity({...newUniversity, established: e.target.value})}
-              className="px-3 py-2 border rounded"
-            />
-            <input
-              type="url"
-              placeholder="Website URL"
-              value={editingUniversity ? editingUniversity.website : newUniversity.website}
-              onChange={(e) => editingUniversity ? setEditingUniversity({...editingUniversity, website: e.target.value}) : setNewUniversity({...newUniversity, website: e.target.value})}
-              className="px-3 py-2 border rounded"
-            />
-            <textarea
-              placeholder="Description"
-              value={editingUniversity ? editingUniversity.description : newUniversity.description}
-              onChange={(e) => editingUniversity ? setEditingUniversity({...editingUniversity, description: e.target.value}) : setNewUniversity({...newUniversity, description: e.target.value})}
-              className="px-3 py-2 border rounded col-span-2"
-              rows={3}
-            />
-          </div>
-          <div className="flex gap-2">
-            <button onClick={editingUniversity ? handleEditUniversity : handleAddUniversity} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">{editingUniversity ? 'Update' : 'Add'} University</button>
-            <button onClick={() => { setShowAddForm(false); setEditingUniversity(null); }} className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Cancel</button>
-          </div>
-        </div>
+      {/* Add University Modal */}
+      {showAddModal && (
+        <Modal title="Add New University" onClose={() => { setShowAddModal(false); resetNewUniversity(); }}>
+          <UniversityForm
+            formData={newUniversity}
+            setFormData={setNewUniversity}
+            onSubmit={handleAddUniversity}
+            submitLabel="Add University"
+          />
+        </Modal>
+      )}
+
+      {/* Edit University Modal */}
+      {showEditModal && editingUniversity && (
+        <Modal title="Edit University" onClose={() => { setShowEditModal(false); setEditingUniversity(null); }}>
+          <UniversityForm
+            formData={editingUniversity}
+            setFormData={setEditingUniversity}
+            onSubmit={handleEditUniversity}
+            submitLabel="Update University"
+          />
+        </Modal>
       )}
 
       <div className="bg-white rounded-xl shadow-lg p-6">
@@ -163,7 +239,7 @@ export default function UniversitiesTab({ adminData }: any) {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{university.established}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><a href={`https://${university.website}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-900">{university.website}</a></td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button onClick={() => setEditingUniversity(university)} className="text-blue-600 hover:text-blue-900 mr-2">Edit</button>
+                    <button onClick={() => { setEditingUniversity(university); setShowEditModal(true); }} className="text-blue-600 hover:text-blue-900 mr-2">Edit</button>
                     <button onClick={() => handleDeleteUniversity(university.id)} className="text-red-600 hover:text-red-900">Delete</button>
                   </td>
                 </tr>

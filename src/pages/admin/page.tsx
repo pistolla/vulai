@@ -9,6 +9,7 @@ import DashboardTab from '../../components/admin/DashboardTab';
 import UsersTab from '../../components/admin/UsersTab';
 import UniversitiesTab from '../../components/admin/UniversitiesTab';
 import TeamsTab from '../../components/admin/TeamsTab';
+import PlayersTab from '../../components/admin/PlayersTab';
 import SportsTab from '../../components/admin/SportsTab';
 import MerchTab from '../../components/admin/MerchTab';
 import ReviewTab from '../../components/admin/ReviewTab';
@@ -43,7 +44,7 @@ export default function AdminDashboardPage() {
   const { live, upcoming } = useAppSelector(s => s.games);
 
   /* ---------- Local UI state ---------- */
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'universities' | 'teams' | 'sports' | 'merchandise' | 'review' | 'games'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'universities' | 'teams' | 'players' | 'sports' | 'merchandise' | 'review' | 'games'>('dashboard');
   const [modals, setModals] = useState({
     addUser: false,
     gameDetails: null as null | { id: string; teams: string; score: string; details: string; location: string },
@@ -92,6 +93,7 @@ export default function AdminDashboardPage() {
        case 'users':     return <UsersTab rows={users} approve={(uid: any) => dispatch(approveUserT(uid))} deleteU={(uid: any) => dispatch(deleteUserT(uid))} openAdd={() => open('addUser')} adminData={adminData} />;
        case 'universities': return <UniversitiesTab adminData={adminData} />;
        case 'teams':     return <TeamsTab adminData={adminData} />;
+       case 'players':   return <PlayersTab adminData={adminData} />;
        case 'sports':    return <SportsTab adminData={adminData} />;
        case 'merchandise': return <MerchTab items={merch} create={(item: any) => dispatch(createMerchT(item))} remove={(id: any) => dispatch(removeMerchT(id))} adminData={adminData} />;
        case 'review':    return <ReviewTab rows={reviews} approve={(id: any) => dispatch(approveReviewT(id))} reject={(id: any) => dispatch(rejectReviewT(id))} adminData={adminData} />;
@@ -107,7 +109,7 @@ export default function AdminDashboardPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* ------- TABS ------- */}
         <div className="flex flex-wrap gap-2 mb-8">
-          {(['dashboard','users','universities','teams','sports','merchandise','review','games'] as const).map(tab => (
+          {(['dashboard','users','universities','teams','players','sports','merchandise','review','games'] as const).map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}
               className={`tab-button flex items-center space-x-2 px-4 py-3 rounded-lg font-medium transition-all duration-200
                 ${activeTab === tab ? 'bg-blue-600 text-white shadow-lg scale-105' : 'bg-white text-gray-600 hover:bg-gray-50 hover:text-blue-600 shadow-sm'}`}>
