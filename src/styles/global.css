@@ -11,6 +11,12 @@
   font-style: normal;
 }
 
+@layer base {
+  input {
+    @apply px-3 py-2;
+  }
+}
+
 :root {
   --primary-navy: #1a2332;
   --secondary-gold: #f4a261;
