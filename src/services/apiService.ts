@@ -65,10 +65,7 @@ export interface AdminData {
 
 
 export class ApiService {
-  /**
-   * Universal Firestore fetch handler.
-   * The `endpoint` param decides which document or collection to read.
-   */
+ 
   private async fetchWithFallback<T>(endpoint: string, fallbackPath: string): Promise<T> {
     try {
       throw new Error(`Unknown Firebase endpoint: ${endpoint}`);
