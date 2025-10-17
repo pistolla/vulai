@@ -119,7 +119,7 @@ export class ApiService {
       return result as T;
     } catch (error) {
       console.warn(`Firestore fetch failed for ${endpoint}, using fallback:`, error);
-      const response = await fetch(fallbackPath);
+      const response = await fetch(fallbackPath, { cache: 'no-store' });
       return (await response.json()) as T;
     }
   }
