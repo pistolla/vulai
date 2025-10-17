@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { CorrespondentDashboard, LiveCommentary, FixtureVideo } from '@/models';
+import { CorrespondentDashboard, LiveCommentary, FixtureVideo, Group, Match, Stage } from '@/models';
 import { pushCommentaryEvent, attachDriveVideo } from '@/store/correspondentThunk';
 
 interface ExtendedCorrState extends CorrespondentDashboard {
@@ -12,12 +12,28 @@ const initialState: ExtendedCorrState = {
   draftArticles: [],
   activeCommentary: null,
   fixtureVideos: {},
+  groups: Record<string, Group[]>,
+  stages: Record<string, Stage[]>,
+  matches: Record<string, Match[]>,
+  points: Record<string, any[]>
 };
 
 const correspondentSlice = createSlice({
   name: 'correspondent',
   initialState,
   reducers: {
+    setGroups(state, action: PayloadAction<{ leagueId: string; groups: Group[] }>) {
+      state.groups[action.payload.leagueId] = action.payload.groups;
+    },
+    setStages(state, action: PayloadAction<{ leagueId: string; groupId: string; stages: Stage[] }>) {
+      state.stages[`${action.payload.leagueId}_${action.payload.groupId}`] = action.payload.stages;
+    },
+    setMatches(state, action: PayloadAction<{ leagueId: string; groupId: string; stageId: string; matches: Match[] }>) {
+      state.matches[`${action.payload.leagueId}_${action.payload.groupId}_${action.payload.stageId}`] = action.payload.matches;
+    },
+    setPoints(state, action: PayloadAction<{ leagueId: string; groupId: string; points: any[] }>) {
+      state.points[`${action.payload.leagueId}_${action.payload.groupId}`] = action.payload.points;
+    },
     setCorrespondentData: (_, action: PayloadAction<CorrespondentDashboard>) => ({
       ...action.payload,
       activeCommentary: null,
@@ -38,6 +54,9 @@ const correspondentSlice = createSlice({
       }),
 });
 
-export const { setCorrespondentData, clearCorrespondentData, setActiveCommentary } =
+export const { setCorrespondentData, clearCorrespondentData, setActiveCommentary, setGroups, setStages, setMatches, setPoints } =
   correspondentSlice.actions;
 export default correspondentSlice.reducer;
+
+
+

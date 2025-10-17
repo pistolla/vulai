@@ -68,6 +68,10 @@ export interface AdminDashboard {
 export interface CorrespondentDashboard {
   myArticles: News[];
   draftArticles: News[];
+  groups: {}; 
+  stages: {}; 
+  matches: {};
+  points: {};
 }
 
 export interface FanDashboard {
@@ -116,4 +120,51 @@ export interface CsvAthleteRow {
   lastName: string;
   position?: string;
   year: 'FR' | 'SO' | 'JR' | 'SR' | 'GR';
+}
+
+export type SportType = 'team' | 'individual';
+export type MatchStatus = 'pending' | 'ongoing' | 'completed';
+export type StageType = 'round_robin' | 'knockout';
+
+export interface Participant {
+  refType: 'team' | 'individual';
+  refId: string;
+  name?: string;
+  score: number;
+  stats?: Record<string, any>;
+}
+
+export interface Match {
+  id?: string;
+  matchNumber: number;
+  date: string; // ISO
+  venue?: string;
+  status: MatchStatus;
+  participants: Participant[];
+  winnerId?: string | null;
+  createdAt?: any;
+  updatedAt?: any;
+}
+
+export interface Stage {
+  id?: string;
+  name: string;
+  order: number;
+  type: StageType;
+  matches?: Match[];
+  createdAt?: any;
+}
+
+export interface Group {
+  id?: string;
+  name: string;
+  description?: string;
+  stages?: Stage[];
+}
+
+export interface League {
+  id?: string;
+  name: string;
+  sportType: SportType;
+  description?: string;
 }

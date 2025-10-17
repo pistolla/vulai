@@ -10,3 +10,5 @@ export const athletesFromExcel = (file: File): Promise<CsvAthleteRow[]> =>
       error: (error) => reject(error),
     })
   );
+
+export const toISO = (d?: string | Date) => (d ? new Date(d).toISOString() : new Date().toISOString());

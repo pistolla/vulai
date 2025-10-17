@@ -64,13 +64,13 @@ export default function FanPage() {
 
     AOS.init({ once: true });
     feather.replace();
-    dispatch(fetchGames());
-    dispatch(fetchMerch());
+    // dispatch(fetchGames());
+    // dispatch(fetchMerch());
     // if (user) {
     //   dispatch(fetchFanData(user.uid));
     //   subscribeChat();
     // }
-    loadTeamData();
+    // loadTeamData();
 
     // Mock online users for demo
     setOnlineUsers([
