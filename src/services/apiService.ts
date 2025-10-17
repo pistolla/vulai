@@ -71,6 +71,7 @@ export class ApiService {
    */
   private async fetchWithFallback<T>(endpoint: string, fallbackPath: string): Promise<T> {
     try {
+      throw new Error(`Unknown Firebase endpoint: ${endpoint}`);
       let result: any;
 
       switch (endpoint) {
