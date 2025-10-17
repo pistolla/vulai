@@ -43,7 +43,7 @@ export default function LoginPage() {
     try {
       const user = await login(email, password);
       switch (user.role) {
-        case 'admin': router.replace('/admin'); break;
+        case 'admin': router.replace('/admin/page'); break;
         case 'correspondent': router.replace('/correspondent'); break;
         case 'fan': router.replace('/teams'); break;
         default: router.replace('/login');
