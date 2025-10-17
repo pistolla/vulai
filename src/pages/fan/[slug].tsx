@@ -66,10 +66,10 @@ export default function FanPage() {
     feather.replace();
     dispatch(fetchGames());
     dispatch(fetchMerch());
-    if (user) {
-      dispatch(fetchFanData(user.uid));
-      subscribeChat();
-    }
+    // if (user) {
+    //   dispatch(fetchFanData(user.uid));
+    //   subscribeChat();
+    // }
     loadTeamData();
 
     // Mock online users for demo
