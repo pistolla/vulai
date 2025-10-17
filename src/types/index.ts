@@ -1,3 +1,5 @@
+import { TeamTheme } from "@/pages/fan/[slug]";
+
 export interface Sport {
   id: string;
   name: string;
@@ -34,6 +36,7 @@ export interface Team {
   league?: string;
   record?: string;
   championships?: number;
+  theme?: TeamTheme
 }
 
 export interface Match {

@@ -13,7 +13,7 @@ import UserHeader from '@/components/UserHeader';
 import { apiService } from '@/services/apiService';
 
 /* ---------- types ---------- */
-type TeamTheme = 'crimson' | 'blue' | 'cardinal' | 'gold';
+export type TeamTheme = 'crimson' | 'blue' | 'cardinal' | 'gold';
 
 /* ---------- styles ---------- */
 const themes: Record<TeamTheme, Record<string, string>> = {
@@ -53,7 +53,7 @@ export default function FanPage() {
         if (team) {
           setTeamData(team);
           // Set theme based on team data (you can customize this logic)
-          setTheme(team.id === 'eagles' ? 'blue' : team.id === 'titans' ? 'gold' : 'crimson');
+          setTheme("blue");
         }
       } catch (error) {
         console.error('Failed to load team data:', error);
@@ -410,7 +410,7 @@ export default function FanPage() {
 }
 
 /* -----------------------------------
-    Sub-components
+   Sub-components
 ----------------------------------- */
 function StatCard({ label, value, delay }: { label: string; value: string; delay: number }) {
   return (
@@ -420,3 +420,30 @@ function StatCard({ label, value, delay }: { label: string; value: string; delay
     </div>
   );
 }
+
+/* -----------------------------------
+   ✅ Add this to fix dynamic slug 404 / 304 issues
+----------------------------------- */
+import type { GetStaticPaths, GetStaticProps } from "next";
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  return {
+    paths: [],              // Don’t prebuild any paths
+    fallback: "blocking",   // Generate each slug page on demand (no 404)
+  };
+};
+
+export const getStaticProps: GetStaticProps = async ({ params }) => {
+  const slug = params?.slug as string;
+
+  // Optionally prefetch some minimal data for the team if needed
+  // Example:
+  // const res = await fetch(`https://api.example.com/teams/${slug}`);
+  // if (!res.ok) return { notFound: true };
+  // const teamData = await res.json();
+
+  return {
+    props: {},       // no props needed since your component fetches client-side
+    revalidate: 60,  // (optional) rebuild after 60s for ISR
+  };
+};
