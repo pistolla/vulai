@@ -103,10 +103,11 @@ const HomePage: React.FC = () => {
               UNI limelight Sports
             </h1>
           </div>
+          {user == null && (
           <p className="text-xl md:text-2xl mb-8 text-gray-200 max-w-2xl mx-auto leading-relaxed">
             Discover excellence in university athletics. Join our diverse sports programs and compete at the highest level with state-of-the-art facilities and expert coaching.
           </p>
-
+          )}
           {/* Live Matches Slider for Logged-in Users */}
           {user && data?.matches && data.matches.filter(m => m.status === 'live').length > 0 && (
             <div className="mb-8">

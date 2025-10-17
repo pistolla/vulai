@@ -33,8 +33,15 @@ export default function UserHeader({ theme = 'crimson' }: UserHeaderProps) {
   if (!user) return null;
 
   const handleLogout = async () => {
-    await signOut();
-    window.location.href = '/';
+    await signOut().then(() => {
+      console.log("User signed out successfully");
+      window.location.href = '/';
+    })
+    .catch((error) => {
+      console.error("Sign-out error:", error);
+      window.location.href = '/';
+    });
+    
   };
 
   const currentTheme = themes[theme];
