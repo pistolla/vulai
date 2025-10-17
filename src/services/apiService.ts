@@ -56,11 +56,12 @@ class ApiService {
 
   private async fetchWithFallback<T>(endpoint: string, fallbackPath: string): Promise<T> {
     try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`);
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
-      }
-      return await response.json();
+      return Promise.resolve([] as unknown as T);
+      // const response = await fetch(`${this.baseUrl}${endpoint}`);
+      // if (!response.ok) {
+      //   throw new Error(`API request failed: ${response.status}`);
+      // }
+      // return await response.json();
     } catch (error) {
       console.warn(`API call failed for ${endpoint}, loading fallback data:`, error);
       // Load fallback JSON file
