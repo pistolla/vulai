@@ -14,9 +14,19 @@ type TabType = 'profile' | 'excel' | 'video' | 'commentary' | 'league';
 export default function CorrespondentDashboardPage() {
   const user = useAppSelector(s => s.auth.user);
   const [activeTab, setActiveTab] = useState<TabType>('profile');
+  const [loading, setLoading] = useState(true);
 
   /* ---------- feather + AOS ---------- */
   const mounted = useClientSideLibs();
+
+  useEffect(() => {
+    // Simulate initial loading for dashboard data
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const tabs = [
     {
@@ -67,6 +77,36 @@ export default function CorrespondentDashboardPage() {
         return <ProfileTab />;
     }
   };
+
+  if (loading) {
+    return (
+      <CorrespondentGuard>
+        <UserHeader />
+        
+        {/* ------- HEADER ------- */}
+        <section className="bg-white shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <h1 className="text-3xl font-bold text-gray-900">Correspondent Dashboard</h1>
+            <p className="text-gray-600 mt-2">
+              Welcome back, {user?.displayName || 'Correspondent'}! Manage your sports coverage and content.
+            </p>
+          </div>
+        </section>
+
+        {/* ------- LOADING STATE ------- */}
+        <section className="py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-4 text-gray-600">Loading dashboard...</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </CorrespondentGuard>
+    );
+  }
 
   return (
     <CorrespondentGuard>
@@ -133,14 +173,14 @@ export default function CorrespondentDashboardPage() {
                         tab.id === 'commentary' ? 'bg-purple-100' :
                         'bg-yellow-100'
                       }`}>
-                        <i 
-                          data-feather={tab.icon} 
+                        <i
+                          data-feather={tab.icon}
                           className={`w-6 h-6 ${
                             tab.id === 'excel' ? 'text-green-600' :
                             tab.id === 'video' ? 'text-red-600' :
                             tab.id === 'commentary' ? 'text-purple-600' :
                             'text-yellow-600'
-                          }`} 
+                          }`}
                         />
                       </div>
                     </div>

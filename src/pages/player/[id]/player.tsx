@@ -81,7 +81,20 @@ export default function PlayerPage() {
     dispatch(addTrainingLog({ playerId, log: { type, duration, intensity, notes } }));
   };
 
-  if (!player) return <div className="text-center p-10">Loading player…</div>;
+  if (!player) {
+    return (
+      <CorrespondentGuard>
+        <div className="min-h-screen bg-[#0a0a0a] text-white">
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-cyan-400 mx-auto"></div>
+              <p className="mt-4 text-gray-300">Loading player data...</p>
+            </div>
+          </div>
+        </div>
+      </CorrespondentGuard>
+    );
+  }
 
   return (
     <CorrespondentGuard>
