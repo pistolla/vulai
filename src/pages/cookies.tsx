@@ -1,6 +1,12 @@
+import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 
 export default function CookiesPage() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   return (
     <Layout title="Cookie Policy" description="Cookie policy for Uni Limelight Sports">
       <div className="min-h-screen bg-gray-50 py-12">
@@ -11,7 +17,7 @@ export default function CookiesPage() {
 
               <div className="prose prose-gray max-w-none">
                 <p className="text-gray-600 mb-6">
-                  Last updated: {new Date().toLocaleDateString()}
+                  Last updated: {mounted ? new Date().toLocaleDateString() : ''}
                 </p>
 
                 <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">What Are Cookies</h2>

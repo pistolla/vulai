@@ -2,13 +2,11 @@
 
 import { useEffect } from 'react';
 import ContactForm from '@/components/ContactForm';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
-import feather from 'feather-icons';
+import { useClientSideLibs } from '@/utils/clientLibs';
 import Layout from '../components/Layout';
 
 export default function ContactPage() {
-  useEffect(() => { AOS.init({ once: true }); feather.replace(); }, []);
+  const mounted = useClientSideLibs();
 
   return (
     <Layout title="Sports Programs" description="Explore comprehensive university sports programs including Football, Basketball, Volleyball, Rugby, Hockey, Badminton, Table Tennis, Chess, Athletics and more">

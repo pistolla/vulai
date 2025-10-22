@@ -2,9 +2,19 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { CorrespondentDashboard, LiveCommentary, FixtureVideo, Group, Match, Stage } from '@/models';
 import { pushCommentaryEvent, attachDriveVideo } from '@/store/correspondentThunk';
 
+// Define proper type for points data
+interface PointsEntry {
+  refId: string;
+  points: number;
+}
+
 interface ExtendedCorrState extends CorrespondentDashboard {
   activeCommentary: LiveCommentary | null;
   fixtureVideos: Record<string, FixtureVideo>; // fixtureId -> video
+  groups: Record<string, Group[]>;
+  stages: Record<string, Stage[]>;
+  matches: Record<string, Match[]>;
+  points: Record<string, PointsEntry[]>;
 }
 
 const initialState: ExtendedCorrState = {
@@ -12,10 +22,10 @@ const initialState: ExtendedCorrState = {
   draftArticles: [],
   activeCommentary: null,
   fixtureVideos: {},
-  groups: Record<string, Group[]>,
-  stages: Record<string, Stage[]>,
-  matches: Record<string, Match[]>,
-  points: Record<string, any[]>
+  groups: {},
+  stages: {},
+  matches: {},
+  points: {}
 };
 
 const correspondentSlice = createSlice({
@@ -31,7 +41,7 @@ const correspondentSlice = createSlice({
     setMatches(state, action: PayloadAction<{ leagueId: string; groupId: string; stageId: string; matches: Match[] }>) {
       state.matches[`${action.payload.leagueId}_${action.payload.groupId}_${action.payload.stageId}`] = action.payload.matches;
     },
-    setPoints(state, action: PayloadAction<{ leagueId: string; groupId: string; points: any[] }>) {
+    setPoints(state, action: PayloadAction<{ leagueId: string; groupId: string; points: PointsEntry[] }>) {
       state.points[`${action.payload.leagueId}_${action.payload.groupId}`] = action.payload.points;
     },
     setCorrespondentData: (_, action: PayloadAction<CorrespondentDashboard>) => ({

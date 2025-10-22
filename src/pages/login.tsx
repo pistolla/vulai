@@ -4,9 +4,7 @@ import { useEffect, useState, FormEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/router';
 import { useAppSelector } from '@/hooks/redux';
 import { login, loginGoogle, loginFacebook, loginTwitter } from '@/services/firebase'; // thin Promise wrappers
-import AOS from 'aos';
-import 'aos/dist/aos.css';
-import feather from 'feather-icons';
+import { useClientSideLibs } from '@/utils/clientLibs';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -33,7 +31,7 @@ export default function LoginPage() {
   }, [user, router]);
 
   /* ---------- animations ---------- */
-  useEffect(() => { AOS.init({ once: true }); feather.replace(); }, []);
+  const mounted = useClientSideLibs();
 
   /* ---------- email/password login ---------- */
   const onSubmit = async (e: FormEvent) => {

@@ -10,8 +10,7 @@ import { usePlayerTrophies } from '@/hooks/usePlayerTrophies';
 import { useTrainingLogs } from '@/hooks/useTrainingLogs';
 import { updatePlayerVitals, uploadPlayerImage, addPlayerTrophy, addTrainingLog } from '@/store/playerThunk';
 import { FaCamera, FaTrophy, FaRunning, FaEdit } from 'react-icons/fa';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
+import { useClientSideLibs } from '@/utils/clientLibs';
 
 /* ---------------------------------
    FIFA-style status colours
@@ -45,7 +44,7 @@ export default function PlayerPage() {
   const [uploading, setUploading] = useState(false);
 
   /* init */
-  useEffect(() => { AOS.init({ once: true }); }, []);
+  const mounted = useClientSideLibs();
 
   /* populate form when player loads */
   useEffect(() => {
@@ -99,7 +98,7 @@ export default function PlayerPage() {
               </div>
             </div>
             <div className="text-right">
-              <div className="text-sm opacity-70">Joined {new Date(player.joinedAt).toLocaleDateString()}</div>
+              <div className="text-sm opacity-70">Joined {mounted ? new Date(player.joinedAt).toLocaleDateString() : ''}</div>
               {isCorrespondent && (
                 <button onClick={() => setEditMode(v => !v)} className="mt-3 flex items-center gap-2 px-4 py-2 bg-white/10 rounded hover:bg-white/20 transition">
                   <FaEdit /> {editMode ? 'Cancel' : 'Edit Vitals'}
@@ -196,7 +195,7 @@ export default function PlayerPage() {
             {logs.map(log => (
               <div key={log.id} className="bg-white/5 backdrop-blur rounded-xl p-4 border border-white/10">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm opacity-70">{new Date(log.date).toLocaleDateString()}</span>
+                  <span className="text-sm opacity-70">{mounted ? new Date(log.date).toLocaleDateString() : ''}</span>
                   <span className="text-xs bg-white/10 px-2 py-1 rounded">{log.type}</span>
                 </div>
                 <div className="text-lg font-semibold">{log.duration} min • Intensity {log.intensity}/5</div>

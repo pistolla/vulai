@@ -4,8 +4,7 @@ import { useEffect, useState, FormEvent } from 'react';
 import { useRouter } from 'next/router';
 import { confirmPasswordReset } from 'firebase/auth';
 import { auth } from '@/services/firebase';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
+import { useClientSideLibs } from '@/utils/clientLibs';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -18,7 +17,7 @@ export default function ResetPasswordPage() {
   const [success, setSuccess] = useState(false);
   const [oobCode, setOobCode] = useState('');
 
-  useEffect(() => { AOS.init({ once: true }); }, []);
+  const mounted = useClientSideLibs();
 
   useEffect(() => {
     // Get the oobCode from URL parameters

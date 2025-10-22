@@ -5,9 +5,7 @@ import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { setTheme, toggleFollowPlayer, setSelectedMatch } from '@/store/slices/teamSlice';
 import { useLiveMatch } from '@/hooks/useLiveMatch';
 import { usePlayerStats } from '@/hooks/usePlayerStats';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
-import feather from 'feather-icons';
+import { useClientSideLibs } from '@/utils/clientLibs';
 
 /* ---------------------------------
    Mock data (replace with Firestore)
@@ -37,7 +35,7 @@ export default function TeamPage() {
   const playerStats = usePlayerStats(playerModal?.id || '', selectedMatchId || undefined);
 
   /* init */
-  useEffect(() => { AOS.init({ once: true }); feather.replace(); }, []);
+  const mounted = useClientSideLibs();
 
   /* theme css vars */
   useEffect(() => {

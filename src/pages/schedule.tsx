@@ -9,8 +9,10 @@ const SchedulePage: React.FC = () => {
   const [currentFilter, setCurrentFilter] = useState<string>('all');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [matches, setMatches] = useState<Match[]>([]);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const loadData = async () => {
       try {
         const scheduleData = await apiService.getScheduleData();
@@ -46,8 +48,8 @@ const SchedulePage: React.FC = () => {
     setMatches(prevMatches => 
       prevMatches.map(match => {
         if (match.status === 'live' && match.score) {
-          // Simulate score updates
-          if (Math.random() > 0.7) {
+          // Simulate score updates only on client side
+          if (mounted && Math.random() > 0.7) {
             return {
               ...match,
               score: {
@@ -94,7 +96,7 @@ const SchedulePage: React.FC = () => {
     const matchesOnDay = matches.filter(match => match.date === date);
     if (matchesOnDay.length === 0) return;
 
-    alert(`${matchesOnDay.length} match(es) on ${new Date(date).toLocaleDateString()}`);
+    alert(`${matchesOnDay.length} match(es) on ${mounted ? new Date(date).toLocaleDateString() : date}`);
   };
 
   if (loading || !data) {
@@ -435,7 +437,7 @@ const SchedulePage: React.FC = () => {
                   {match.status === 'upcoming' && (
                     <div className="bg-white/10 rounded-lg p-3 mb-4">
                       <p className="text-lg font-semibold bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
-                        {new Date(match.date).toLocaleDateString()}
+                        {mounted ? new Date(match.date).toLocaleDateString() : ''}
                       </p>
                       <p className="text-sm text-gray-300">{match.time}</p>
                     </div>

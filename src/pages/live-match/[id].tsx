@@ -281,7 +281,7 @@ export default function LiveMatchPage() {
                   <div key={msg.id} className="mb-3 p-3 bg-white rounded-lg shadow-sm border-l-4 border-blue-500">
                     <div className="flex items-center space-x-2 mb-1">
                       <span className="font-semibold text-blue-600 text-sm">{msg.correspondent}</span>
-                      <span className="text-xs text-gray-500">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                      <span className="text-xs text-gray-500">{mounted ? new Date(msg.timestamp).toLocaleTimeString() : ''}</span>
                     </div>
                     <p className="text-gray-800">{msg.comment}</p>
                   </div>
@@ -305,7 +305,7 @@ export default function LiveMatchPage() {
                   <div key={msg.id} className="p-3 bg-gray-50 rounded-lg border-l-4 border-blue-500">
                     <div className="flex items-center space-x-2 mb-1">
                       <span className="font-semibold text-blue-600 text-sm">{msg.correspondent}</span>
-                      <span className="text-xs text-gray-500">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+                      <span className="text-xs text-gray-500">{mounted ? new Date(msg.timestamp).toLocaleTimeString() : ''}</span>
                     </div>
                     <p className="text-gray-800 text-sm">{msg.comment}</p>
                   </div>
@@ -331,7 +331,7 @@ export default function LiveMatchPage() {
                           <span className="text-white text-xs font-bold">{msg.user.charAt(0)}</span>
                         </div>
                         <span className="font-semibold text-sm text-gray-900">{msg.user}</span>
-                        <span className="text-xs text-gray-500">{new Date(msg.createdAt).toLocaleTimeString()}</span>
+                        <span className="text-xs text-gray-500">{mounted ? new Date(msg.createdAt).toLocaleTimeString() : ''}</span>
                       </div>
                       <div className="ml-8 p-3 bg-white rounded-lg shadow-sm border">
                         <p className="text-sm text-gray-800">{msg.text}</p>

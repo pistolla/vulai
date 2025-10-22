@@ -3,8 +3,7 @@
 import { useEffect, useState, FormEvent } from 'react';
 import { useRouter } from 'next/router';
 import { resetPassword } from '@/services/firebase';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
+import { useClientSideLibs } from '@/utils/clientLibs';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -13,7 +12,7 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  useEffect(() => { AOS.init({ once: true }); }, []);
+  const mounted = useClientSideLibs();
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();

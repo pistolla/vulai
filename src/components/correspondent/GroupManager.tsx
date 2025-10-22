@@ -1,13 +1,16 @@
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { League } from "@/models";
+import { firebaseLeagueService } from "@/services/firebaseCorrespondence";
 import { RootState } from "@/store";
 import { createGroup } from "@/store/correspondentThunk";
+import { setGroups } from "@/store/slices/correspondentSlice";
 import { useState, useEffect } from "react";
+import { StageManager } from "./StageManager";
 
 // --- GroupManager ---
 export const GroupManager: React.FC<{ league: League | null }> = ({ league }) => {
     const dispatch = useAppDispatch();
-    const groups = useAppSelector((s: RootState) => (league ? s.leagueUI.groups[league.id!] ?? [] : []));
+    const groups = useAppSelector((s: RootState) => (league ? s.correspondent.groups[league.id!] ?? [] : []));
     const [name, setName] = useState('');
   
     useEffect(() => {

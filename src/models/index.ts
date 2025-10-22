@@ -68,10 +68,10 @@ export interface AdminDashboard {
 export interface CorrespondentDashboard {
   myArticles: News[];
   draftArticles: News[];
-  groups: {}; 
-  stages: {}; 
-  matches: {};
-  points: {};
+  groups: Record<string, Group[]>;
+  stages: Record<string, Stage[]>;
+  matches: Record<string, Match[]>;
+  points: Record<string, any[]>;
 }
 
 export interface FanDashboard {

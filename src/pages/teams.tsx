@@ -9,6 +9,7 @@ const TeamsPage: React.FC = () => {
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [positionFilter, setPositionFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [teamSearchQuery, setTeamSearchQuery] = useState<string>('');
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
   useEffect(() => {
@@ -83,6 +84,16 @@ const TeamsPage: React.FC = () => {
     
     return matchesPosition && matchesSearch;
   });
+
+  // Filter teams based on search query
+  const filteredTeams = data?.teams.filter(team => {
+    const matchesSearch = teamSearchQuery === '' ||
+      team.name.toLowerCase().includes(teamSearchQuery.toLowerCase()) ||
+      team.sport.toLowerCase().includes(teamSearchQuery.toLowerCase()) ||
+      (team.coach && team.coach.toLowerCase().includes(teamSearchQuery.toLowerCase())) ||
+      (team.league && team.league.toLowerCase().includes(teamSearchQuery.toLowerCase()));
+    return matchesSearch;
+  }) || [];
 
   const initTeamCharts = () => {
     if (typeof window === 'undefined' || !(window as any).echarts) return;
@@ -202,8 +213,43 @@ const TeamsPage: React.FC = () => {
             <p className="text-xl text-gray-300">Select a team to view detailed roster and player information</p>
           </div>
           
+          {/* Team Search Filter */}
+          <div className="mb-8 flex justify-center">
+            <div className="relative max-w-md w-full">
+              <input
+                type="text"
+                placeholder="Search teams by name, sport, coach, or league..."
+                value={teamSearchQuery}
+                onChange={(e) => setTeamSearchQuery(e.target.value)}
+                className="w-full px-4 py-3 pl-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-unill-yellow-400 focus:border-transparent"
+              />
+              <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              {teamSearchQuery && (
+                <button
+                  onClick={() => setTeamSearchQuery('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Teams Results Count */}
+          {teamSearchQuery && (
+            <div className="text-center mb-6">
+              <p className="text-gray-300">
+                Found {filteredTeams.length} team{filteredTeams.length !== 1 ? 's' : ''} matching "{teamSearchQuery}"
+              </p>
+            </div>
+          )}
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-            {data.teams.map((team) => (
+            {filteredTeams.map((team) => (
               <div 
                 key={team.id}
                 className={`team-card bg-white/10 backdrop-blur-md rounded-lg p-8 cursor-pointer border border-white/20 transition-all hover:bg-white/15 hover:transform hover:scale-105 hover:shadow-2xl ${

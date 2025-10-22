@@ -4,9 +4,7 @@ import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { fetchGames } from '@/store/adminThunk';
 import { fetchMerch } from '@/store/adminThunk';
 import { fetchFanData, followTeam, buyTicket } from '@/store/fanThunk';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
-import feather from 'feather-icons';
+import dynamic from 'next/dynamic';
 import FanGuard from '@/guards/FanGuard';
 import { ChatMessage } from '@/services/firestoreFan';
 import UserHeader from '@/components/UserHeader';
@@ -23,9 +21,14 @@ const themes: Record<TeamTheme, Record<string, string>> = {
   gold:    { primary: '#FFB81C', secondary: '#000000', accent: '#00539B' },
 };
 
-export default function FanPage() {
+interface FanPageProps {
+  slug?: string;
+}
+
+export default function FanPage({ slug: propSlug }: FanPageProps) {
   const router = useRouter();
-  const { slug } = router.query;
+  const { slug: routerSlug } = router.query;
+  const slug = propSlug || routerSlug;
   const dispatch = useAppDispatch();
   const user = useAppSelector(s => s.auth.user);
   const { followedTeams, myTickets, newsFeed } = useAppSelector(s => s.fan);
@@ -40,11 +43,18 @@ export default function FanPage() {
   const [onlineUsers, setOnlineUsers] = useState<Array<{name: string; avatar?: string}>>([]);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const selectedFixture = upcoming[0]; // demo: first upcoming game
+
+  /* ---------- mounted check ---------- */
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   /* ---------- init ---------- */
   useEffect(() => {
-    if (!slug) return;
+    // Wait for component to be mounted and router to be ready
+    if (!mounted || !router.isReady || !slug) return;
 
     const loadTeamData = async () => {
       try {
@@ -54,23 +64,49 @@ export default function FanPage() {
           setTeamData(team);
           // Set theme based on team data (you can customize this logic)
           setTheme("blue");
+        } else {
+          console.warn(`Team with slug "${slug}" not found`);
+          setTeamData(null);
         }
       } catch (error) {
         console.error('Failed to load team data:', error);
+        setTeamData(null);
       } finally {
         setLoading(false);
       }
     };
 
-    AOS.init({ once: true });
-    feather.replace();
-    // dispatch(fetchGames());
-    // dispatch(fetchMerch());
-    // if (user) {
-    //   dispatch(fetchFanData(user.uid));
-    //   subscribeChat();
-    // }
-    // loadTeamData();
+    // Initialize AOS and feather icons only on client side
+    const initClientSideLibs = async () => {
+      if (typeof window !== 'undefined') {
+        try {
+          const [{ default: AOS }, { default: feather }] = await Promise.all([
+            import('aos'),
+            import('feather-icons')
+          ]);
+          
+          // Dynamically add AOS CSS
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = 'https://unpkg.com/aos@2.3.1/dist/aos.css';
+          document.head.appendChild(link);
+          
+          AOS.init({ once: true });
+          feather.replace();
+        } catch (error) {
+          console.warn('Failed to load AOS or Feather icons:', error);
+        }
+      }
+    };
+
+    initClientSideLibs();
+    dispatch(fetchGames());
+    dispatch(fetchMerch());
+    if (user) {
+      dispatch(fetchFanData(user.uid));
+      subscribeChat();
+    }
+    loadTeamData();
 
     // Mock online users for demo
     setOnlineUsers([
@@ -83,7 +119,7 @@ export default function FanPage() {
       { name: 'Tom Dedicated' },
       { name: 'Anna Devoted' }
     ]);
-  }, [dispatch, user, slug]);
+  }, [dispatch, user, slug, router.isReady, mounted]);
 
   /* ---------- theme css vars ---------- */
   useEffect(() => {
@@ -122,7 +158,8 @@ export default function FanPage() {
   /* ---------- helpers ---------- */
   const isFollowed = (teamId: string) => followedTeams.includes(teamId);
 
-  if (loading) {
+  // Show loading while not mounted, router is not ready, or while loading team data
+  if (!mounted || !router.isReady || loading) {
     return (
       <FanGuard>
         <div className="min-h-screen flex items-center justify-center">
@@ -231,7 +268,9 @@ export default function FanPage() {
                       <span className="text-gray-600">{g.sport}</span>
                     </div>
                     <h3 className="text-xl font-semibold mb-2">{g.homeTeamName} vs {g.awayTeamName}</h3>
-                    <p className="text-gray-600 mb-4">{new Date(g.scheduledAt).toLocaleDateString()} – {new Date(g.scheduledAt).toLocaleTimeString()}</p>
+                    <p className="text-gray-600 mb-4">
+                      {mounted ? new Date(g.scheduledAt).toLocaleDateString() : ''} – {mounted ? new Date(g.scheduledAt).toLocaleTimeString() : ''}
+                    </p>
                     <p className="text-gray-600 mb-4">{g.venue}</p>
                     <div className="flex space-x-3">
                       <button onClick={() => buyTix(g.id)} className="block text-center team-theme text-white py-2 rounded hover:opacity-90 flex-1">Get Tickets</button>
@@ -278,7 +317,7 @@ export default function FanPage() {
                             <span className="text-white text-xs font-bold">{msg.user.charAt(0)}</span>
                           </div>
                           <span className="font-semibold text-sm text-gray-900">{msg.user}</span>
-                          <span className="text-xs text-gray-500">{new Date(msg.createdAt).toLocaleTimeString()}</span>
+                          <span className="text-xs text-gray-500">{mounted ? new Date(msg.createdAt).toLocaleTimeString() : ''}</span>
                         </div>
                         <div className="ml-8 p-3 bg-white rounded-lg shadow-sm border">
                           <p className="text-sm text-gray-800">{msg.text}</p>
@@ -367,7 +406,7 @@ export default function FanPage() {
                             <span className="text-white text-xs font-bold">{msg.user.charAt(0)}</span>
                           </div>
                           <span className="font-semibold text-sm text-gray-900">{msg.user}</span>
-                          <span className="text-xs text-gray-500">{new Date(msg.createdAt).toLocaleTimeString()}</span>
+                          <span className="text-xs text-gray-500">{mounted ? new Date(msg.createdAt).toLocaleTimeString() : ''}</span>
                         </div>
                         <div className="ml-7 p-2 bg-gray-100 rounded-lg">
                           <p className="text-sm text-gray-800">{msg.text}</p>
@@ -422,28 +461,43 @@ function StatCard({ label, value, delay }: { label: string; value: string; delay
 }
 
 /* -----------------------------------
-   ✅ Add this to fix dynamic slug 404 / 304 issues
+   ✅ Fix dynamic slug issues for Vercel deployment
 ----------------------------------- */
-import type { GetStaticPaths, GetStaticProps } from "next";
+import type { GetServerSideProps } from "next";
 
-export const getStaticPaths: GetStaticPaths = async () => {
-  return {
-    paths: [],              // Don’t prebuild any paths
-    fallback: "blocking",   // Generate each slug page on demand (no 404)
-  };
-};
-
-export const getStaticProps: GetStaticProps = async ({ params }) => {
+// Use getServerSideProps instead of getStaticProps to avoid 403 errors
+export const getServerSideProps: GetServerSideProps = async ({ params, res }) => {
   const slug = params?.slug as string;
 
-  // Optionally prefetch some minimal data for the team if needed
-  // Example:
-  // const res = await fetch(`https://api.example.com/teams/${slug}`);
-  // if (!res.ok) return { notFound: true };
-  // const teamData = await res.json();
+  if (!slug) {
+    return {
+      notFound: true,
+    };
+  }
 
-  return {
-    props: {},       // no props needed since your component fetches client-side
-    revalidate: 60,  // (optional) rebuild after 60s for ISR
-  };
+  // Set cache headers to improve performance
+  res.setHeader(
+    'Cache-Control',
+    'public, s-maxage=60, stale-while-revalidate=300'
+  );
+
+  try {
+    // Validate that the slug is a reasonable format (alphanumeric, hyphens, underscores)
+    if (!/^[a-zA-Z0-9_-]+$/.test(slug)) {
+      return {
+        notFound: true,
+      };
+    }
+
+    return {
+      props: {
+        slug,
+      },
+    };
+  } catch (error) {
+    console.error('Error in getServerSideProps:', error);
+    return {
+      notFound: true,
+    };
+  }
 };

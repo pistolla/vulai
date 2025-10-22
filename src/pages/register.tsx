@@ -4,9 +4,7 @@ import { useEffect, useState, FormEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/router';
 import { useAppDispatch } from '@/hooks/redux';
 import { register, fetchUniversities } from '@/services/firebase'; // thin Promise-based helper we built earlier
-import AOS from 'aos';
-import 'aos/dist/aos.css';
-import feather from 'feather-icons';
+import { useClientSideLibs } from '@/utils/clientLibs';
 import Select from 'react-select';
 
 type Role = 'fan' | 'correspondent';
@@ -32,7 +30,7 @@ export default function RegisterPage() {
   const [universities, setUniversities] = useState<{value: string, label: string}[]>([]);
 
   /* ---------- init animations ---------- */
-  useEffect(() => { AOS.init({ once: true }); feather.replace(); }, []);
+  const mounted = useClientSideLibs();
 
   /* ---------- fetch universities ---------- */
   useEffect(() => {
