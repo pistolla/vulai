@@ -19,16 +19,31 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
     const [pRefId, setPRefId] = useState('');
     const [pName, setPName] = useState('');
     const [pRefType, setPRefType] = useState<'team' | 'individual'>(league.sportType === 'team' ? 'team' : 'individual');
+    const [isLoading, setIsLoading] = useState(false);
   
     useEffect(() => {
       (async () => {
-        const list = await firebaseLeagueService.listMatches(league.id!, group.id!, stage.id!);
-        dispatch(setMatches({ leagueId: league.id!, groupId: group.id!, stageId: stage.id!, matches: list }));
+        try {
+          setIsLoading(true);
+          const list = await firebaseLeagueService.listMatches(league.id!, group.id!, stage.id!);
+          dispatch(setMatches({ leagueId: league.id!, groupId: group.id!, stageId: stage.id!, matches: list }));
+        } catch (error) {
+          console.error('Failed to load matches:', error);
+          alert('Failed to load matches. Please try again.');
+        } finally {
+          setIsLoading(false);
+        }
       })();
-    }, [league.id, group.id, stage.id]);
+    }, [league.id, group.id, stage.id, dispatch]);
   
     const addParticipant = () => {
       if (!pRefId) return alert('participant ref required');
+      
+      // Check for duplicate participants
+      if (participants.some(p => p.refId === pRefId)) {
+        return alert('Participant already added');
+      }
+      
       setParticipants((s) => [...s, { refType: pRefType, refId: pRefId, name: pName || pRefId, score: 0 }]);
       setPRefId('');
       setPName('');
@@ -37,12 +52,26 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
     const submit = async (e?: React.FormEvent) => {
       e?.preventDefault();
       if (!participants.length) return alert('Add participants');
-      const match: Omit<Match, 'id'> = { matchNumber, date, venue, status: 'pending', participants };
-      const res = await dispatch(createMatch({ leagueId: league.id!, groupId: group.id!, stageId: stage.id!, match }));
-      // refresh matches
-      const list = await firebaseLeagueService.listMatches(league.id!, group.id!, stage.id!);
-      dispatch(setMatches({ leagueId: league.id!, groupId: group.id!, stageId: stage.id!, matches: list }));
-      setParticipants([]);
+      
+      try {
+        setIsLoading(true);
+        const match: Omit<Match, 'id'> = { matchNumber, date, venue, status: 'pending', participants };
+        await dispatch(createMatch({ leagueId: league.id!, groupId: group.id!, stageId: stage.id!, match }));
+        
+        // refresh matches
+        const list = await firebaseLeagueService.listMatches(league.id!, group.id!, stage.id!);
+        dispatch(setMatches({ leagueId: league.id!, groupId: group.id!, stageId: stage.id!, matches: list }));
+        setParticipants([]);
+        
+        // Reset form
+        setMatchNumber(matchNumber + 1);
+        setVenue('');
+      } catch (error) {
+        console.error('Failed to create match:', error);
+        alert('Failed to create match. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
     };
   
     return (
@@ -60,7 +89,7 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
             <div className="grid grid-cols-2 gap-2">
               <input value={pRefId} onChange={(e) => setPRefId(e.target.value)} placeholder="participant ref id" className="input" />
               <input value={pName} onChange={(e) => setPName(e.target.value)} placeholder="display name (optional)" className="input" />
-              <select value={pRefType} onChange={(e) => setPRefType(e.target.value as any)} className="input">
+              <select value={pRefType} onChange={(e) => setPRefType(e.target.value as 'team' | 'individual')} className="input">
                 <option value="team">Team</option>
                 <option value="individual">Individual</option>
               </select>
@@ -74,18 +103,30 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
                     <div className="font-medium">{p.name ?? p.refId}</div>
                     <div className="text-sm text-muted">{p.refType} • {p.refId}</div>
                   </div>
-                  <div>{p.score}</div>
+                  <div className="flex items-center gap-2">
+                    <div>{p.score}</div>
+                    <button
+                      type="button"
+                      onClick={() => setParticipants(prev => prev.filter((_, i) => i !== idx))}
+                      className="text-red-500 hover:text-red-700 text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
   
             <div className="flex gap-2">
-              <button type="submit" className="btn btn-primary">Create Match</button>
+              <button type="submit" disabled={isLoading} className="btn btn-primary">
+                {isLoading ? 'Creating...' : 'Create Match'}
+              </button>
             </div>
           </form>
   
           <div className="mt-4 space-y-2">
-            {matches.map((m: any) => (
+            {isLoading && <div className="text-center py-4">Loading matches...</div>}
+            {matches.map((m: Match) => (
               <MatchCard key={m.id} league={league} group={group} stage={stage} match={m} />
             ))}
           </div>

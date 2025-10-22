@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { CorrespondentDashboard, LiveCommentary, FixtureVideo, Group, Match, Stage } from '@/models';
-import { pushCommentaryEvent, attachDriveVideo } from '@/store/correspondentThunk';
+import { CorrespondentDashboard, LiveCommentary, FixtureVideo, Group, Match, Stage, League } from '@/models';
+import { pushCommentaryEvent, attachDriveVideo, createLeague, fetchLeagues, createGroup, createStage, createMatch, updateMatchScores, fetchPointsTable } from '@/store/correspondentThunk';
 
 // Define proper type for points data
 interface PointsEntry {
@@ -11,6 +11,7 @@ interface PointsEntry {
 interface ExtendedCorrState extends CorrespondentDashboard {
   activeCommentary: LiveCommentary | null;
   fixtureVideos: Record<string, FixtureVideo>; // fixtureId -> video
+  leagues: League[];
   groups: Record<string, Group[]>;
   stages: Record<string, Stage[]>;
   matches: Record<string, Match[]>;
@@ -22,6 +23,7 @@ const initialState: ExtendedCorrState = {
   draftArticles: [],
   activeCommentary: null,
   fixtureVideos: {},
+  leagues: [],
   groups: {},
   stages: {},
   matches: {},
@@ -48,6 +50,7 @@ const correspondentSlice = createSlice({
       ...action.payload,
       activeCommentary: null,
       fixtureVideos: {},
+      leagues: [],
     }),
     clearCorrespondentData: () => initialState,
     setActiveCommentary: (s, { payload }: PayloadAction<LiveCommentary | null>) => {
@@ -61,6 +64,42 @@ const correspondentSlice = createSlice({
       })
       .addCase(attachDriveVideo.fulfilled, (s, { payload }) => {
         s.fixtureVideos[payload.fixtureId] = payload;
+      })
+      .addCase(fetchLeagues.fulfilled, (s, { payload }) => {
+        s.leagues = payload;
+      })
+      .addCase(createLeague.fulfilled, (s, { payload }) => {
+        s.leagues.push(payload);
+      })
+      .addCase(createGroup.fulfilled, (s, { payload }) => {
+        const { leagueId, ...group } = payload;
+        if (!s.groups[leagueId]) s.groups[leagueId] = [];
+        s.groups[leagueId].push(group);
+      })
+      .addCase(createStage.fulfilled, (s, { payload }) => {
+        const { leagueId, groupId, ...stage } = payload;
+        const key = `${leagueId}_${groupId}`;
+        if (!s.stages[key]) s.stages[key] = [];
+        s.stages[key].push(stage);
+      })
+      .addCase(createMatch.fulfilled, (s, { payload }) => {
+        const { leagueId, groupId, stageId, ...match } = payload;
+        const key = `${leagueId}_${groupId}_${stageId}`;
+        if (!s.matches[key]) s.matches[key] = [];
+        s.matches[key].push(match);
+      })
+      .addCase(updateMatchScores.fulfilled, (s, { payload }) => {
+        const { leagueId, groupId, stageId, matchId, participants } = payload;
+        const key = `${leagueId}_${groupId}_${stageId}`;
+        const match = s.matches[key]?.find(m => m.id === matchId);
+        if (match) {
+          match.participants = participants;
+        }
+      })
+      .addCase(fetchPointsTable.fulfilled, (s, { payload }) => {
+        const { leagueId, groupId, points } = payload;
+        const key = `${leagueId}_${groupId}`;
+        s.points[key] = points;
       }),
 });
 

@@ -36,3 +36,5 @@ interface LeaguesState {
       });
     },
   });
+
+export default leaguesSlice.reducer;

@@ -20,7 +20,7 @@ export const LeagueList: React.FC<{ onSelect?: (league: League) => void }> = ({ 
           <div>Loading...</div>
         ) : (
           <ul className="space-y-2">
-            {leagues.map((l) => (
+            {leagues.map((l: League) => (
               <li key={l.id} className="flex justify-between items-center p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800">
                 <div>
                   <div className="font-medium">{l.name}</div>

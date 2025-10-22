@@ -16,6 +16,10 @@ import {
 import { League, Group, Stage, Match, Participant } from '@/models';
   
   class FirebaseLeagueService {
+    async listMatches(leagueId: string, groupId: string, stageId: string): Promise<Match[]> {
+      const snap = await getDocs(collection(db, `leagues/${leagueId}/groups/${groupId}/stages/${stageId}/matches`));
+      return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Match));
+    }
     // ---------------- LEAGUE CRUD ---------------- //
   
     async createLeague(data: Omit<League, 'id'>): Promise<string> {

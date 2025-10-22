@@ -11,7 +11,7 @@ import gamesSlice     from './slices/gamesSlice';
 import teamSlice from './slices/teamSlice';
 import contactSlice from './slices/contactSlice';
 import { listenerMiddleware } from './listeners';
-import { leaguesSlice } from './slices/leagueSlice';
+import leaguesSlice from './slices/leagueSlice';
 
 export const store = configureStore({
   reducer: {

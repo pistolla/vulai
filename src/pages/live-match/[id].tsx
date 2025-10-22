@@ -47,6 +47,7 @@ export default function LiveMatchPage() {
   const [commentaryMessages, setCommentaryMessages] = useState<CommentaryMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   // Mock telemetry data for demo
   const mockTelemetry: TelemetryData = {
@@ -58,6 +59,11 @@ export default function LiveMatchPage() {
       team: i < 11 ? 'home' : 'away' as 'home' | 'away'
     }))
   };
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   useEffect(() => {
     if (!id) return;
