@@ -270,39 +270,61 @@ const SportsPage: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {leagues.map((league) => (
-              <div
-                key={league.id}
-                className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 cursor-pointer hover:bg-white/20 transition-all transform hover:scale-105"
-                onClick={() => window.location.href = `/league/${league.id}`}
-              >
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center mr-4">
-                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                    </svg>
+            {leagues
+              .filter((league) => {
+                // Filter leagues based on selected sport type
+                // Map sport IDs to sport types
+                const sportTypeMap: { [key: string]: 'team' | 'individual' } = {
+                  'football': 'team',
+                  'basketball': 'team',
+                  'volleyball': 'team',
+                  'rugby': 'team',
+                  'hockey': 'team',
+                  'cricket': 'team',
+                  'badminton': 'individual',
+                  'table-tennis': 'individual',
+                  'chess': 'individual',
+                  'athletics': 'individual',
+                  'swimming': 'individual',
+                  'tennis': 'individual'
+                };
+
+                const selectedSportType = sportTypeMap[selectedSport.id] || 'team';
+                return league.sportType === selectedSportType;
+              })
+              .map((league) => (
+                <div
+                  key={league.id}
+                  className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 cursor-pointer hover:bg-white/20 transition-all transform hover:scale-105"
+                  onClick={() => window.location.href = `/league/${league.id}`}
+                >
+                  <div className="flex items-center mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center mr-4">
+                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-white">{league.name}</h3>
+                      <p className="text-sm text-gray-300 capitalize">{league.sportType} Sport</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-white">{league.name}</h3>
-                    <p className="text-sm text-gray-300 capitalize">{league.sportType} Sport</p>
+                  <div className="space-y-2 text-sm text-gray-300">
+                    <div className="flex justify-between">
+                      <span>Type:</span>
+                      <span className="font-semibold capitalize">{league.sportType}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Description:</span>
+                      <span className="font-semibold">{league.description || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Status:</span>
+                      <span className="bg-green-500 text-white px-2 py-1 rounded text-xs">Active</span>
+                    </div>
                   </div>
                 </div>
-                <div className="space-y-2 text-sm text-gray-300">
-                  <div className="flex justify-between">
-                    <span>Type:</span>
-                    <span className="font-semibold capitalize">{league.sportType}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Description:</span>
-                    <span className="font-semibold">{league.description || 'N/A'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Status:</span>
-                    <span className="bg-green-500 text-white px-2 py-1 rounded text-xs">Active</span>
-                  </div>
-                </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
       </section>

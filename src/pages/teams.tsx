@@ -2,8 +2,12 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { apiService, TeamsData } from '../services/apiService';
 import { Team, Player } from '../types';
+import { useAppDispatch, useAppSelector } from '../hooks/redux';
+import { University } from '../models';
 
 const TeamsPage: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const { universities } = useAppSelector((state) => state.admin);
   const [data, setData] = useState<TeamsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
@@ -11,6 +15,7 @@ const TeamsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [teamSearchQuery, setTeamSearchQuery] = useState<string>('');
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const [selectedUniversity, setSelectedUniversity] = useState<string>('all');
 
   useEffect(() => {
     const loadData = async () => {
@@ -85,14 +90,17 @@ const TeamsPage: React.FC = () => {
     return matchesPosition && matchesSearch;
   });
 
-  // Filter teams based on search query
+  // Filter teams based on search query and selected university
   const filteredTeams = data?.teams.filter(team => {
     const matchesSearch = teamSearchQuery === '' ||
       team.name.toLowerCase().includes(teamSearchQuery.toLowerCase()) ||
       team.sport.toLowerCase().includes(teamSearchQuery.toLowerCase()) ||
       (team.coach && team.coach.toLowerCase().includes(teamSearchQuery.toLowerCase())) ||
       (team.league && team.league.toLowerCase().includes(teamSearchQuery.toLowerCase()));
-    return matchesSearch;
+
+    const matchesUniversity = selectedUniversity === 'all' || team.id === selectedUniversity; // Using team.id as universityId for now
+
+    return matchesSearch && matchesUniversity;
   }) || [];
 
   const initTeamCharts = () => {
@@ -213,6 +221,31 @@ const TeamsPage: React.FC = () => {
             <p className="text-xl text-gray-300">Select a team to view detailed roster and player information</p>
           </div>
           
+          {/* University Filter Buttons */}
+          <div className="mb-6">
+            <div className="flex flex-wrap gap-3 justify-center">
+              <button
+                className={`px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all ${
+                  selectedUniversity === 'all' ? 'ring-2 ring-unill-yellow-400' : ''
+                }`}
+                onClick={() => setSelectedUniversity('all')}
+              >
+                All Universities
+              </button>
+              {universities.map((university) => (
+                <button
+                  key={university.id}
+                  className={`px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all ${
+                    selectedUniversity === university.id ? 'ring-2 ring-unill-yellow-400' : ''
+                  }`}
+                  onClick={() => setSelectedUniversity(university.id)}
+                >
+                  {university.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Team Search Filter */}
           <div className="mb-8 flex justify-center">
             <div className="relative max-w-md w-full">
