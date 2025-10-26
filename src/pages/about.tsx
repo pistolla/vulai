@@ -78,13 +78,13 @@ return (
                     <div className="w-32 h-32 bg-gradient-to-br from-unill-yellow-400 to-unill-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center">
                         <span className="text-4xl font-black text-white">MJ</span>
                     </div>
-                    <h3 className="text-xl font-semibold gradient-text">Marcus Johnson</h3>
-                    <p className="text-unill-yellow-400 mb-2">Athletic Director</p>
-                    <p className="text-gray-700 dark:text-gray-300 text-sm">15+ years experience in university athletics and sports management</p>
+                    <h3 className="text-xl font-semibold gradient-text">Jane Aisha Njeri</h3>
+                    <p className="text-unill-yellow-400 mb-2">UNILL Founder</p>
+                    <p className="text-gray-700 dark:text-gray-300 text-sm">Former TUM, FlamCity Academy Footballer and Visionary Sportswooman</p>
                 </div>
                 <div className="team-card rounded-lg p-8 text-center" data-aos="fade-up" data-aos-delay="200">
                     <div className="w-32 h-32 bg-gradient-to-br from-unill-purple-400 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                        <span className="text-4xl font-black text-white">SC</span>
+                        <span className="text-4xl font-black text-white">S</span>
                     </div>
                     <h3 className="text-xl font-semibold gradient-text">Sarah Chen</h3>
                     <p className="text-unill-yellow-400 mb-2">Head Coach Coordinator</p>

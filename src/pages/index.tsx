@@ -214,42 +214,7 @@ const HomePage: React.FC = () => {
           </svg>
         </div>
       </section>
-      
-      {/* Merchandise Section */}
-      <section className="py-16 bg-gradient-to-b from-black/10 to-black/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
-              Official Merchandise
-            </h2>
-            <p className="text-xl text-gray-300">Show your university pride with our exclusive sports merchandise</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {merchandise.map((item) => (
-              <MerchandiseCard
-                key={item.id}
-                item={item}
-                onAddToCart={handleAddToCart}
-                onToggleWishlist={handleToggleWishlist}
-              />
-            ))}
-          </div>
-          
-          <div className="text-center">
-            <a
-              href="/merchandise"
-              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 text-white font-semibold rounded-lg hover:from-unill-yellow-500 hover:to-unill-purple-600 transition-all transform hover:scale-105"
-            >
-              View All Merchandise
-              <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </a>
-          </div>
-        </div>
-      </section>
-      
+
       {/* Live Matches Section */}
       <section className="py-16 bg-black/20 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -313,97 +278,41 @@ const HomePage: React.FC = () => {
         </div>
       </section>
       
-      {/* Sports Discovery Section */}
-      <section className="py-20 bg-gradient-to-b from-black/20 to-black/40">
+      {/* Merchandise Section */}
+      <section className="py-16 bg-gradient-to-b from-black/10 to-black/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl font-black mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
-              Discover Your Sport
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
+              Official Merchandise
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              From team sports to individual competitions, find your perfect athletic match among our diverse university sports programs.
-            </p>
+            <p className="text-xl text-gray-300">Show your university pride with our exclusive sports merchandise</p>
           </div>
           
-          {/* Search and Filter */}
-          <div className="mb-12">
-            <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
-              {/* Search Bar */}
-              <div className="relative flex-1 max-w-md">
-                <input 
-                  type="text" 
-                  placeholder="Search sports..." 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-4 py-3 pl-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-unill-yellow-400 focus:border-transparent"
-                />
-                <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              
-              {/* Filter Buttons */}
-              <div className="flex flex-wrap gap-3">
-                <button 
-                  className={`filter-btn px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all ${
-                    currentFilter === 'all' ? 'active' : ''
-                  }`}
-                  onClick={() => setCurrentFilter('all')}
-                >
-                  All Sports
-                </button>
-                <button 
-                  className={`filter-btn px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all ${
-                    currentFilter === 'team' ? 'active' : ''
-                  }`}
-                  onClick={() => setCurrentFilter('team')}
-                >
-                  Team Sports
-                </button>
-                <button 
-                  className={`filter-btn px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all ${
-                    currentFilter === 'individual' ? 'active' : ''
-                  }`}
-                  onClick={() => setCurrentFilter('individual')}
-                >
-                  Individual Sports
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          {/* Sports Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {filteredSports.map((sport, index) => (
-              <div 
-                key={sport.id}
-                className="sport-card group cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl opacity-0 animate-in"
-                style={{ animationDelay: `${index * 100}ms` }}
-                onClick={() => showSportDetails(sport)}
-              >
-                <div className="relative overflow-hidden rounded-lg bg-white/10 backdrop-blur-md shadow-lg">
-                  <div className="aspect-w-16 aspect-h-9">
-                    <img 
-                      src={sport.image} 
-                      alt={sport.name} 
-                      className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110"
-                    />
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                    <h3 className="text-xl font-bold mb-2">{sport.name}</h3>
-                    <p className="text-sm opacity-90 mb-3">{sport.description}</p>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="bg-white/20 px-2 py-1 rounded">{sport.players} Players</span>
-                      <span className="bg-white/20 px-2 py-1 rounded">{sport.season}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {merchandise.map((item) => (
+              <MerchandiseCard
+                key={item.id}
+                item={item}
+                onAddToCart={handleAddToCart}
+                onToggleWishlist={handleToggleWishlist}
+              />
             ))}
+          </div>
+          
+          <div className="text-center">
+            <a
+              href="/merchandise"
+              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 text-white font-semibold rounded-lg hover:from-unill-yellow-500 hover:to-unill-purple-600 transition-all transform hover:scale-105"
+            >
+              View All Merchandise
+              <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </a>
           </div>
         </div>
       </section>
+      
       
       {/* Statistics Section */}
       <section className="py-20 bg-black/20 backdrop-blur-sm">
