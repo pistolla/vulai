@@ -365,7 +365,8 @@ const HomePage: React.FC = () => {
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl md:text-5xl font-black text-white mb-6">Ready to Join the Team?</h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Take your athletic journey to the next level. Join Unill Sports and become part of our winning tradition.
+          Join any team sports programs by filling an online form. 
+          We will help you get in touch with the team management.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
@@ -375,7 +376,7 @@ const HomePage: React.FC = () => {
               Register Now
             </a>
             <a href="/teams" className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-gray-900 transition-all transform hover:scale-105">
-              Meet the Teams
+              Meet Your Teams
             </a>
           </div>
         </div>

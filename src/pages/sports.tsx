@@ -256,129 +256,215 @@ const SportsPage: React.FC = () => {
             </div>
           </div>
           
-          {/* Equipment and Rules */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
-              <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
-                Required Equipment
-              </h3>
-              <div className="space-y-4">
-                {selectedSport.id === 'football' && (
-                  <>
-                    <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-lg">
-                      <div className="w-12 h-12 bg-gradient-to-br from-unill-yellow-400 to-unill-purple-500 rounded-lg flex items-center justify-center">
-                        <span className="text-xl">⚽</span>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold">Soccer Ball</h4>
-                        <p className="text-sm text-gray-400">Official size 5 ball</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-lg">
-                      <div className="w-12 h-12 bg-gradient-to-br from-unill-purple-400 to-blue-500 rounded-lg flex items-center justify-center">
-                        <span className="text-xl">🦵</span>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold">Shin Guards</h4>
-                        <p className="text-sm text-gray-400">Protective shin guards</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-lg">
-                      <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-blue-500 rounded-lg flex items-center justify-center">
-                        <span className="text-xl">👟</span>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold">Cleats</h4>
-                        <p className="text-sm text-gray-400">Soccer-specific footwear</p>
-                      </div>
-                    </div>
-                  </>
-                )}
-                {selectedSport.id === 'basketball' && (
-                  <>
-                    <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-lg">
-                      <div className="w-12 h-12 bg-gradient-to-br from-unill-yellow-400 to-unill-purple-500 rounded-lg flex items-center justify-center">
-                        <span className="text-xl">🏀</span>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold">Basketball</h4>
-                        <p className="text-sm text-gray-400">Official size and weight</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-lg">
-                      <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-pink-500 rounded-lg flex items-center justify-center">
-                        <span className="text-xl">👟</span>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold">Basketball Shoes</h4>
-                        <p className="text-sm text-gray-400">High-top athletic shoes</p>
-                      </div>
-                    </div>
-                  </>
-                )}
-                {/* Add more equipment for other sports as needed */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Team Sport Leagues */}
+            <div
+              className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 cursor-pointer hover:bg-white/20 transition-all transform hover:scale-105"
+              onClick={() => window.location.href = '/league/football-championship'}
+            >
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center mr-4">
+                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">Football Championship</h3>
+                  <p className="text-sm text-gray-300">Team Sport</p>
+                </div>
               </div>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
-              <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
-                Basic Rules
-              </h3>
-              <div className="space-y-4">
-                <div className="border-l-3 border-unill-yellow-400 pl-4 mb-4">
-                  <h4 className="font-semibold mb-2">Objective</h4>
-                  <p className="text-gray-300">
-                    {selectedSport.id === 'football' && 'Score goals by getting the ball into the opponent\'s net while preventing them from scoring.'}
-                    {selectedSport.id === 'basketball' && 'Score points by shooting the ball through the opponent\'s hoop while preventing them from scoring.'}
-                    {selectedSport.id === 'volleyball' && 'Score points by grounding the ball on the opponent\'s court while preventing them from doing the same.'}
-                  </p>
+              <div className="space-y-2 text-sm text-gray-300">
+                <div className="flex justify-between">
+                  <span>Teams:</span>
+                  <span className="font-semibold">8</span>
                 </div>
-                <div className="border-l-3 border-unill-yellow-400 pl-4 mb-4">
-                  <h4 className="font-semibold mb-2">Game Duration</h4>
-                  <p className="text-gray-300">
-                    {selectedSport.id === 'football' && 'Two 45-minute halves with a 15-minute halftime break.'}
-                    {selectedSport.id === 'basketball' && 'Four 10-minute quarters with breaks between quarters and halftime.'}
-                    {selectedSport.id === 'volleyball' && 'Best of 5 sets, first to 25 points (win by 2), fifth set to 15 points.'}
-                  </p>
+                <div className="flex justify-between">
+                  <span>Groups:</span>
+                  <span className="font-semibold">2</span>
                 </div>
-                <div className="border-l-3 border-unill-yellow-400 pl-4 mb-4">
-                  <h4 className="font-semibold mb-2">Scoring</h4>
-                  <p className="text-gray-300">
-                    {selectedSport.id === 'football' && 'Goal (1 point).'}
-                    {selectedSport.id === 'basketball' && 'Field goal (2 or 3 points), free throw (1 point).'}
-                    {selectedSport.id === 'volleyball' && 'Rally scoring - every serve results in a point for one team.'}
-                  </p>
+                <div className="flex justify-between">
+                  <span>Matches:</span>
+                  <span className="font-semibold">24</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Status:</span>
+                  <span className="bg-green-500 text-white px-2 py-1 rounded text-xs">Active</span>
                 </div>
               </div>
             </div>
-          </div>
-          
-          {/* Training Schedule */}
-          <div className="mt-16">
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
-              <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
-                Training Schedule
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="text-center p-4 bg-white/5 rounded-lg">
-                  <h4 className="font-semibold mb-2">Monday</h4>
-                  <p className="text-sm text-gray-300">Strength Training</p>
-                  <p className="text-xs text-gray-400">6:00 AM - 8:00 AM</p>
+
+            <div
+              className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 cursor-pointer hover:bg-white/20 transition-all transform hover:scale-105"
+              onClick={() => window.location.href = '/league/basketball-league'}
+            >
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center mr-4">
+                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
                 </div>
-                <div className="text-center p-4 bg-white/5 rounded-lg">
-                  <h4 className="font-semibold mb-2">Tuesday</h4>
-                  <p className="text-sm text-gray-300">Practice Session</p>
-                  <p className="text-xs text-gray-400">4:00 PM - 7:00 PM</p>
+                <div>
+                  <h3 className="text-xl font-bold text-white">Basketball League</h3>
+                  <p className="text-sm text-gray-300">Team Sport</p>
                 </div>
-                <div className="text-center p-4 bg-white/5 rounded-lg">
-                  <h4 className="font-semibold mb-2">Wednesday</h4>
-                  <p className="text-sm text-gray-300">Film Study</p>
-                  <p className="text-xs text-gray-400">7:00 PM - 9:00 PM</p>
+              </div>
+              <div className="space-y-2 text-sm text-gray-300">
+                <div className="flex justify-between">
+                  <span>Teams:</span>
+                  <span className="font-semibold">6</span>
                 </div>
-                <div className="text-center p-4 bg-white/5 rounded-lg">
-                  <h4 className="font-semibold mb-2">Thursday</h4>
-                  <p className="text-sm text-gray-300">Scrimmage</p>
-                  <p className="text-xs text-gray-400">4:00 PM - 7:00 PM</p>
+                <div className="flex justify-between">
+                  <span>Groups:</span>
+                  <span className="font-semibold">1</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Matches:</span>
+                  <span className="font-semibold">15</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Status:</span>
+                  <span className="bg-green-500 text-white px-2 py-1 rounded text-xs">Active</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Individual Sport Leagues */}
+            <div
+              className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 cursor-pointer hover:bg-white/20 transition-all transform hover:scale-105"
+              onClick={() => window.location.href = '/league/tennis-tournament'}
+            >
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-4">
+                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">Tennis Tournament</h3>
+                  <p className="text-sm text-gray-300">Individual Sport</p>
+                </div>
+              </div>
+              <div className="space-y-2 text-sm text-gray-300">
+                <div className="flex justify-between">
+                  <span>Players:</span>
+                  <span className="font-semibold">16</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Stages:</span>
+                  <span className="font-semibold">4</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Matches:</span>
+                  <span className="font-semibold">15</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Status:</span>
+                  <span className="bg-blue-500 text-white px-2 py-1 rounded text-xs">Upcoming</span>
+                </div>
+              </div>
+            </div>
+
+            <div
+              className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 cursor-pointer hover:bg-white/20 transition-all transform hover:scale-105"
+              onClick={() => window.location.href = '/league/athletics-championship'}
+            >
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center mr-4">
+                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">Athletics Championship</h3>
+                  <p className="text-sm text-gray-300">Individual Sport</p>
+                </div>
+              </div>
+              <div className="space-y-2 text-sm text-gray-300">
+                <div className="flex justify-between">
+                  <span>Athletes:</span>
+                  <span className="font-semibold">32</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Events:</span>
+                  <span className="font-semibold">12</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Competitions:</span>
+                  <span className="font-semibold">48</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Status:</span>
+                  <span className="bg-green-500 text-white px-2 py-1 rounded text-xs">Active</span>
+                </div>
+              </div>
+            </div>
+
+            <div
+              className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 cursor-pointer hover:bg-white/20 transition-all transform hover:scale-105"
+              onClick={() => window.location.href = '/league/swimming-meet'}
+            >
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mr-4">
+                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">Swimming Meet</h3>
+                  <p className="text-sm text-gray-300">Individual Sport</p>
+                </div>
+              </div>
+              <div className="space-y-2 text-sm text-gray-300">
+                <div className="flex justify-between">
+                  <span>Swimmers:</span>
+                  <span className="font-semibold">24</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Events:</span>
+                  <span className="font-semibold">8</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Races:</span>
+                  <span className="font-semibold">32</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Status:</span>
+                  <span className="bg-yellow-500 text-white px-2 py-1 rounded text-xs">Scheduled</span>
+                </div>
+              </div>
+            </div>
+
+            <div
+              className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 cursor-pointer hover:bg-white/20 transition-all transform hover:scale-105"
+              onClick={() => window.location.href = '/league/chess-tournament'}
+            >
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-gray-600 to-gray-800 rounded-full flex items-center justify-center mr-4">
+                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">Chess Tournament</h3>
+                  <p className="text-sm text-gray-300">Individual Sport</p>
+                </div>
+              </div>
+              <div className="space-y-2 text-sm text-gray-300">
+                <div className="flex justify-between">
+                  <span>Players:</span>
+                  <span className="font-semibold">12</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Rounds:</span>
+                  <span className="font-semibold">6</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Games:</span>
+                  <span className="font-semibold">33</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Status:</span>
+                  <span className="bg-green-500 text-white px-2 py-1 rounded text-xs">Active</span>
                 </div>
               </div>
             </div>
@@ -386,33 +472,7 @@ const SportsPage: React.FC = () => {
         </div>
       </section>
       
-      {/* Performance Statistics */}
-      <section className="py-16 bg-black/20 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
-              University Sports Performance
-            </h2>
-            <p className="text-xl text-gray-300">Track our athletic achievements across all sports programs</p>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
-              <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
-                Team Performance Overview
-              </h3>
-              <div id="performance-chart" style={{ height: '400px' }}></div>
-            </div>
-            
-            <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
-              <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
-                Championship Distribution
-              </h3>
-              <div id="championships-chart" style={{ height: '400px' }}></div>
-            </div>
-          </div>
-        </div>
-      </section>
+      
       
       {/* Getting Started */}
       <section className="py-16">
@@ -422,8 +482,8 @@ const SportsPage: React.FC = () => {
               Ready to Get Started?
             </h2>
             <p className="text-xl text-gray-300 mb-8">
-              Join our university sports programs and take your athletic journey to the next level. 
-              We provide expert coaching, state-of-the-art facilities, and a supportive team environment.
+              Join any team sports programs by filling an online form. 
+              We will help you get in touch with the team management.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
               <div className="text-center">
@@ -453,10 +513,7 @@ const SportsPage: React.FC = () => {
                 href="/register"
                 className="bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-unill-yellow-500 hover:to-unill-purple-600 transition-all transform hover:scale-105"
               >
-                Register for Tryouts
-              </a>
-              <a href="/teams" className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-gray-900 transition-all transform hover:scale-105">
-                View Team Rosters
+                Register Now
               </a>
             </div>
           </div>

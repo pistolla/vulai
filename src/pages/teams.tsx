@@ -482,12 +482,6 @@ const TeamsPage: React.FC = () => {
               >
                 Apply Now
               </a>
-              <a
-                href="/contact"
-                className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-gray-900 transition-all transform hover:scale-105"
-              >
-                Contact Coaches
-              </a>
             </div>
           </div>
         </div>
