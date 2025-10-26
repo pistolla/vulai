@@ -2,8 +2,13 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { apiService, SportsData } from '../services/apiService';
 import { Sport } from '../types';
+import { useAppDispatch, useAppSelector } from '../hooks/redux';
+import { fetchLeagues } from '../store/correspondentThunk';
+import { League } from '../models';
 
 const SportsPage: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const { leagues, loading: leaguesLoading } = useAppSelector((state) => state.leagues);
   const [data, setData] = useState<SportsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
@@ -21,6 +26,7 @@ const SportsPage: React.FC = () => {
       }
     };
     loadData();
+    dispatch(fetchLeagues());
 
     // Initialize charts when page loads
     const script = document.createElement('script');
@@ -264,217 +270,39 @@ const SportsPage: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Team Sport Leagues */}
-            <div
-              className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 cursor-pointer hover:bg-white/20 transition-all transform hover:scale-105"
-              onClick={() => window.location.href = '/league/football-championship'}
-            >
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center mr-4">
-                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                  </svg>
+            {leagues.map((league) => (
+              <div
+                key={league.id}
+                className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 cursor-pointer hover:bg-white/20 transition-all transform hover:scale-105"
+                onClick={() => window.location.href = `/league/${league.id}`}
+              >
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center mr-4">
+                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white">{league.name}</h3>
+                    <p className="text-sm text-gray-300 capitalize">{league.sportType} Sport</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white">Football Championship</h3>
-                  <p className="text-sm text-gray-300">Team Sport</p>
-                </div>
-              </div>
-              <div className="space-y-2 text-sm text-gray-300">
-                <div className="flex justify-between">
-                  <span>Teams:</span>
-                  <span className="font-semibold">8</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Groups:</span>
-                  <span className="font-semibold">2</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Matches:</span>
-                  <span className="font-semibold">24</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Status:</span>
-                  <span className="bg-green-500 text-white px-2 py-1 rounded text-xs">Active</span>
+                <div className="space-y-2 text-sm text-gray-300">
+                  <div className="flex justify-between">
+                    <span>Type:</span>
+                    <span className="font-semibold capitalize">{league.sportType}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Description:</span>
+                    <span className="font-semibold">{league.description || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Status:</span>
+                    <span className="bg-green-500 text-white px-2 py-1 rounded text-xs">Active</span>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div
-              className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 cursor-pointer hover:bg-white/20 transition-all transform hover:scale-105"
-              onClick={() => window.location.href = '/league/basketball-league'}
-            >
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center mr-4">
-                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white">Basketball League</h3>
-                  <p className="text-sm text-gray-300">Team Sport</p>
-                </div>
-              </div>
-              <div className="space-y-2 text-sm text-gray-300">
-                <div className="flex justify-between">
-                  <span>Teams:</span>
-                  <span className="font-semibold">6</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Groups:</span>
-                  <span className="font-semibold">1</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Matches:</span>
-                  <span className="font-semibold">15</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Status:</span>
-                  <span className="bg-green-500 text-white px-2 py-1 rounded text-xs">Active</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Individual Sport Leagues */}
-            <div
-              className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 cursor-pointer hover:bg-white/20 transition-all transform hover:scale-105"
-              onClick={() => window.location.href = '/league/tennis-tournament'}
-            >
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-4">
-                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white">Tennis Tournament</h3>
-                  <p className="text-sm text-gray-300">Individual Sport</p>
-                </div>
-              </div>
-              <div className="space-y-2 text-sm text-gray-300">
-                <div className="flex justify-between">
-                  <span>Players:</span>
-                  <span className="font-semibold">16</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Stages:</span>
-                  <span className="font-semibold">4</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Matches:</span>
-                  <span className="font-semibold">15</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Status:</span>
-                  <span className="bg-blue-500 text-white px-2 py-1 rounded text-xs">Upcoming</span>
-                </div>
-              </div>
-            </div>
-
-            <div
-              className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 cursor-pointer hover:bg-white/20 transition-all transform hover:scale-105"
-              onClick={() => window.location.href = '/league/athletics-championship'}
-            >
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center mr-4">
-                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white">Athletics Championship</h3>
-                  <p className="text-sm text-gray-300">Individual Sport</p>
-                </div>
-              </div>
-              <div className="space-y-2 text-sm text-gray-300">
-                <div className="flex justify-between">
-                  <span>Athletes:</span>
-                  <span className="font-semibold">32</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Events:</span>
-                  <span className="font-semibold">12</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Competitions:</span>
-                  <span className="font-semibold">48</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Status:</span>
-                  <span className="bg-green-500 text-white px-2 py-1 rounded text-xs">Active</span>
-                </div>
-              </div>
-            </div>
-
-            <div
-              className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 cursor-pointer hover:bg-white/20 transition-all transform hover:scale-105"
-              onClick={() => window.location.href = '/league/swimming-meet'}
-            >
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mr-4">
-                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white">Swimming Meet</h3>
-                  <p className="text-sm text-gray-300">Individual Sport</p>
-                </div>
-              </div>
-              <div className="space-y-2 text-sm text-gray-300">
-                <div className="flex justify-between">
-                  <span>Swimmers:</span>
-                  <span className="font-semibold">24</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Events:</span>
-                  <span className="font-semibold">8</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Races:</span>
-                  <span className="font-semibold">32</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Status:</span>
-                  <span className="bg-yellow-500 text-white px-2 py-1 rounded text-xs">Scheduled</span>
-                </div>
-              </div>
-            </div>
-
-            <div
-              className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 cursor-pointer hover:bg-white/20 transition-all transform hover:scale-105"
-              onClick={() => window.location.href = '/league/chess-tournament'}
-            >
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-gray-600 to-gray-800 rounded-full flex items-center justify-center mr-4">
-                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white">Chess Tournament</h3>
-                  <p className="text-sm text-gray-300">Individual Sport</p>
-                </div>
-              </div>
-              <div className="space-y-2 text-sm text-gray-300">
-                <div className="flex justify-between">
-                  <span>Players:</span>
-                  <span className="font-semibold">12</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Rounds:</span>
-                  <span className="font-semibold">6</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Games:</span>
-                  <span className="font-semibold">33</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Status:</span>
-                  <span className="bg-green-500 text-white px-2 py-1 rounded text-xs">Active</span>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
