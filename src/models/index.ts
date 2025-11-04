@@ -160,6 +160,7 @@ export interface Group {
   name: string;
   description?: string;
   stages?: Stage[];
+  createdAt?: string
 }
 
 export interface League {
@@ -167,4 +168,7 @@ export interface League {
   name: string;
   sportType: SportType;
   description?: string;
+  createdAt?: any;
+  updatedAt?: any;
+  groups: Group[]; // array
 }

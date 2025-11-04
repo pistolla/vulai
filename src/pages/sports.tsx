@@ -5,42 +5,86 @@ import { Sport } from '../types';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { fetchLeagues } from '../store/correspondentThunk';
 import { League } from '../models';
+import { useTheme } from '../components/ThemeProvider';
 
 const SportsPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { leagues, loading: leaguesLoading } = useAppSelector((state) => state.leagues);
+  const { theme, mounted } = useTheme();
   const [data, setData] = useState<SportsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+
     const loadData = async () => {
       try {
-        const sportsData = await apiService.getSportsData();
-        setData(sportsData);
-        setSelectedSport(sportsData.sports[0]);
+        console.log('Sports page: Starting data load');
+        setLoading(true);
+
+        // Load sports data with timeout
+        const sportsPromise = apiService.getSportsData();
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Sports data timeout')), 8000)
+        );
+
+        const sportsData = await Promise.race([sportsPromise, timeoutPromise]);
+        console.log("Fetched Sport Data ", sportsData);
+
+        if (isMounted) {
+          setData(sportsData);
+          setSelectedSport(sportsData.sports[0]);
+          setLoading(false); // Allow UI to render with sports data
+        }
+
+        // Load leagues data asynchronously (non-blocking)
+        if (isMounted) {
+          try {
+            console.log('Sports page: Dispatching fetchLeagues');
+            await dispatch(fetchLeagues()).unwrap();
+          } catch (leaguesError) {
+            console.error('Failed to load leagues data:', leaguesError);
+            // Don't fail the whole page if leagues fail
+          }
+        }
       } catch (error) {
         console.error('Failed to load sports data:', error);
-      } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false); // Allow UI to render even if sports data fails
+        }
       }
     };
-    loadData();
-    dispatch(fetchLeagues());
 
-    // Initialize charts when page loads
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
-    script.onload = () => {
-      setTimeout(() => {
-        if (data) initCharts();
-      }, 1000);
+    loadData();
+
+    return () => {
+      isMounted = false;
     };
-    document.head.appendChild(script);
-  }, []);
+  }, [dispatch]);
+
+  // Separate useEffect for chart initialization to avoid hydration issues
+  useEffect(() => {
+    let isMounted = true;
+
+    if (typeof window !== 'undefined' && data && selectedSport && isMounted) {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
+      script.onload = () => {
+        setTimeout(() => {
+          if (isMounted) initCharts();
+        }, 1000);
+      };
+      document.head.appendChild(script);
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [data, selectedSport]);
 
   const initCharts = () => {
-    if (typeof window === 'undefined' || !(window as any).echarts || !data) return;
+    if (typeof window === 'undefined' || !(window as any).echarts || !data || !selectedSport) return;
 
     const echarts = (window as any).echarts;
 
@@ -151,17 +195,23 @@ const SportsPage: React.FC = () => {
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-unill-yellow-400 mx-auto"></div>
-            <p className="mt-4 text-gray-300">Loading...</p>
+            <p className="mt-4 text-gray-300">
+              {loading ? 'Loading sports data...' : 'Preparing sports programs...'}
+            </p>
           </div>
         </div>
       </Layout>
     );
   }
 
+  // Ensure we have leagues data, even if empty - render immediately with available data
+  const filteredLeagues = leagues || [];
+  const hasLeaguesData = !leaguesLoading && leagues !== undefined;
+
   return (
     <Layout title="Sports Programs" description="Explore comprehensive university sports programs including Football, Basketball, Volleyball, Rugby, Hockey, Badminton, Table Tennis, Chess, Athletics and more">
       {/* Hero Section */}
-      <section className="pt-24 pb-16 bg-gradient-to-b from-black/30 to-transparent">
+      <section className={`pt-24 pb-16 bg-gradient-to-b from-black/30 to-transparent ${mounted && theme === 'light' ? 'bg-gradient-to-b from-mauve-100 via-mauve-50 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl md:text-6xl font-black mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
             Sports Programs
@@ -173,7 +223,7 @@ const SportsPage: React.FC = () => {
       </section>
       
       {/* Sport Selection */}
-      <section className="py-16">
+      <section className={`py-16 ${mounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
             <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent text-center">
@@ -211,7 +261,7 @@ const SportsPage: React.FC = () => {
       </section>
       
       {/* Sport Details */}
-      <section id="sport-details" className="py-16">
+      <section id="sport-details" className={`py-16 ${mounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
             <div>
@@ -270,29 +320,30 @@ const SportsPage: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {leagues
-              .filter((league) => {
-                // Filter leagues based on selected sport type
-                // Map sport IDs to sport types
-                const sportTypeMap: { [key: string]: 'team' | 'individual' } = {
-                  'football': 'team',
-                  'basketball': 'team',
-                  'volleyball': 'team',
-                  'rugby': 'team',
-                  'hockey': 'team',
-                  'cricket': 'team',
-                  'badminton': 'individual',
-                  'table-tennis': 'individual',
-                  'chess': 'individual',
-                  'athletics': 'individual',
-                  'swimming': 'individual',
-                  'tennis': 'individual'
-                };
+            {hasLeaguesData ? (
+              filteredLeagues
+                .filter((league) => {
+                  // Filter leagues based on selected sport type
+                  // Map sport IDs to sport types
+                  const sportTypeMap: { [key: string]: 'team' | 'individual' } = {
+                    'football': 'team',
+                    'basketball': 'team',
+                    'volleyball': 'team',
+                    'rugby': 'team',
+                    'hockey': 'team',
+                    'cricket': 'team',
+                    'badminton': 'individual',
+                    'table-tennis': 'individual',
+                    'chess': 'individual',
+                    'athletics': 'individual',
+                    'swimming': 'individual',
+                    'tennis': 'individual'
+                  };
 
-                const selectedSportType = sportTypeMap[selectedSport.id] || 'team';
-                return league.sportType === selectedSportType;
-              })
-              .map((league) => (
+                  const selectedSportType = sportTypeMap[selectedSport.id] || 'team';
+                  return league.sportType === selectedSportType;
+                })
+                .map((league) => (
                 <div
                   key={league.id}
                   className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 cursor-pointer hover:bg-white/20 transition-all transform hover:scale-105"
@@ -324,7 +375,16 @@ const SportsPage: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              ))}
+              ))
+            ) : (
+              <div className="col-span-3 text-center py-8">
+                <div className="animate-pulse">
+                  <div className="h-4 bg-gray-300 rounded w-3/4 mx-auto mb-4"></div>
+                  <div className="h-4 bg-gray-300 rounded w-1/2 mx-auto"></div>
+                </div>
+                <p className="text-gray-400 mt-4">Loading leagues...</p>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -332,7 +392,7 @@ const SportsPage: React.FC = () => {
       
       
       {/* Getting Started */}
-      <section className="py-16">
+      <section className={`py-16 ${mounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="bg-white/10 backdrop-blur-md rounded-lg p-12 border border-white/20">
             <h2 className="text-4xl font-bold mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">

@@ -68,57 +68,90 @@ export class ApiService {
  
   private async fetchWithFallback<T>(endpoint: string, fallbackPath: string): Promise<T> {
     try {
-      throw new Error(`Unknown Firebase endpoint: ${endpoint}`);
-      let result: any;
+      // Try Firebase first with timeout
+      const firebasePromise = this.fetchFromFirebase<T>(endpoint);
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Firebase timeout')), 5000)
+      );
 
-      switch (endpoint) {
-        case "/api/home": {
-          const snap = await getDoc(doc(db, "home", "main"));
-          result = snap.exists() ? snap.data() : null;
-          break;
+      const result = await Promise.race([firebasePromise, timeoutPromise]);
+      return result;
+    } catch (firebaseError) {
+      console.warn(`Firebase fetch failed for ${endpoint}, falling back to JSON:`, firebaseError);
+      // Fallback to JSON file
+      try {
+        const response = await fetch(fallbackPath, { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
+        return (await response.json()) as T;
+      } catch (fallbackError) {
+        console.error(`Fallback fetch also failed for ${endpoint}:`, fallbackError);
+        throw new Error(`Failed to load data from both Firebase and fallback for ${endpoint}`);
+      }
+    }
+  }
 
-        case "/api/sports": {
-          const snap = await getDocs(collection(db, "sports"));
-          result = snap.docs.map(d => d.data());
-          break;
-        }
+  private async fetchFromFirebase<T>(endpoint: string): Promise<T> {
+    let result: any;
 
-        case "/api/teams": {
-          const snap = await getDocs(collection(db, "teams"));
-          result = snap.docs.map(d => d.data());
-          break;
-        }
-
-        case "/api/schedule": {
-          const snap = await getDocs(collection(db, "schedule"));
-          result = snap.docs.map(d => d.data());
-          break;
-        }
-
-        case "/api/admin": {
-          const snap = await getDoc(doc(db, "admin", "dashboard"));
-          result = snap.exists() ? snap.data() : null;
-          break;
-        }
-
-        case "/api/admin/universities": {
-          const snap = await getDocs(collection(db, "universities"));
-          result = { universities: snap.docs.map(d => d.data()) };
-          break;
-        }
-
-        default:
-          throw new Error(`Unknown Firebase endpoint: ${endpoint}`);
+    switch (endpoint) {
+      case "/api/home": {
+        const snap = await getDoc(doc(db, "home", "main"));
+        result = snap.exists() ? snap.data() : null;
+        break;
       }
 
-      if (!result) throw new Error("No data found in Firebase");
-      return result as T;
-    } catch (error) {
-      console.warn(`Firestore fetch failed for ${endpoint}, using fallback:`, error);
-      const response = await fetch(fallbackPath, { cache: 'no-store' });
-      return (await response.json()) as T;
+      case "/api/sports": {
+        const snap = await getDocs(collection(db, "sports"));
+        result = { sports: snap.docs.map(d => d.data()), trainingSchedule: [] };
+        break;
+      }
+
+      case "/api/teams": {
+        const snap = await getDocs(collection(db, "teams"));
+        result = { teams: snap.docs.map(d => d.data()) };
+        break;
+      }
+
+      case "/api/teams/universities": {
+        const snap = await getDocs(collection(db, "universities"));
+        result = { universities: snap.docs.map(d => d.data()) };
+        break;
+      }
+
+      case "/api/schedule": {
+        const snap = await getDocs(collection(db, "schedule"));
+        result = {
+          matches: snap.docs.map(d => d.data()),
+          stats: {
+            totalMatches: snap.docs.length,
+            liveNow: snap.docs.filter(d => d.data().status === 'live').length,
+            homeGames: snap.docs.filter(d => d.data().venue?.includes('Home')).length,
+            expectedAttendance: snap.docs.length * 1000
+          }
+        };
+        break;
+      }
+
+      case "/api/admin": {
+        const snap = await getDoc(doc(db, "admin", "dashboard"));
+        result = snap.exists() ? snap.data() : null;
+        break;
+      }
+
+      case "/api/admin/universities": {
+        const snap = await getDocs(collection(db, "universities"));
+        result = { universities: snap.docs.map(d => d.data()) };
+        break;
+      }
+
+      default:
+        throw new Error(`Unknown Firebase endpoint: ${endpoint}`);
     }
+
+    if (!result) throw new Error("No data found in Firebase");
+    return result as T;
   }
 
   // 🔹 Data retrieval methods
@@ -150,6 +183,11 @@ export class ApiService {
   async getTeams(): Promise<any[]> {
     const data = await this.fetchWithFallback<any>("/api/teams", "/data/teams.json");
     return data.teams || [];
+  }
+
+  async getUniversityData(): Promise<any[]> {
+    const data = await this.fetchWithFallback<any>("/api/team/universities", "/data/universities.json");
+    return data.universities || [];
   }
 
   async getSchedule(): Promise<any[]> {

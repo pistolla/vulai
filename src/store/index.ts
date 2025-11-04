@@ -29,7 +29,10 @@ export const store = configureStore({
     leagues: leaguesSlice
   },
   middleware: (gDM) => gDM({
-    serializableCheck: false,
+    serializableCheck: {
+      ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
+      ignoredPaths: ['persist'],
+    },
     immutableCheck: false,
   }).prepend(listenerMiddleware.middleware),
 });

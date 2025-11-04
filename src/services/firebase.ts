@@ -21,9 +21,9 @@ import {
   PhoneAuthProvider,
   signInWithPhoneNumber,
 } from 'firebase/auth';
-import { getFirestore, doc, setDoc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, getDoc, serverTimestamp, updateDoc, collection, getDocs, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 import { AuthUser, UserProfile, UserRole } from '@/models/User';
-import { University } from '@/models';
+import { League, University } from '@/models';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
@@ -42,6 +42,37 @@ const app = initializeApp(firebaseConfig);
 if (!getApps().length) initializeApp(firebaseConfig);
 export const auth = getAuth();
 export const db = getFirestore();
+
+const fetchTopLevelLeagues = async (): Promise<League[]> => {
+  try {
+    const querySnapshot = await getDocs(collection(db, `leagues`));
+
+    // The .map() function will return a new array
+    const leagues: League[] = querySnapshot.docs.map((d: QueryDocumentSnapshot<DocumentData>) => {
+      // It's good practice to spread the data and then potentially add/override specific fields
+      const data = d.data();
+      return {
+        id: d.id,
+        // Assuming League interface matches d.data() structure.
+        // If not, explicitly map fields like:
+        // name: data.name as string,
+        // sportType: data.sportType as string,
+        // ...
+        ...data
+      } as League; // Cast to your League type
+    });
+
+    console.log("Fetched and mapped top-level leagues:", leagues);
+    return leagues;
+
+  } catch (error) {
+    console.error("Error fetching or mapping leagues:", error);
+    throw error; // Re-throw the error to be handled by the caller
+  }
+};
+
+fetchTopLevelLeagues();
+
 
 /* ---------- helpers ---------- */
 const mapRawUser = (u: any): AuthUser => ({

@@ -3,11 +3,13 @@ import Layout from '../components/Layout';
 import { apiService, HomeData } from '../services/apiService';
 import { Sport } from '../types';
 import { useAppSelector } from '../hooks/redux';
+import { useTheme } from '../components/ThemeProvider';
 import banner from '../images/banner.gif';
 import MerchandiseCard from '../components/MerchandiseCard';
 
 const HomePage: React.FC = () => {
   const user = useAppSelector(s => s.auth.user);
+  const { theme, mounted } = useTheme();
   const [data, setData] = useState<HomeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentFilter, setCurrentFilter] = useState<string>('all');
@@ -172,7 +174,7 @@ const HomePage: React.FC = () => {
   return (
     <Layout title="Home" description="Discover excellence in university athletics at Unill Sports">
       {/* Hero Section */}
-      <section className="min-h-screen flex items-center justify-center relative overflow-hidden" style={{ backgroundImage: `url(${banner.src})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+      <section className={`min-h-screen flex items-center justify-center relative overflow-hidden ${mounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-100 via-mauve-50 to-mauve-200' : ''}`} style={{ backgroundImage: `url(${banner.src})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div className="absolute inset-0 bg-black opacity-30"></div>
         <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
           <div className="animate-float">
@@ -216,7 +218,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Live Matches Section */}
-      <section className="py-16 bg-black/20 backdrop-blur-sm">
+      <section className={`py-16 bg-black/20 backdrop-blur-sm ${mounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
@@ -279,7 +281,7 @@ const HomePage: React.FC = () => {
       </section>
       
       {/* Merchandise Section */}
-      <section className="py-16 bg-gradient-to-b from-black/10 to-black/20">
+      <section className={`py-16 bg-gradient-to-b from-black/10 to-black/20 ${mounted && theme === 'light' ? 'bg-gradient-to-b from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
@@ -315,7 +317,7 @@ const HomePage: React.FC = () => {
       
       
       {/* Statistics Section */}
-      <section className="py-20 bg-black/20 backdrop-blur-sm">
+      <section className={`py-20 bg-black/20 backdrop-blur-sm ${mounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
@@ -361,7 +363,7 @@ const HomePage: React.FC = () => {
       </section>
       
       {/* Call to Action */}
-      <section className="py-20 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500">
+      <section className={`py-20 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 ${mounted && theme === 'light' ? 'bg-gradient-to-r from-mauve-200 via-mauve-300 to-mauve-400' : ''}`}>
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl md:text-5xl font-black text-white mb-6">Ready to Join the Team?</h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">

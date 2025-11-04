@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Layout from '../components/Layout';
+import { useTheme } from '../components/ThemeProvider';
 
 const AboutPage: React.FC = () => {
+  const { theme, mounted: themeMounted } = useTheme();
 return (
     <Layout title="Sports Programs" description="Explore comprehensive university sports programs including Football, Basketball, Volleyball, Rugby, Hockey, Badminton, Table Tennis, Chess, Athletics and more">
       
-    <section className="pt-24 pb-16 bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white">
+    <section className={`pt-24 pb-16 bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white ${theme === 'light' ? 'bg-gradient-to-r from-mauve-200 via-mauve-300 to-mauve-400' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">About Unill Sports</h1>
             <p className="text-xl">Fostering excellence in university athletics since our founding</p>
         </div>
     </section>
-    <section className="py-16">
+    <section className={`py-16 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid md:grid-cols-2 gap-12 items-center">
                 <div data-aos="fade-right">
@@ -35,7 +37,7 @@ return (
         </div>
     </section>
 
-    <section className="py-16 bg-black/20 dark:bg-black/20 bg-gray-100/50 dark:bg-black/20 backdrop-blur-sm">
+    <section className={`py-16 bg-black/20 dark:bg-black/20 bg-gray-100/50 dark:bg-black/20 backdrop-blur-sm ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-center mb-12 gradient-text">What We Offer</h2>
             <div className="grid md:grid-cols-3 gap-8">
@@ -70,7 +72,7 @@ return (
         </div>
     </section>
 
-    <section className="py-16">
+    <section className={`py-16 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-center mb-12 gradient-text">Our Leadership Team</h2>
             <div className="grid md:grid-cols-3 gap-8">
@@ -101,7 +103,7 @@ return (
             </div>
         </div>
     </section>
-    <section className="py-16 bg-black/20 dark:bg-black/20 bg-gray-100/50 dark:bg-black/20 backdrop-blur-sm">
+    <section className={`py-16 bg-black/20 dark:bg-black/20 bg-gray-100/50 dark:bg-black/20 backdrop-blur-sm ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
                 <h2 className="text-3xl font-bold mb-4 gradient-text">Our Impact</h2>
@@ -136,7 +138,7 @@ return (
         </div>
     </section>
 
-    <section className="py-16">
+    <section className={`py-16 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
                 <h2 className="text-3xl font-bold mb-4 gradient-text">Our Core Values</h2>

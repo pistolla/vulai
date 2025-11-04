@@ -101,7 +101,15 @@ export const attachDriveVideo = createAsyncThunk(
 );
 
 export const fetchLeagues = createAsyncThunk('leagues/fetchAll', async () => {
-  return await firebaseLeagueService.listLeagues();
+  try {
+    console.log('Thunk: Fetching leagues...');
+    const result = await firebaseLeagueService.listLeagues();
+    console.log(`Thunk: Successfully fetched ${result.length} leagues`);
+    return result;
+  } catch (error) {
+    console.error('Thunk: Failed to fetch leagues:', error);
+    throw error;
+  }
 });
 
 export const createLeague = createAsyncThunk('leagues/create', async (payload: Omit<League, 'id'>) => {

@@ -66,6 +66,7 @@ const correspondentSlice = createSlice({
         s.fixtureVideos[payload.fixtureId] = payload;
       })
       .addCase(fetchLeagues.fulfilled, (s, { payload }) => {
+        console.log(`Correspondent slice: Leagues updated with ${payload.length} leagues`);
         s.leagues = payload;
       })
       .addCase(createLeague.fulfilled, (s, { payload }) => {

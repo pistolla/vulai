@@ -4,10 +4,12 @@ import { apiService, TeamsData } from '../services/apiService';
 import { Team, Player } from '../types';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { University } from '../models';
+import { useTheme } from '../components/ThemeProvider';
 
 const TeamsPage: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { universities } = useAppSelector((state) => state.admin);
+  const { theme, mounted: themeMounted } = useTheme();
+  const [ universities, setUniversities ] = useState<University[] | null>(null);
   const [data, setData] = useState<TeamsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
@@ -18,28 +20,69 @@ const TeamsPage: React.FC = () => {
   const [selectedUniversity, setSelectedUniversity] = useState<string>('all');
 
   useEffect(() => {
+    let isMounted = true;
+
     const loadData = async () => {
       try {
-        const teamsData = await apiService.getTeamsData();
-        setData(teamsData);
-        setSelectedTeam(teamsData.teams[0]);
+        console.log('Teams page: Starting data load');
+        setLoading(true);
+
+        // Load teams data with timeout
+        const teamsPromise = apiService.getTeamsData();
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Teams data timeout')), 8000)
+        );
+
+        const teamsData: any = await Promise.race([teamsPromise, timeoutPromise]);
+        console.log(teamsData.teams[1]);
+
+        if (isMounted) {
+          setData(teamsData);
+          setSelectedTeam(teamsData.teams?.[1] || teamsData.teams?.[0]);
+        }
+
+        // Load university data
+        try {
+          const universityData: any = await apiService.getUniversityData();
+          console.log(universityData);
+          if (isMounted) {
+            setUniversities(universityData);
+          }
+        } catch (universityError) {
+          console.error('Failed to load university data:', universityError);
+          // Don't fail the whole page if universities fail
+        }
+
+        if (isMounted) {
+          setLoading(false);
+        }
       } catch (error) {
         console.error('Failed to load teams data:', error);
-      } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
+
     loadData();
 
     // Initialize charts
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
-    script.onload = () => {
-      setTimeout(() => {
-        if (data) initTeamCharts();
-      }, 1000);
+    const initCharts = () => {
+      if (typeof window !== 'undefined' && data && isMounted) {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
+        script.onload = () => {
+          setTimeout(() => {
+            if (isMounted) initTeamCharts();
+          }, 1000);
+        };
+        document.head.appendChild(script);
+      }
     };
-    document.head.appendChild(script);
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const showComingSoon = () => {
@@ -57,13 +100,29 @@ const TeamsPage: React.FC = () => {
     setSearchQuery('');
   };
 
-  if (loading || !data || !selectedTeam) {
+  if (loading || !data) {
     return (
       <Layout title="Teams & Players" description="Meet our university sports teams and players. View rosters, player profiles, statistics, and team achievements.">
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-unill-yellow-400 mx-auto"></div>
-            <p className="mt-4 text-gray-300">Loading...</p>
+            <p className="mt-4 text-gray-300">
+              {loading ? 'Loading teams data...' : 'Preparing teams...'}
+            </p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Ensure we have a selected team
+  const currentSelectedTeam = selectedTeam || data.teams?.[0];
+  if (!currentSelectedTeam) {
+    return (
+      <Layout title="Teams & Players" description="Meet our university sports teams and players. View rosters, player profiles, statistics, and team achievements.">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-gray-300">No teams available.</p>
           </div>
         </div>
       </Layout>
@@ -78,17 +137,17 @@ const TeamsPage: React.FC = () => {
     setSelectedPlayer(null);
   };
 
-  const filteredPlayers = selectedTeam.players.filter(player => {
-    const matchesPosition = positionFilter === 'all' || 
+  const filteredPlayers = currentSelectedTeam?.players?.filter(player => {
+    const matchesPosition = positionFilter === 'all' ||
       player.position.toLowerCase().includes(positionFilter.toLowerCase()) ||
       (positionFilter === 'defensive' && (player.position.toLowerCase().includes('linebacker') || player.position.toLowerCase().includes('defensive')));
-    
-    const matchesSearch = searchQuery === '' || 
+
+    const matchesSearch = searchQuery === '' ||
       player.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       player.position.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     return matchesPosition && matchesSearch;
-  });
+  }) || [];
 
   // Filter teams based on search query and selected university
   const filteredTeams = data?.teams.filter(team => {
@@ -200,7 +259,7 @@ const TeamsPage: React.FC = () => {
   return (
     <Layout title="Teams & Players" description="Meet our university sports teams and players. View rosters, player profiles, statistics, and team achievements.">
       {/* Hero Section */}
-      <section className="pt-24 pb-16 bg-gradient-to-b from-black/30 to-transparent">
+      <section className={`pt-24 pb-16 bg-gradient-to-b from-black/30 to-transparent ${themeMounted && theme === 'light' ? 'bg-gradient-to-b from-mauve-100 via-mauve-50 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl md:text-6xl font-black mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
             Teams & Players
@@ -212,7 +271,7 @@ const TeamsPage: React.FC = () => {
       </section>
       
       {/* Team Selection */}
-      <section className="py-16">
+      <section className={`py-16 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
@@ -232,7 +291,7 @@ const TeamsPage: React.FC = () => {
               >
                 All Universities
               </button>
-              {universities.map((university) => (
+              {universities && universities.map((university) => (
                 <button
                   key={university.id}
                   className={`px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all ${
@@ -286,7 +345,7 @@ const TeamsPage: React.FC = () => {
               <div 
                 key={team.id}
                 className={`team-card bg-white/10 backdrop-blur-md rounded-lg p-8 cursor-pointer border border-white/20 transition-all hover:bg-white/15 hover:transform hover:scale-105 hover:shadow-2xl ${
-                  selectedTeam.id === team.id ? 'ring-2 ring-unill-yellow-400' : ''
+                  currentSelectedTeam.id === team.id ? 'ring-2 ring-unill-yellow-400' : ''
                 }`}
                 onClick={() => handleTeamSelect(team)}
               >
@@ -318,7 +377,7 @@ const TeamsPage: React.FC = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-300">Players:</span>
-                    <span className="font-semibold">{team.players.length}</span>
+                    <span className="font-semibold">{team.players?.length || 0}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-300">League:</span>
@@ -338,11 +397,11 @@ const TeamsPage: React.FC = () => {
       </section>
       
       {/* Player Roster Section */}
-      <section id="team-roster" className="py-16 bg-black/20 backdrop-blur-sm">
+      <section id="team-roster" className={`py-16 bg-black/20 backdrop-blur-sm ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
-              {selectedTeam.name} {selectedTeam.sport} Team Roster
+              {currentSelectedTeam.name} {currentSelectedTeam.sport} Team Roster
             </h2>
             <p className="text-xl text-gray-300">Meet our talented student-athletes</p>
           </div>
@@ -445,7 +504,7 @@ const TeamsPage: React.FC = () => {
       </section>
       
       {/* Team Statistics */}
-      <section className="py-16">
+      <section className={`py-16 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
@@ -473,7 +532,7 @@ const TeamsPage: React.FC = () => {
       </section>
       
       {/* Recruitment Section */}
-      <section className="py-16 bg-black/20 backdrop-blur-sm">
+      <section className={`py-16 bg-black/20 backdrop-blur-sm ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="bg-white/10 backdrop-blur-md rounded-lg p-12 border border-white/20">
             <h2 className="text-4xl font-bold mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
@@ -597,7 +656,7 @@ const TeamsPage: React.FC = () => {
                 <h4 className="font-semibold mb-3">Biography</h4>
                 <p className="text-gray-300 text-sm leading-relaxed">
                   {selectedPlayer.name} is a standout {selectedPlayer.position} known for their exceptional skills and dedication to the sport. 
-                  With a strong work ethic and natural talent, they have become a key player for the {selectedTeam.name}. 
+                  With a strong work ethic and natural talent, they have become a key player for the {currentSelectedTeam.name}.
                   Their commitment to both athletics and academics makes them a true student-athlete role model.
                 </p>
               </div>

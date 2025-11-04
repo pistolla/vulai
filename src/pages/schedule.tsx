@@ -5,10 +5,12 @@ import { Match } from '../types';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { fetchLeagues } from '../store/correspondentThunk';
 import { League } from '../models';
+import { useTheme } from '../components/ThemeProvider';
 
 const SchedulePage: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { leagues, loading: leaguesLoading } = useAppSelector((state) => state.leagues);
+  const { leagues, loading: leaguesLoading } = useAppSelector((state) =>  state.leagues);
+  const { theme, mounted: themeMounted } = useTheme();
   const [data, setData] = useState<ScheduleData | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentFilter, setCurrentFilter] = useState<string>('all');
@@ -17,38 +19,73 @@ const SchedulePage: React.FC = () => {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
     setMounted(true);
+
     const loadData = async () => {
       try {
-        const scheduleData = await apiService.getScheduleData();
-        setData(scheduleData);
-        setMatches(scheduleData.matches);
+        console.log('Schedule page: Starting data load');
+        setLoading(true);
+
+        // Load schedule data with timeout
+        const schedulePromise = apiService.getScheduleData();
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Schedule data timeout')), 8000)
+        );
+
+        const scheduleData = await Promise.race([schedulePromise, timeoutPromise]);
+        console.log(scheduleData);
+
+        if (isMounted) {
+          setData(scheduleData);
+          setMatches(scheduleData.matches);
+          setLoading(false); // Allow UI to render with schedule data
+        }
+
+        // Load leagues data asynchronously (non-blocking)
+        if (isMounted) {
+          try {
+            console.log('Schedule page: Dispatching fetchLeagues');
+            await dispatch(fetchLeagues()).unwrap();
+          } catch (leaguesError) {
+            console.error('Failed to load leagues data:', leaguesError);
+            // Don't fail the whole page if leagues fail
+          }
+        }
       } catch (error) {
         console.error('Failed to load schedule data:', error);
-      } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false); // Allow UI to render even if schedule data fails
+        }
       }
     };
-    loadData();
-    dispatch(fetchLeagues());
 
-    // Initialize charts
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
-    script.onload = () => {
-      setTimeout(() => {
-        if (data) initScheduleCharts();
-      }, 1000);
+    loadData();
+
+    // Initialize charts (only after data is loaded)
+    const initCharts = () => {
+      if (typeof window !== 'undefined' && data && isMounted) {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
+        script.onload = () => {
+          setTimeout(() => {
+            if (isMounted) initScheduleCharts();
+          }, 1000);
+        };
+        document.head.appendChild(script);
+      }
     };
-    document.head.appendChild(script);
 
     // Initialize live updates
     const interval = setInterval(() => {
-      updateLiveScores();
+      if (isMounted) updateLiveScores();
     }, 10000);
 
-    return () => clearInterval(interval);
-  }, []);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [dispatch]);
 
   const updateLiveScores = () => {
     setMatches(prevMatches => 
@@ -111,7 +148,9 @@ const SchedulePage: React.FC = () => {
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-unill-yellow-400 mx-auto"></div>
-            <p className="mt-4 text-gray-300">Loading...</p>
+            <p className="mt-4 text-gray-300">
+              {loading ? 'Loading schedule data...' : 'Preparing schedule...'}
+            </p>
           </div>
         </div>
       </Layout>
@@ -307,7 +346,7 @@ const SchedulePage: React.FC = () => {
   return (
     <Layout title="Schedule & Results" description="View university sports schedules, match results, and upcoming fixtures. Stay updated with live scores and game statistics.">
       {/* Hero Section */}
-      <section className="pt-24 pb-16 bg-gradient-to-b from-black/30 to-transparent">
+      <section className={`pt-24 pb-16 bg-gradient-to-b from-black/30 to-transparent ${themeMounted && theme === 'light' ? 'bg-gradient-to-b from-mauve-100 via-mauve-50 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl md:text-6xl font-black mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
             Schedule & Results
@@ -319,7 +358,7 @@ const SchedulePage: React.FC = () => {
       </section>
       
       {/* Filter Section */}
-      <section className="py-8">
+      <section className={`py-8 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap gap-4 justify-center">
             <button 
@@ -367,7 +406,7 @@ const SchedulePage: React.FC = () => {
       </section>
       
       {/* Calendar Section */}
-      <section className="py-16">
+      <section className={`py-16 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
@@ -381,7 +420,7 @@ const SchedulePage: React.FC = () => {
       </section>
       
       {/* Live Matches */}
-      <section className="py-16 bg-black/20 backdrop-blur-sm">
+      <section className={`py-16 bg-black/20 backdrop-blur-sm ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
@@ -471,7 +510,7 @@ const SchedulePage: React.FC = () => {
       </section>
       
       {/* Active Leagues */}
-      <section className="py-16">
+      <section className={`py-16 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
@@ -481,45 +520,55 @@ const SchedulePage: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {leagues.map((league) => (
-              <div
-                key={league.id}
-                className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 cursor-pointer hover:bg-white/20 transition-all transform hover:scale-105"
-                onClick={() => window.location.href = `/league/${league.id}`}
-              >
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center mr-4">
-                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                    </svg>
+            {leagues && leagues.length > 0 ? (
+              leagues.map((league) => (
+                <div
+                  key={league.id}
+                  className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 cursor-pointer hover:bg-white/20 transition-all transform hover:scale-105"
+                  onClick={() => window.location.href = `/league/${league.id}`}
+                >
+                  <div className="flex items-center mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center mr-4">
+                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-white">{league.name}</h3>
+                      <p className="text-sm text-gray-300 capitalize">{league.sportType} Sport</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-white">{league.name}</h3>
-                    <p className="text-sm text-gray-300 capitalize">{league.sportType} Sport</p>
+                  <div className="space-y-2 text-sm text-gray-300">
+                    <div className="flex justify-between">
+                      <span>Type:</span>
+                      <span className="font-semibold capitalize">{league.sportType}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Description:</span>
+                      <span className="font-semibold">{league.description || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Status:</span>
+                      <span className="bg-green-500 text-white px-2 py-1 rounded text-xs">Active</span>
+                    </div>
                   </div>
                 </div>
-                <div className="space-y-2 text-sm text-gray-300">
-                  <div className="flex justify-between">
-                    <span>Type:</span>
-                    <span className="font-semibold capitalize">{league.sportType}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Description:</span>
-                    <span className="font-semibold">{league.description || 'N/A'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Status:</span>
-                    <span className="bg-green-500 text-white px-2 py-1 rounded text-xs">Active</span>
-                  </div>
+              ))
+            ) : (
+              <div className="col-span-3 text-center py-8">
+                <div className="animate-pulse">
+                  <div className="h-4 bg-gray-300 rounded w-3/4 mx-auto mb-4"></div>
+                  <div className="h-4 bg-gray-300 rounded w-1/2 mx-auto"></div>
                 </div>
+                <p className="text-gray-400 mt-4">Loading leagues...</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </section>
       
       {/* Quick Stats */}
-      <section className="py-16 bg-black/20 backdrop-blur-sm">
+      <section className={`py-16 bg-black/20 backdrop-blur-sm ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">

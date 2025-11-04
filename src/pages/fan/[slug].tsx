@@ -3,12 +3,14 @@ import { useRouter } from 'next/router';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { fetchGames } from '@/store/adminThunk';
 import { fetchMerch } from '@/store/adminThunk';
-import { fetchFanData, followTeam, buyTicket } from '@/store/fanThunk';
+import { fetchFanData, followTeam as followTeamThunk, buyTicket } from '@/store/fanThunk';
+import { fetchLeagues } from '@/store/correspondentThunk';
 import dynamic from 'next/dynamic';
 import FanGuard from '@/guards/FanGuard';
 import { ChatMessage } from '@/services/firestoreFan';
 import UserHeader from '@/components/UserHeader';
 import { apiService } from '@/services/apiService';
+import { useTheme } from '@/components/ThemeProvider';
 
 /* ---------- types ---------- */
 export type TeamTheme = 'crimson' | 'blue' | 'cardinal' | 'gold';
@@ -30,21 +32,23 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
   const { slug: routerSlug } = router.query;
   const slug = propSlug || routerSlug;
   const dispatch = useAppDispatch();
+  const { theme, mounted: themeMounted } = useTheme();
   const user = useAppSelector(s => s.auth.user);
   const { followedTeams, myTickets, newsFeed } = useAppSelector(s => s.fan);
-  const merch = useAppSelector(s => s.merch.items);
-  const { upcoming } = useAppSelector(s => s.games);
+  const { items: merch, loading: merchLoading } = useAppSelector(s => s.merch);
+  const { upcoming, loading: gamesLoading } = useAppSelector(s => s.games);
+  const { leagues, loading: leaguesLoading } = useAppSelector(s => s.leagues);
 
   /* ---------- local state ---------- */
   const [teamData, setTeamData] = useState<any>(null);
-  const [theme, setTheme] = useState<TeamTheme>('crimson');
+  const [teamTheme, setTeamTheme] = useState<TeamTheme>('crimson');
   const [chatMsg, setChatMsg] = useState('');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<Array<{name: string; avatar?: string}>>([]);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
-  const selectedFixture = upcoming[0]; // demo: first upcoming game
+  const selectedFixture = upcoming.find(game => game.homeTeamId === slug || game.awayTeamId === slug) || upcoming[0]; // Find game for this team or default to first
 
   /* ---------- mounted check ---------- */
   useEffect(() => {
@@ -63,7 +67,7 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
         if (team) {
           setTeamData(team);
           // Set theme based on team data (you can customize this logic)
-          setTheme("blue");
+          setTeamTheme("blue");
         } else {
           console.warn(`Team with slug "${slug}" not found`);
           setTeamData(null);
@@ -99,37 +103,64 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
       }
     };
 
-    initClientSideLibs();
-    dispatch(fetchGames());
-    dispatch(fetchMerch());
-    if (user) {
-      dispatch(fetchFanData(user.uid));
-      subscribeChat();
-    }
-    loadTeamData();
+    // Load data asynchronously without blocking
+    const loadAllData = async () => {
+      try {
+        // Start all async operations concurrently
+        const promises = [
+          dispatch(fetchGames()).unwrap(),
+          dispatch(fetchMerch()).unwrap(),
+          dispatch(fetchLeagues()).unwrap(),
+          loadTeamData(),
+          initClientSideLibs()
+        ];
 
-    // Mock online users for demo
-    setOnlineUsers([
-      { name: 'John Fan' },
-      { name: 'Sarah Supporter' },
-      { name: 'Mike Enthusiast' },
-      { name: 'Emma Cheerleader' },
-      { name: 'David Loyal' },
-      { name: 'Lisa Passionate' },
-      { name: 'Tom Dedicated' },
-      { name: 'Anna Devoted' }
-    ]);
+        // Wait for non-user dependent operations
+        await Promise.allSettled(promises.slice(0, 4));
+
+        // Handle user-dependent operations
+        if (user) {
+          await Promise.allSettled([
+            dispatch(fetchFanData(user.uid)).unwrap(),
+            subscribeChat()
+          ]);
+        }
+
+        // Set mock online users
+        setOnlineUsers([
+          { name: 'John Fan' },
+          { name: 'Sarah Supporter' },
+          { name: 'Mike Enthusiast' },
+          { name: 'Emma Cheerleader' },
+          { name: 'David Loyal' },
+          { name: 'Lisa Passionate' },
+          { name: 'Tom Dedicated' },
+          { name: 'Anna Devoted' }
+        ]);
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
+    };
+
+    loadAllData();
   }, [dispatch, user, slug, router.isReady, mounted]);
+
+  // If team data is empty after loading, redirect to 404
+  useEffect(() => {
+    if (mounted && router.isReady && slug && !loading && !teamData) {
+      router.push('/404');
+    }
+  }, [mounted, router.isReady, slug, loading, teamData, router]);
 
   /* ---------- theme css vars ---------- */
   useEffect(() => {
     const root = document.documentElement;
-    const t = themes[theme];
+    const t = themes[teamTheme];
     root.style.setProperty('--primary-color', t.primary);
     root.style.setProperty('--secondary-color', t.secondary);
     root.style.setProperty('--accent-color', t.accent);
-    root.className = `theme-${theme}`;
-  }, [theme]);
+    root.className = `theme-${teamTheme}`;
+  }, [teamTheme]);
 
   /* ---------- real-time chat ---------- */
   const subscribeChat = () => {
@@ -149,7 +180,7 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
     });
   };
 
-  const follow = (teamId: string) => dispatch(followTeam(teamId));
+  const follow = (teamId: string) => dispatch(followTeamThunk(teamId));
   const buyTix = (fixtureId: string) => {
     const seat = prompt('Preferred seat (e.g. A1)') || 'GA';
     dispatch(buyTicket({ fixtureId, seat, price: 10 }));
@@ -159,15 +190,15 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
   const isFollowed = (teamId: string) => followedTeams.includes(teamId);
 
   // Show loading while not mounted, router is not ready, or while loading team data
-  if (!mounted || !router.isReady || loading) {
+  if (!mounted || !router.isReady) {
     return (
       <FanGuard>
-        <div className="min-h-screen bg-gray-50">
-          <UserHeader theme={theme} />
+        <div className={`min-h-screen bg-gray-50 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-purple-50 via-pink-50 to-purple-100' : ''}`}>
+          <UserHeader theme={teamTheme} />
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading team data...</p>
+              <p className="mt-4 text-gray-600">Loading...</p>
             </div>
           </div>
         </div>
@@ -175,25 +206,12 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
     );
   }
 
-  if (!teamData) {
-    return (
-      <FanGuard>
-        <div className="min-h-screen bg-gray-50">
-          <UserHeader theme={theme} />
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <h1 className="text-2xl font-bold text-gray-900 mb-4">Team Not Found</h1>
-              <p className="text-gray-600">The requested team could not be found.</p>
-            </div>
-          </div>
-        </div>
-      </FanGuard>
-    );
-  }
+  // Show UI immediately, even if data is still loading
+  // This provides better UX by showing content progressively
 
   return (
     <FanGuard>
-      <UserHeader theme={theme} />
+      <UserHeader theme={teamTheme} />
       <div className="relative">
         {/* Main Content */}
         <div className="lg:pr-80"> {/* Add padding for sidebar on large screens */}
@@ -201,10 +219,10 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
           <section className="team-theme py-16">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
               <div className="w-32 h-32 mx-auto mb-6 rounded-full border-4 border-white bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                <span className="text-2xl font-bold text-white">{teamData.name.charAt(0)}</span>
+                <span className="text-2xl font-bold text-white">{teamData?.name?.charAt(0) || 'T'}</span>
               </div>
-              <h1 className="text-4xl md:text-6xl font-bold mb-4">{teamData.name}</h1>
-              <p className="text-xl">{teamData.sport} Team - {teamData.league}</p>
+              <h1 className="text-4xl md:text-6xl font-bold mb-4">{teamData?.name || 'Team'}</h1>
+              <p className="text-xl">{teamData?.sport || 'Sport'} Team - {teamData?.league || 'League'}</p>
             </div>
           </section>
 
@@ -213,10 +231,12 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <h2 className="text-3xl font-bold text-center mb-12 team-text">Team Statistics</h2>
               <div className="grid md:grid-cols-4 gap-6">
-                <StatCard label="Season Record" value={teamData.record} delay={0} />
-                <StatCard label="Championships" value={teamData.championships.toString()} delay={200} />
-                <StatCard label="Founded" value={teamData.founded.toString()} delay={400} />
-                <StatCard label="Players" value={teamData.players.length.toString()} delay={600} />
+                <StatCard label="Season Record" value={teamData?.record || 'N/A'} delay={0} />
+                <StatCard label="Championships" value={teamData?.championships?.toString() || '0'} delay={200} />
+                <StatCard label="Founded" value={teamData?.founded?.toString() || 'N/A'} delay={400} />
+                <StatCard label="Players" value={teamData?.players?.length?.toString() || '0'} delay={600} />
+                <StatCard label="League" value={teamData?.league || 'N/A'} delay={800} />
+                <StatCard label="Sport" value={teamData?.sport || 'N/A'} delay={1000} />
               </div>
             </div>
           </section>
@@ -226,7 +246,7 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <h2 className="text-3xl font-bold text-center mb-12 team-text">Team Roster</h2>
               <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {teamData.players.slice(0, 8).map((player: any, index: number) => (
+                {teamData?.players?.map((player: any, index: number) => (
                   <div key={index} className="bg-white rounded-lg shadow-md p-4 text-center" data-aos="fade-up" data-aos-delay={index * 100}>
                     <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                       <span className="text-white font-bold">{player.avatar}</span>
@@ -245,19 +265,25 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <h2 className="text-3xl font-bold text-center mb-12 team-text">Team Merchandise</h2>
               <div className="grid md:grid-cols-3 gap-8">
-                {merch.slice(0, 3).map((item: any, index: number) => (
-                  <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden merch-item transition-all duration-300" data-aos="fade-up" data-aos-delay={index * 200}>
-                    <img src={item.image} alt={item.name} className="w-full h-48 object-cover" />
-                    <div className="p-6">
-                      <h3 className="text-xl font-semibold mb-2 team-text">{item.name}</h3>
-                      <p className="text-gray-600 mb-4">{item.description}</p>
-                      <div className="flex justify-between items-center">
-                        <span className="text-2xl font-bold team-text">KSh {item.price}</span>
-                        <button className="team-theme text-white px-4 py-2 rounded hover:opacity-90">Add to Cart</button>
+                {merch.length > 0 ? (
+                  merch.filter(item => item.name.toLowerCase().includes(teamData?.name?.toLowerCase() || '')).slice(0, 3).map((item: any, index: number) => (
+                    <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden merch-item transition-all duration-300" data-aos="fade-up" data-aos-delay={index * 200}>
+                      <img src={item.image} alt={item.name} className="w-full h-48 object-cover" />
+                      <div className="p-6">
+                        <h3 className="text-xl font-semibold mb-2 team-text">{item.name}</h3>
+                        <p className="text-gray-600 mb-4">{item.description}</p>
+                        <div className="flex justify-between items-center">
+                          <span className="text-2xl font-bold team-text">KSh {item.price}</span>
+                          <button className="team-theme text-white px-4 py-2 rounded hover:opacity-90">Add to Cart</button>
+                        </div>
                       </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="col-span-3 text-center py-12">
+                    <p className="text-gray-500">No merchandise available for this team yet.</p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </section>
@@ -267,25 +293,31 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <h2 className="text-3xl font-bold text-center mb-12 team-text">Upcoming Games</h2>
               <div className="grid md:grid-cols-2 gap-8">
-                {upcoming.slice(0, 2).map((g, idx) => (
-                  <div key={g.id} className="bg-white rounded-lg shadow-md p-6" data-aos="fade-up" data-aos-delay={idx * 200}>
-                    <div className="flex justify-between items-center mb-4">
-                      <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm">UPCOMING</span>
-                      <span className="text-gray-600">{g.sport}</span>
+                {upcoming.filter(g => g.homeTeamId === slug || g.awayTeamId === slug).length > 0 ? (
+                  upcoming.filter(g => g.homeTeamId === slug || g.awayTeamId === slug).slice(0, 2).map((g, idx) => (
+                    <div key={g.id} className="bg-white rounded-lg shadow-md p-6" data-aos="fade-up" data-aos-delay={idx * 200}>
+                      <div className="flex justify-between items-center mb-4">
+                        <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm">UPCOMING</span>
+                        <span className="text-gray-600">{g.sport}</span>
+                      </div>
+                      <h3 className="text-xl font-semibold mb-2">{g.homeTeamName} vs {g.awayTeamName}</h3>
+                      <p className="text-gray-600 mb-4">
+                        {mounted ? new Date(g.scheduledAt).toLocaleDateString() : ''} – {mounted ? new Date(g.scheduledAt).toLocaleTimeString() : ''}
+                      </p>
+                      <p className="text-gray-600 mb-4">{g.venue}</p>
+                      <div className="flex space-x-3">
+                        <button onClick={() => buyTix(g.id)} className="block text-center team-theme text-white py-2 rounded hover:opacity-90 flex-1">Get Tickets</button>
+                        <button onClick={() => follow(g.homeTeamId === slug ? g.awayTeamId : g.homeTeamId)} className={`px-4 py-2 rounded ${isFollowed(g.homeTeamId === slug ? g.awayTeamId : g.homeTeamId) ? 'bg-gray-400' : 'team-accent text-white hover:opacity-90'}`}>
+                          {isFollowed(g.homeTeamId === slug ? g.awayTeamId : g.homeTeamId) ? 'Following' : 'Follow'}
+                        </button>
+                      </div>
                     </div>
-                    <h3 className="text-xl font-semibold mb-2">{g.homeTeamName} vs {g.awayTeamName}</h3>
-                    <p className="text-gray-600 mb-4">
-                      {mounted ? new Date(g.scheduledAt).toLocaleDateString() : ''} – {mounted ? new Date(g.scheduledAt).toLocaleTimeString() : ''}
-                    </p>
-                    <p className="text-gray-600 mb-4">{g.venue}</p>
-                    <div className="flex space-x-3">
-                      <button onClick={() => buyTix(g.id)} className="block text-center team-theme text-white py-2 rounded hover:opacity-90 flex-1">Get Tickets</button>
-                      <button onClick={() => follow(g.homeTeamId)} className={`px-4 py-2 rounded ${isFollowed(g.homeTeamId) ? 'bg-gray-400' : 'team-accent text-white hover:opacity-90'}`}>
-                        {isFollowed(g.homeTeamId) ? 'Following' : 'Follow'}
-                      </button>
-                    </div>
+                  ))
+                ) : (
+                  <div className="col-span-2 text-center py-12">
+                    <p className="text-gray-500">No upcoming games scheduled for this team.</p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </section>

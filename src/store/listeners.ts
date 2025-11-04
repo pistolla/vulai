@@ -17,49 +17,73 @@ export const listenerMiddleware = createListenerMiddleware();
 listenerMiddleware.startListening({
   predicate: () => true, // runs once
   effect: async (_, listenerApi) => {
+    try {
       const q = query(collection(db,'fixtures'), where('status','==','live'));
-    const unsubLive = onSnapshot(q, snap => {
-      const live = snap.docs.map(d => ({id:d.id,...d.data()} as any));
-      listenerApi.dispatch(setGames({ live, upcoming:[] })); // merge in component
-    });
+      const unsubLive = onSnapshot(q, snap => {
+        const live = snap.docs.map(d => ({id:d.id,...d.data()} as any));
+        listenerApi.dispatch(setGames({ live, upcoming:[] })); // merge in component
+      });
+    } catch (error) {
+      console.error('Failed to set up live fixtures listener:', error);
+    }
 
     subscribeAuth(async (user) => {
-      listenerApi.dispatch(setUser(user));
+      try {
+        listenerApi.dispatch(setUser(user));
 
-      /* clear previous role data */
-      listenerApi.dispatch(clearAdminData());
-      listenerApi.dispatch(clearCorrespondentData());
-      listenerApi.dispatch(clearFanData());
-      listenerApi.dispatch(clearSportTeamData());
+        /* clear previous role data */
+        listenerApi.dispatch(clearAdminData());
+        listenerApi.dispatch(clearCorrespondentData());
+        listenerApi.dispatch(clearFanData());
+        listenerApi.dispatch(clearSportTeamData());
 
-      if (!user) return;
+        if (!user) return;
 
-      /* load role-specific slice */
-      switch (user.role) {
-        case 'admin': {
-          const data = await loadAdminData();
-          listenerApi.dispatch(setAdminData(data));
-          break;
-        }
-        case 'correspondent':
-            const unsub = onSnapshot(doc(db,'liveCommentary',/*fixtureId*/), (snap)=>{
-                if(snap.exists()){
-                    listenerApi.dispatch(setActiveCommentary(snap.data() as LiveCommentary));
-                }
-            });
-            /* store unsub if you need to clean it later */
+        /* load role-specific slice */
+        switch (user.role) {
+          case 'admin': {
+            try {
+              const data = await loadAdminData();
+              listenerApi.dispatch(setAdminData(data));
+            } catch (error) {
+              console.error('Failed to load admin data:', error);
+            }
             break;
-        case 'fan': {
-          const data = await loadFanData(user.uid);
-          listenerApi.dispatch(setFanData(data));
-          break;
+          }
+          case 'correspondent':
+              try {
+                const unsub = onSnapshot(doc(db,'liveCommentary',/*fixtureId*/), (snap)=>{
+                    if(snap.exists()){
+                        listenerApi.dispatch(setActiveCommentary(snap.data() as LiveCommentary));
+                    }
+                });
+                /* store unsub if you need to clean it later */
+              } catch (error) {
+                console.error('Failed to set up live commentary listener:', error);
+              }
+              break;
+          case 'fan': {
+            try {
+              const data = await loadFanData(user.uid);
+              listenerApi.dispatch(setFanData(data));
+            } catch (error) {
+              console.error('Failed to load fan data:', error);
+            }
+            break;
+          }
+          case 'sport-team': {
+            if (!user.teamId) break;
+            try {
+              const data = await loadSportTeamData(user.teamId);
+              listenerApi.dispatch(setSportTeamData(data));
+            } catch (error) {
+              console.error('Failed to load sport team data:', error);
+            }
+            break;
+          }
         }
-        case 'sport-team': {
-          if (!user.teamId) break;
-          const data = await loadSportTeamData(user.teamId);
-          listenerApi.dispatch(setSportTeamData(data));
-          break;
-        }
+      } catch (error) {
+        console.error('Error in auth listener:', error);
       }
     });
   },
