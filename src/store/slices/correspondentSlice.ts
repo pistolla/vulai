@@ -21,13 +21,13 @@ interface ExtendedCorrState extends CorrespondentDashboard {
 const initialState: ExtendedCorrState = {
   myArticles: [],
   draftArticles: [],
-  activeCommentary: null,
-  fixtureVideos: {},
-  leagues: [],
   groups: {},
   stages: {},
   matches: {},
-  points: {}
+  points: {},
+  activeCommentary: null,
+  fixtureVideos: {},
+  leagues: [],
 };
 
 const correspondentSlice = createSlice({
@@ -47,7 +47,12 @@ const correspondentSlice = createSlice({
       state.points[`${action.payload.leagueId}_${action.payload.groupId}`] = action.payload.points;
     },
     setCorrespondentData: (_, action: PayloadAction<CorrespondentDashboard>) => ({
-      ...action.payload,
+      myArticles: action.payload.myArticles || [],
+      draftArticles: action.payload.draftArticles || [],
+      groups: action.payload.groups || {},
+      stages: action.payload.stages || {},
+      matches: action.payload.matches || {},
+      points: action.payload.points || {},
       activeCommentary: null,
       fixtureVideos: {},
       leagues: [],

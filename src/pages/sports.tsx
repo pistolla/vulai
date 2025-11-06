@@ -14,6 +14,7 @@ const SportsPage: React.FC = () => {
   const [data, setData] = useState<SportsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
+  const [leaguesError, setLeaguesError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -42,9 +43,11 @@ const SportsPage: React.FC = () => {
         if (isMounted) {
           try {
             console.log('Sports page: Dispatching fetchLeagues');
+            setLeaguesError(null);
             await dispatch(fetchLeagues()).unwrap();
           } catch (leaguesError) {
             console.error('Failed to load leagues data:', leaguesError);
+            setLeaguesError(leaguesError instanceof Error ? leaguesError.message : 'Failed to load leagues');
             // Don't fail the whole page if leagues fail
           }
         }
@@ -66,17 +69,45 @@ const SportsPage: React.FC = () => {
   // Separate useEffect for chart initialization to avoid hydration issues
   useEffect(() => {
     let isMounted = true;
+    let scriptLoaded = false;
 
-    if (typeof window !== 'undefined' && data && selectedSport && isMounted) {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
-      script.onload = () => {
-        setTimeout(() => {
-          if (isMounted) initCharts();
-        }, 1000);
-      };
-      document.head.appendChild(script);
-    }
+    const initChartsAsync = async () => {
+      if (typeof window === 'undefined' || !data || !selectedSport || !isMounted) return;
+
+      try {
+        // Check if ECharts is already loaded
+        if ((window as any).echarts) {
+          scriptLoaded = true;
+        } else {
+          // Load ECharts script dynamically
+          await new Promise<void>((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js';
+            script.onload = () => {
+              scriptLoaded = true;
+              resolve();
+            };
+            script.onerror = () => reject(new Error('Failed to load ECharts'));
+            document.head.appendChild(script);
+
+            // Timeout after 10 seconds
+            setTimeout(() => reject(new Error('ECharts load timeout')), 10000);
+          });
+        }
+
+        // Small delay to ensure DOM is ready
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        if (isMounted && scriptLoaded) {
+          initCharts();
+        }
+      } catch (error) {
+        console.warn('Failed to initialize charts:', error);
+        // Continue without charts - page should still be functional
+      }
+    };
+
+    initChartsAsync();
 
     return () => {
       isMounted = false;
@@ -86,98 +117,112 @@ const SportsPage: React.FC = () => {
   const initCharts = () => {
     if (typeof window === 'undefined' || !(window as any).echarts || !data || !selectedSport) return;
 
-    const echarts = (window as any).echarts;
+    try {
+      const echarts = (window as any).echarts;
 
-    // Team performance chart
-    const performanceChart = echarts.init(document.getElementById('performance-chart'));
-    if (performanceChart) {
-      const option = {
-        title: {
-          text: 'Team Performance',
-          left: 'center',
-          textStyle: { color: '#f59e0b' }
-        },
-        tooltip: {
-          trigger: 'axis',
-          backgroundColor: 'rgba(0,0,0,0.8)',
-          textStyle: { color: '#fff' }
-        },
-        legend: {
-          data: ['Wins', 'Losses'],
-          bottom: 0,
-          textStyle: { color: '#fff' }
-        },
-        xAxis: {
-          type: 'category',
-          data: data.sports.map(sport => sport.name),
-          axisLabel: { color: '#fff' },
-          axisLine: { lineStyle: { color: '#fff' } }
-        },
-        yAxis: {
-          type: 'value',
-          axisLabel: { color: '#fff' },
-          axisLine: { lineStyle: { color: '#fff' } },
-          splitLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } }
-        },
-        series: [
-          {
-            name: 'Wins',
-            type: 'bar',
-            data: data.sports.map(sport => sport.stats.wins),
-            itemStyle: { color: '#10b981' }
-          },
-          {
-            name: 'Losses',
-            type: 'bar',
-            data: data.sports.map(sport => sport.stats.losses),
-            itemStyle: { color: '#ef4444' }
-          }
-        ]
-      };
-      performanceChart.setOption(option);
-    }
-
-    // Championships chart
-    const championshipsChart = echarts.init(document.getElementById('championships-chart'));
-    if (championshipsChart) {
-      const option = {
-        title: {
-          text: 'Championship Distribution',
-          left: 'center',
-          textStyle: { color: '#f59e0b' }
-        },
-        tooltip: {
-          trigger: 'item',
-          backgroundColor: 'rgba(0,0,0,0.8)',
-          textStyle: { color: '#fff' }
-        },
-        series: [
-          {
-            type: 'pie',
-            radius: '50%',
-            data: data.sports.map(sport => ({
-              value: sport.stats.championships,
-              name: sport.name,
-              itemStyle: {
-                color: sport.id === 'football' ? '#a855f7' :
-                       sport.id === 'basketball' ? '#f59e0b' :
-                       sport.id === 'volleyball' ? '#2a9d8f' : '#e76f51'
-              }
-            })),
-            emphasis: {
-              itemStyle: {
-                shadowBlur: 10,
-                shadowOffsetX: 0,
-                shadowColor: 'rgba(0, 0, 0, 0.5)'
-              }
+      // Team performance chart
+      const performanceElement = document.getElementById('performance-chart');
+      if (performanceElement) {
+        try {
+          const performanceChart = echarts.init(performanceElement);
+          const option = {
+            title: {
+              text: 'Team Performance',
+              left: 'center',
+              textStyle: { color: '#f59e0b' }
             },
-            label: {
-              color: '#fff'
-            }
-          }
-        ]
-      };
-      championshipsChart.setOption(option);
+            tooltip: {
+              trigger: 'axis',
+              backgroundColor: 'rgba(0,0,0,0.8)',
+              textStyle: { color: '#fff' }
+            },
+            legend: {
+              data: ['Wins', 'Losses'],
+              bottom: 0,
+              textStyle: { color: '#fff' }
+            },
+            xAxis: {
+              type: 'category',
+              data: data.sports.map(sport => sport.name),
+              axisLabel: { color: '#fff' },
+              axisLine: { lineStyle: { color: '#fff' } }
+            },
+            yAxis: {
+              type: 'value',
+              axisLabel: { color: '#fff' },
+              axisLine: { lineStyle: { color: '#fff' } },
+              splitLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } }
+            },
+            series: [
+              {
+                name: 'Wins',
+                type: 'bar',
+                data: data.sports.map(sport => sport.stats.wins),
+                itemStyle: { color: '#10b981' }
+              },
+              {
+                name: 'Losses',
+                type: 'bar',
+                data: data.sports.map(sport => sport.stats.losses),
+                itemStyle: { color: '#ef4444' }
+              }
+            ]
+          };
+          performanceChart.setOption(option);
+        } catch (error) {
+          console.warn('Failed to initialize performance chart:', error);
+        }
+      }
+
+      // Championships chart
+      const championshipsElement = document.getElementById('championships-chart');
+      if (championshipsElement) {
+        try {
+          const championshipsChart = echarts.init(championshipsElement);
+          const option = {
+            title: {
+              text: 'Championship Distribution',
+              left: 'center',
+              textStyle: { color: '#f59e0b' }
+            },
+            tooltip: {
+              trigger: 'item',
+              backgroundColor: 'rgba(0,0,0,0.8)',
+              textStyle: { color: '#fff' }
+            },
+            series: [
+              {
+                type: 'pie',
+                radius: '50%',
+                data: data.sports.map(sport => ({
+                  value: sport.stats.championships,
+                  name: sport.name,
+                  itemStyle: {
+                    color: sport.id === 'football' ? '#a855f7' :
+                            sport.id === 'basketball' ? '#f59e0b' :
+                            sport.id === 'volleyball' ? '#2a9d8f' : '#e76f51'
+                  }
+                })),
+                emphasis: {
+                  itemStyle: {
+                    shadowBlur: 10,
+                    shadowOffsetX: 0,
+                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                  }
+                },
+                label: {
+                  color: '#fff'
+                }
+              }
+            ]
+          };
+          championshipsChart.setOption(option);
+        } catch (error) {
+          console.warn('Failed to initialize championships chart:', error);
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to initialize charts:', error);
     }
   };
 
@@ -206,7 +251,7 @@ const SportsPage: React.FC = () => {
 
   // Ensure we have leagues data, even if empty - render immediately with available data
   const filteredLeagues = leagues || [];
-  const hasLeaguesData = !leaguesLoading && leagues !== undefined;
+  const hasLeaguesData = !leaguesLoading && leagues !== undefined && !leaguesError;
 
   return (
     <Layout title="Sports Programs" description="Explore comprehensive university sports programs including Football, Basketball, Volleyball, Rugby, Hockey, Badminton, Table Tennis, Chess, Athletics and more">
@@ -376,6 +421,25 @@ const SportsPage: React.FC = () => {
                   </div>
                 </div>
               ))
+            ) : leaguesError ? (
+              <div className="col-span-3 text-center py-8">
+                <div className="text-red-400 mb-4">
+                  <svg className="w-12 h-12 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
+                </div>
+                <p className="text-red-400 font-semibold">Failed to load leagues</p>
+                <p className="text-gray-400 text-sm mt-2">{leaguesError}</p>
+                <button
+                  onClick={() => {
+                    setLeaguesError(null);
+                    dispatch(fetchLeagues());
+                  }}
+                  className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm"
+                >
+                  Retry
+                </button>
+              </div>
             ) : (
               <div className="col-span-3 text-center py-8">
                 <div className="animate-pulse">

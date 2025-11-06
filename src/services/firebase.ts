@@ -71,7 +71,6 @@ const fetchTopLevelLeagues = async (): Promise<League[]> => {
   }
 };
 
-fetchTopLevelLeagues();
 
 
 /* ---------- helpers ---------- */

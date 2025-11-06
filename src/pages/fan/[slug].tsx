@@ -120,10 +120,7 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
 
         // Handle user-dependent operations
         if (user) {
-          await Promise.allSettled([
-            dispatch(fetchFanData(user.uid)).unwrap(),
-            subscribeChat()
-          ]);
+          await dispatch(fetchFanData(user.uid)).unwrap();
         }
 
         // Set mock online users
@@ -169,6 +166,13 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
       subscribeFanChat(selectedFixture.id, (msgs) => setChatMessages(msgs));
     });
   };
+
+  /* ---------- subscribe to chat after data loads ---------- */
+  useEffect(() => {
+    if (user && selectedFixture?.id && upcoming.length > 0) {
+      subscribeChat();
+    }
+  }, [user, selectedFixture?.id, upcoming.length]);
 
   /* ---------- handlers ---------- */
   const sendChat = (e: React.FormEvent) => {

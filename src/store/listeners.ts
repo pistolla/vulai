@@ -15,13 +15,22 @@ export const listenerMiddleware = createListenerMiddleware();
 
 /* central auth -> role hydrator */
 listenerMiddleware.startListening({
-  predicate: () => true, // runs once
+  predicate: (action, currentState, previousState) => {
+    // Only run when auth state changes
+    return (currentState as any).auth.user !== (previousState as any).auth.user;
+  },
   effect: async (_, listenerApi) => {
     try {
       const q = query(collection(db,'fixtures'), where('status','==','live'));
       const unsubLive = onSnapshot(q, snap => {
-        const live = snap.docs.map(d => ({id:d.id,...d.data()} as any));
-        listenerApi.dispatch(setGames({ live, upcoming:[] })); // merge in component
+        try {
+          const live = snap.docs.map(d => ({id:d.id,...d.data()} as any));
+          listenerApi.dispatch(setGames({ live, upcoming:[] })); // merge in component
+        } catch (error) {
+          console.error('Error processing live fixtures snapshot:', error);
+        }
+      }, error => {
+        console.error('Live fixtures listener error:', error);
       });
     } catch (error) {
       console.error('Failed to set up live fixtures listener:', error);
@@ -51,16 +60,7 @@ listenerMiddleware.startListening({
             break;
           }
           case 'correspondent':
-              try {
-                const unsub = onSnapshot(doc(db,'liveCommentary',/*fixtureId*/), (snap)=>{
-                    if(snap.exists()){
-                        listenerApi.dispatch(setActiveCommentary(snap.data() as LiveCommentary));
-                    }
-                });
-                /* store unsub if you need to clean it later */
-              } catch (error) {
-                console.error('Failed to set up live commentary listener:', error);
-              }
+              // Correspondent data loading is handled in components when needed
               break;
           case 'fan': {
             try {
