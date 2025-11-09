@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useAppSelector } from '@/hooks/redux';
 import { apiService } from '@/services/apiService';
 
 // Modal Component
@@ -112,7 +113,28 @@ function GameForm({ formData, setFormData, teams, onSubmit, submitLabel }: any) 
   );
 }
 
+function ShimmerGameCard() {
+  return (
+    <div className="p-4 rounded-lg bg-gray-50 border-l-4 border-gray-300 mb-4 animate-pulse">
+      <div className="flex items-center justify-between mb-2">
+        <div className="h-5 bg-gray-200 rounded w-48"></div>
+        <div className="flex items-center space-x-2">
+          <div className="h-6 bg-gray-200 rounded w-12"></div>
+          <div className="w-10 h-6 bg-gray-200 rounded-full"></div>
+          <div className="h-4 bg-gray-200 rounded w-8"></div>
+        </div>
+      </div>
+      <div className="h-4 bg-gray-200 rounded w-32 mb-2"></div>
+      <div className="flex justify-end space-x-2">
+        <div className="h-6 bg-gray-200 rounded w-20"></div>
+        <div className="h-6 bg-gray-200 rounded w-12"></div>
+      </div>
+    </div>
+  );
+}
+
 export default function GamesTab({ live, upcoming, updateScore, startG, endG }: any) {
+  const { loading: reduxLoading } = useAppSelector(s => s.admin);
   const [matches, setMatches] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -203,6 +225,10 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
     }
   };
 
+  const hasLiveGames = live.length > 0;
+  const hasUpcomingGames = upcoming.length > 0;
+  const isLoading = reduxLoading.games;
+
   return (
     <div id="content-games" className="slide-in-left">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
@@ -223,8 +249,15 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
         </Modal>
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-lg p-6"><h3 className="text-xl font-bold text-gray-900 mb-4">Live Games</h3>
-          {live.map((g: any) => (
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">Live Games</h3>
+          {isLoading ? (
+            <>
+              <ShimmerGameCard />
+              <ShimmerGameCard />
+              <ShimmerGameCard />
+            </>
+          ) : hasLiveGames ? live.map((g: any) => (
             <div key={g.id} className="p-4 rounded-lg bg-red-50 border-l-4 border-red-500 mb-4">
               <div className="flex items-center justify-between mb-2">
                 <p className="font-semibold text-red-700">{g.homeTeamName} vs {g.awayTeamName}</p>
@@ -248,10 +281,21 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
               <p className="text-sm text-gray-600">Football • {g.minute}'</p>
               <div className="flex justify-end space-x-2 mt-2"><button onClick={() => { const h = prompt('Home score'); const a = prompt('Away score'); if (h !== null && a !== null) updateScore(g.id, +h, +a); }} className="bg-red-600 text-white px-3 py-1 rounded-lg text-xs hover:bg-red-700">Update Score</button><button onClick={() => endG(g.id)} className="bg-gray-200 text-gray-800 px-3 py-1 rounded-lg text-xs hover:bg-gray-300">End Game</button></div>
             </div>
-          ))}
+          )) : (
+            <div className="text-center py-4">
+              <p className="text-gray-500">No live games</p>
+            </div>
+          )}
         </div>
-        <div className="bg-white rounded-xl shadow-lg p-6"><h3 className="text-xl font-bold text-gray-900 mb-4">Upcoming Games</h3>
-          {upcoming.map((g: any) => (
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">Upcoming Games</h3>
+          {isLoading ? (
+            <>
+              <ShimmerGameCard />
+              <ShimmerGameCard />
+              <ShimmerGameCard />
+            </>
+          ) : hasUpcomingGames ? upcoming.map((g: any) => (
             <div key={g.id} className="p-4 rounded-lg bg-yellow-50 border-l-4 border-yellow-500 mb-4">
               <div className="flex items-center justify-between mb-2">
                 <p className="font-semibold text-yellow-700">{g.homeTeamName} vs {g.awayTeamName}</p>
@@ -272,7 +316,11 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
               <p className="text-sm text-gray-600">{g.sport} • Starts in {Math.round((new Date(g.scheduledAt).getTime() - Date.now()) / 60000)} min</p>
               <div className="flex justify-end space-x-2 mt-2"><button onClick={() => startG(g.id)} className="bg-green-600 text-white px-3 py-1 rounded-lg text-xs hover:bg-green-700">Start Game</button><button className="bg-gray-200 text-gray-800 px-3 py-1 rounded-lg text-xs hover:bg-gray-300">Edit</button></div>
             </div>
-          ))}
+          )) : (
+            <div className="text-center py-4">
+              <p className="text-gray-500">No upcoming games</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAppSelector } from '@/hooks/redux';
 import { apiService } from '@/services/apiService';
 
 // Modal Component
@@ -121,7 +122,23 @@ function MerchandiseForm({ formData, setFormData, universities, teams, selectedU
   );
 }
 
+function ShimmerCard() {
+  return (
+    <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col items-center text-center animate-pulse">
+      <div className="w-full h-32 bg-gray-200 rounded-lg mb-4"></div>
+      <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
+      <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+      <div className="h-8 bg-gray-200 rounded w-16 mb-4"></div>
+      <div className="flex space-x-2">
+        <div className="h-8 bg-gray-200 rounded w-12"></div>
+        <div className="h-8 bg-gray-200 rounded w-16"></div>
+      </div>
+    </div>
+  );
+}
+
 export default function MerchTab({ items, remove, adminData }: any) {
+  const { loading: reduxLoading } = useAppSelector(s => s.admin);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedUniversity, setSelectedUniversity] = useState('');
   const [selectedTeam, setSelectedTeam] = useState('');
@@ -211,6 +228,10 @@ export default function MerchTab({ items, remove, adminData }: any) {
     setNewItem({...newItem, team: teamId});
   };
 
+  const displayItems = items.length > 0 ? items : (adminData?.merchandise || []);
+  const hasItems = displayItems.length > 0;
+  const isLoading = reduxLoading.merch;
+
   return (
     <div id="content-merchandise" className="slide-in-left">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
@@ -236,14 +257,27 @@ export default function MerchTab({ items, remove, adminData }: any) {
         </Modal>
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {(items.length > 0 ? items : adminData.merchandise).map((m: any) => (
+        {isLoading ? (
+          <>
+            <ShimmerCard />
+            <ShimmerCard />
+            <ShimmerCard />
+            <ShimmerCard />
+            <ShimmerCard />
+            <ShimmerCard />
+          </>
+        ) : hasItems ? displayItems.map((m: any) => (
           <div key={m.id} className="bg-white rounded-xl shadow-lg p-6 flex flex-col items-center text-center">
             <img src={m.image} alt={m.name} className="rounded-lg mb-4" />
             <h3 className="font-bold text-lg text-gray-900">{m.name}</h3><p className="text-sm text-gray-600">{m.description}</p>
             <div className="flex items-center space-x-2 mt-2"><span className="text-2xl font-bold text-green-600">KSh {m.price}</span></div>
             <div className="flex space-x-2 mt-4"><button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">Edit</button><button onClick={() => remove(m.id)} className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm">Delete</button></div>
           </div>
-        ))}
+        )) : (
+          <div className="col-span-full text-center py-12">
+            <p className="text-gray-500">No merchandise found</p>
+          </div>
+        )}
       </div>
     </div>
   );

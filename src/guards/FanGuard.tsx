@@ -1,6 +1,7 @@
 import { useAppSelector } from '@/hooks/redux';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { auth } from '@/services/firebase';
 
 interface Props {
   children: React.ReactNode;
@@ -9,20 +10,54 @@ interface Props {
 export default function FanGuard({ children }: Props) {
   const { user, status } = useAppSelector(s => s.auth);
   const router = useRouter();
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    if (status === 'loading') return; // wait for auth to load
-    if (!user) {
-      router.replace('/login');
-      return;
-    }
-    if (user.role !== 'fan') {
-      router.replace('/403'); // or any "access denied" page you have
-    }
+    const checkAuth = async () => {
+      try {
+        // Check if Firebase auth is still valid
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+          router.replace('/login');
+          return;
+        }
+
+        // Check cached user from Redux
+        if (status === 'loading') return;
+
+        if (!user) {
+          router.replace('/login');
+          return;
+        }
+
+        if (user.role !== 'fan') {
+          router.replace('/403'); // or any "access denied" page you have
+          return;
+        }
+
+        setIsChecking(false);
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        router.replace('/login');
+      }
+    };
+
+    checkAuth();
   }, [user, status, router]);
 
-  /* don't render until check is done */
-  if (status === 'loading' || !user || user.role !== 'fan') return null;
+  // Show loading while checking authentication
+  if (isChecking || status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Don't render if user doesn't have fan role
+  if (!user || user.role !== 'fan') {
+    return null;
+  }
 
   return <>{children}</>;
 }

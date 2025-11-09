@@ -10,8 +10,18 @@ const loadUserFromStorage = (): AuthUser | null => {
   if (typeof window === 'undefined') return null;
   try {
     const stored = localStorage.getItem('auth_user');
-    return stored ? JSON.parse(stored) : null;
-  } catch {
+    if (!stored) return null;
+
+    const parsed = JSON.parse(stored);
+    // Validate the stored user object has required fields
+    if (parsed && typeof parsed === 'object' && parsed.uid && parsed.email && parsed.role) {
+      return parsed as AuthUser;
+    }
+    return null;
+  } catch (error) {
+    console.error('Failed to load user from storage:', error);
+    // Clear corrupted data
+    localStorage.removeItem('auth_user');
     return null;
   }
 };
@@ -19,19 +29,31 @@ const loadUserFromStorage = (): AuthUser | null => {
 const saveUserToStorage = (user: AuthUser | null) => {
   if (typeof window === 'undefined') return;
   try {
-    if (user) {
-      localStorage.setItem('auth_user', JSON.stringify(user));
+    if (user && user.uid && user.email && user.role) {
+      // Ensure we only save valid user objects
+      const userToSave = {
+        uid: user.uid,
+        email: user.email,
+        role: user.role,
+        universityId: user.universityId,
+        teamId: user.teamId,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+      };
+      localStorage.setItem('auth_user', JSON.stringify(userToSave));
     } else {
       localStorage.removeItem('auth_user');
     }
   } catch (error) {
     console.error('Failed to save user to storage:', error);
+    // Clear any corrupted data
+    localStorage.removeItem('auth_user');
   }
 };
 
 const initialState: AuthState = {
   user: loadUserFromStorage(),
-  status: loadUserFromStorage() ? 'authenticated' : 'loading'
+  status: loadUserFromStorage() ? 'authenticated' : 'guest'
 };
 
 const authSlice = createSlice({
@@ -43,8 +65,16 @@ const authSlice = createSlice({
       state.status = action.payload ? 'authenticated' : 'guest';
       saveUserToStorage(action.payload);
     },
+    setStatus(state, action: PayloadAction<AuthState['status']>) {
+      state.status = action.payload;
+    },
+    clearUser(state) {
+      state.user = null;
+      state.status = 'guest';
+      saveUserToStorage(null);
+    },
   },
 });
 
-export const { setUser } = authSlice.actions;
+export const { setUser, setStatus, clearUser } = authSlice.actions;
 export default authSlice.reducer;

@@ -33,8 +33,8 @@ import {
 
 export default function AdminDashboardPage() {
   const dispatch = useAppDispatch();
-  const [adminData, setAdminData] = useState<AdminData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [adminData, setAdminData] = useState<AdminData | null>({} as AdminData);
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   /* ---------- Redux state ---------- */
   const { stats }   = useAppSelector(s => s.admin);
@@ -50,26 +50,111 @@ export default function AdminDashboardPage() {
     gameDetails: null as null | { id: string; teams: string; score: string; details: string; location: string },
   });
 
+  /* ---------- Notification helper ---------- */
+  const showNotification = (message: string, type: 'success' | 'error') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 3000);
+  };
+
   /* ---------- Hydrate once ---------- */
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const data = await apiService.getAdminData();
-        setAdminData(data);
-      } catch (error) {
+    // Load adminData asynchronously without blocking UI render
+    apiService.getAdminData()
+      .then(data => setAdminData(data))
+      .catch(error => {
         console.error('Failed to load admin data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
+        showNotification('Failed to load admin data', 'error');
+      });
 
+    // Load Redux data asynchronously
     dispatch(fetchDashboard());
     dispatch(fetchUsers());
     dispatch(fetchMerch());
     dispatch(fetchReviews());
     dispatch(fetchGames());
-  }, [dispatch]);
+  }, []);
+
+  /* ---------- Async CRUD handlers ---------- */
+  const approveUser = async (uid: any) => {
+    try {
+      await dispatch(approveUserT(uid)).unwrap();
+      showNotification('User approved successfully', 'success');
+    } catch {
+      showNotification('Failed to approve user', 'error');
+    }
+  };
+
+  const deleteUser = async (uid: any) => {
+    try {
+      await dispatch(deleteUserT(uid)).unwrap();
+      showNotification('User deleted successfully', 'success');
+    } catch {
+      showNotification('Failed to delete user', 'error');
+    }
+  };
+
+  const createMerch = async (item: any) => {
+    try {
+      await dispatch(createMerchT(item)).unwrap();
+      showNotification('Merchandise created successfully', 'success');
+    } catch {
+      showNotification('Failed to create merchandise', 'error');
+    }
+  };
+
+  const removeMerch = async (id: any) => {
+    try {
+      await dispatch(removeMerchT(id)).unwrap();
+      showNotification('Merchandise removed successfully', 'success');
+    } catch {
+      showNotification('Failed to remove merchandise', 'error');
+    }
+  };
+
+  const approveReview = async (id: any) => {
+    try {
+      await dispatch(approveReviewT(id)).unwrap();
+      showNotification('Review approved successfully', 'success');
+    } catch {
+      showNotification('Failed to approve review', 'error');
+    }
+  };
+
+  const rejectReview = async (id: any) => {
+    try {
+      await dispatch(rejectReviewT(id)).unwrap();
+      showNotification('Review rejected successfully', 'success');
+    } catch {
+      showNotification('Failed to reject review', 'error');
+    }
+  };
+
+  const updateScore = async (id: any, home: any, away: any) => {
+    try {
+      await dispatch(updateScoreT({ id, home, away })).unwrap();
+      showNotification('Score updated successfully', 'success');
+    } catch {
+      showNotification('Failed to update score', 'error');
+    }
+  };
+
+  const startGame = async (id: any) => {
+    try {
+      await dispatch(startGameT(id)).unwrap();
+      showNotification('Game started successfully', 'success');
+    } catch {
+      showNotification('Failed to start game', 'error');
+    }
+  };
+
+  const endGame = async (id: any) => {
+    try {
+      await dispatch(endGameT(id)).unwrap();
+      showNotification('Game ended successfully', 'success');
+    } catch {
+      showNotification('Failed to end game', 'error');
+    }
+  };
 
   /* ---------- Helpers ---------- */
   const open = (k: keyof typeof modals, v: any = true) => setModals(p => ({ ...p, [k]: v }));
@@ -77,36 +162,32 @@ export default function AdminDashboardPage() {
 
   /* ---------- Tab content ---------- */
   const renderContent = () => {
-    if (loading || !adminData) {
-      return (
-        <div className="flex items-center justify-center py-20">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading admin data...</p>
-          </div>
-        </div>
-      );
-    }
-
     switch (activeTab) {
        case 'dashboard': return <DashboardTab stats={stats} live={live} users={users} upcoming={upcoming} openGame={(g: any) => open('gameDetails', g)} adminData={adminData} />;
-       case 'users':     return <UsersTab rows={users} approve={(uid: any) => dispatch(approveUserT(uid))} deleteU={(uid: any) => dispatch(deleteUserT(uid))} openAdd={() => open('addUser')} adminData={adminData} />;
+       case 'users':     return <UsersTab rows={users} approve={approveUser} deleteU={deleteUser} openAdd={() => open('addUser')} adminData={adminData} />;
        case 'universities': return <UniversitiesTab adminData={adminData} />;
        case 'teams':     return <TeamsTab adminData={adminData} />;
        case 'players':   return <PlayersTab adminData={adminData} />;
        case 'sports':    return <SportsTab adminData={adminData} />;
-       case 'merchandise': return <MerchTab items={merch} create={(item: any) => dispatch(createMerchT(item))} remove={(id: any) => dispatch(removeMerchT(id))} adminData={adminData} />;
-       case 'review':    return <ReviewTab rows={reviews} approve={(id: any) => dispatch(approveReviewT(id))} reject={(id: any) => dispatch(rejectReviewT(id))} adminData={adminData} />;
-       case 'games':     return <GamesTab live={live} upcoming={upcoming} updateScore={(id: any,h: any,a: any)=>dispatch(updateScoreT({id,home:h,away:a}))} startG={(id: any)=>dispatch(startGameT(id))} endG={(id: any)=>dispatch(endGameT(id))} />;
+       case 'merchandise': return <MerchTab items={merch} create={createMerch} remove={removeMerch} adminData={adminData} />;
+       case 'review':    return <ReviewTab rows={reviews} approve={approveReview} reject={rejectReview} adminData={adminData} />;
+       case 'games':     return <GamesTab live={live} upcoming={upcoming} updateScore={updateScore} startG={startGame} endG={endGame} />;
        default:          return null;
-     }
-  };
+      }
+   };
 
   return (
     <AdminGuard>
       <UserHeader />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* ------- NOTIFICATION ------- */}
+        {notification && (
+          <div className={`mb-4 p-4 rounded-md ${notification.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+            {notification.message}
+          </div>
+        )}
+
         {/* ------- TABS ------- */}
         <div className="flex flex-wrap gap-2 mb-8">
           {(['dashboard','users','universities','teams','players','sports','merchandise','review','games'] as const).map(tab => (
@@ -124,7 +205,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* ------- MODALS ------- */}
-      {modals.addUser && <AddUserModal close={() => close('addUser')} />}
+      {modals.addUser && <AddUserModal close={() => close('addUser')} showNotification={showNotification} />}
       {modals.gameDetails && <GameDetailsModal data={modals.gameDetails} close={() => close('gameDetails')} />}
     </AdminGuard>
   );
@@ -166,7 +247,7 @@ function TabIcon({ tab }: { tab: string }) {
 /* --------------------------------------------------
     Modals
 -------------------------------------------------- */
-function AddUserModal({ close }: any) {
+function AddUserModal({ close, showNotification }: any) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -183,10 +264,10 @@ function AddUserModal({ close }: any) {
         role: formData.role,
         universityId: formData.university
       });
-      alert('User created successfully!');
+      showNotification('User created successfully!', 'success');
       close();
     } catch (error) {
-      alert('Failed to create user: ' + (error as Error).message);
+      showNotification('Failed to create user: ' + (error as Error).message, 'error');
     }
   };
 

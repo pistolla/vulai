@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAppSelector } from '@/hooks/redux';
 import { apiService } from '@/services/apiService';
 
 /* ---------------------------------
@@ -310,15 +311,82 @@ function StatCard({ color, value, label, change }: any) {
   );
 }
 
+function ShimmerCard() {
+  return (
+    <div className="p-6 rounded-xl shadow-lg bg-white animate-pulse">
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+          <div className="h-8 bg-gray-200 rounded w-1/2 mb-2"></div>
+          <div className="h-3 bg-gray-200 rounded w-1/4"></div>
+        </div>
+        <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+      </div>
+    </div>
+  );
+}
+
+function ShimmerTable({ rows = 5 }: { rows?: number }) {
+  return (
+    <div className="bg-white rounded-xl shadow-lg p-6 animate-pulse">
+      <div className="space-y-4">
+        {Array.from({ length: rows }).map((_, i) => (
+          <div key={i} className="flex items-center space-x-4">
+            <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+            <div className="flex-1 space-y-2">
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+            </div>
+            <div className="w-16 h-6 bg-gray-200 rounded"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardTab({ stats, live, users, upcoming, openGame, adminData }: any) {
+  const { loading } = useAppSelector(s => s.admin);
+  const hasStats = stats && Object.keys(stats).length > 0;
+  const hasLiveGames = live?.length > 0;
+  const hasUpcomingGames = upcoming?.length > 0;
+  const hasRecentUsers = users?.length > 0;
+  const isLoading = loading.dashboard;
+
   return (
     <div id="content-dashboard" className="slide-in-left">
       {/* stats cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        <StatCard color="blue"  value={adminData.dashboard.stats.users}      label="Total Users"     change="+12%" />
-        <StatCard color="green" value={adminData.dashboard.stats.liveGames}  label="Live Games"      change="+3"   />
-        <StatCard color="purple"value={`KSh ${adminData.dashboard.stats.merchSales}`} label="Merchandise Sales" change="+8%" />
-        <StatCard color="orange"value={adminData.dashboard.stats.pendingReviews} label="Pending Reviews" change="-2"   />
+        {isLoading ? (
+          <>
+            <ShimmerCard />
+            <ShimmerCard />
+            <ShimmerCard />
+            <ShimmerCard />
+          </>
+        ) : hasStats ? (
+          <>
+            <StatCard color="blue"  value={stats.users}      label="Total Users"     change="+12%" />
+            <StatCard color="green" value={stats.liveGames}  label="Live Games"      change="+3"   />
+            <StatCard color="purple"value={`KSh ${stats.merchSales}`} label="Merchandise Sales" change="+8%" />
+            <StatCard color="orange"value={stats.pendingReviews} label="Pending Reviews" change="-2"   />
+          </>
+        ) : (
+          <>
+            <div className="p-6 rounded-xl shadow-lg bg-white text-center">
+              <p className="text-gray-500">No stats available</p>
+            </div>
+            <div className="p-6 rounded-xl shadow-lg bg-white text-center">
+              <p className="text-gray-500">No stats available</p>
+            </div>
+            <div className="p-6 rounded-xl shadow-lg bg-white text-center">
+              <p className="text-gray-500">No stats available</p>
+            </div>
+            <div className="p-6 rounded-xl shadow-lg bg-white text-center">
+              <p className="text-gray-500">No stats available</p>
+            </div>
+          </>
+        )}
       </div>
 
       {/* map */}
@@ -330,14 +398,63 @@ export default function DashboardTab({ stats, live, users, upcoming, openGame, a
             <div className="w-2 h-2 bg-yellow-500 rounded-full ml-4" /><span>Upcoming</span>
           </div>
         </div>
-        <KenyaMap live={adminData.dashboard.liveGames} upcoming={adminData.dashboard.upcomingGames} onPin={openGame} />
+        {isLoading ? (
+          <div className="h-96 bg-gradient-to-br from-green-100 to-blue-100 rounded-lg flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-pulse">
+                <div className="w-32 h-32 bg-gray-200 rounded-lg mx-auto mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-48 mx-auto mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-32 mx-auto"></div>
+              </div>
+            </div>
+          </div>
+        ) : hasLiveGames || hasUpcomingGames ? (
+          <KenyaMap live={live} upcoming={upcoming} onPin={openGame} />
+        ) : (
+          <div className="h-96 bg-gradient-to-br from-green-100 to-blue-100 rounded-lg flex items-center justify-center">
+            <p className="text-gray-600">No games available</p>
+          </div>
+        )}
         <p className="text-gray-600 mt-4 text-center italic">Click on the pins to view live game details and commentary</p>
       </div>
 
       {/* bottom grids */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <ActivityFeed users={adminData.dashboard.recentUsers} />
-        <Schedule upcoming={adminData.dashboard.upcomingGames} />
+        {isLoading ? (
+          <>
+            <div className="lg:col-span-2 bg-white rounded-xl shadow-lg p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Recent User Activity</h3>
+              <ShimmerTable rows={3} />
+            </div>
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Today's Schedule</h3>
+              <ShimmerTable rows={3} />
+            </div>
+          </>
+        ) : (
+          <>
+            {hasRecentUsers ? (
+              <ActivityFeed users={users} />
+            ) : (
+              <div className="lg:col-span-2 bg-white rounded-xl shadow-lg p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Recent User Activity</h3>
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No recent user activity</p>
+                </div>
+              </div>
+            )}
+            {hasUpcomingGames ? (
+              <Schedule upcoming={upcoming} />
+            ) : (
+              <div className="bg-white rounded-xl shadow-lg p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Today's Schedule</h3>
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No upcoming games</p>
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
