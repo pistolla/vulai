@@ -2,12 +2,14 @@
 
 import { useEffect, useState, FormEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/router';
-import { useAppSelector } from '@/hooks/redux';
+import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { login, loginGoogle, loginFacebook, loginTwitter } from '@/services/firebase'; // thin Promise wrappers
+import { setUser } from '@/store/slices/authSlice';
 import { useClientSideLibs } from '@/utils/clientLibs';
 
 export default function LoginPage() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const user = useAppSelector(s => s.auth.user); // already logged-in?
 
   /* ---------- local state ---------- */
@@ -40,6 +42,8 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const user = await login(email, password);
+      // Save user to Redux store (which also saves to localStorage)
+      dispatch(setUser(user));
       switch (user.role) {
         case 'admin': router.replace('/admin/page'); break;
         case 'correspondent': router.replace('/correspondent'); break;
@@ -61,8 +65,10 @@ export default function LoginPage() {
     try {
       const fn = { google: loginGoogle, facebook: loginFacebook, twitter: loginTwitter }[provider];
       const user = await fn();
+      // Save user to Redux store (which also saves to localStorage)
+      dispatch(setUser(user));
       switch (user.role) {
-        case 'admin': router.replace('/admin'); break;
+        case 'admin': router.replace('/admin/page'); break;
         case 'correspondent': router.replace('/correspondent'); break;
         case 'fan': router.replace('/teams'); break;
         default: router.replace('/login');
