@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useAppSelector } from '@/hooks/redux';
+import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import CorrespondentGuard from '@/guards/CorrespondentGuard';
 import UserHeader from '@/components/UserHeader';
 import { ProfileTab } from '@/components/correspondent/ProfileTab';
@@ -8,25 +8,42 @@ import { UploadTeamVideoTab } from '@/components/correspondent/UploadTeamVideoTa
 import { GameLiveCommentaryTab } from '@/components/correspondent/GameLiveCommentaryTab';
 import { ManageLeagueTab } from '@/components/correspondent/ManageLeagueTab';
 import { useClientSideLibs } from '@/utils/clientLibs';
+import { fetchLeagues } from '@/store/correspondentThunk';
 
 type TabType = 'profile' | 'excel' | 'video' | 'commentary' | 'league';
 
 export default function CorrespondentDashboardPage() {
   const user = useAppSelector(s => s.auth.user);
+  const dispatch = useAppDispatch();
   const [activeTab, setActiveTab] = useState<TabType>('profile');
   const [loading, setLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   /* ---------- feather + AOS ---------- */
   const mounted = useClientSideLibs();
 
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        // Load leagues data asynchronously
+        await dispatch(fetchLeagues());
+        setDataLoaded(true);
+      } catch (error) {
+        console.error('Failed to load correspondent data:', error);
+        // Still set dataLoaded to true to show UI even if data loading fails
+        setDataLoaded(true);
+      }
+    };
+
+    loadData();
+
     // Simulate initial loading for dashboard data
     const timer = setTimeout(() => {
       setLoading(false);
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [dispatch]);
 
   const tabs = [
     {
@@ -78,11 +95,11 @@ export default function CorrespondentDashboardPage() {
     }
   };
 
-  if (loading) {
+  if (loading || !dataLoaded) {
     return (
       <CorrespondentGuard>
         <UserHeader />
-        
+
         {/* ------- HEADER ------- */}
         <section className="bg-white shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -99,7 +116,9 @@ export default function CorrespondentDashboardPage() {
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-4 text-gray-600">Loading dashboard...</p>
+                <p className="mt-4 text-gray-600">
+                  {loading ? 'Loading dashboard...' : 'Loading data...'}
+                </p>
               </div>
             </div>
           </div>

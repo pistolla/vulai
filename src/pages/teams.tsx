@@ -5,10 +5,13 @@ import { Team, Player } from '../types';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { University } from '../models';
 import { useTheme } from '../components/ThemeProvider';
+import { useRouter } from 'next/router';
 
 const TeamsPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { theme, mounted: themeMounted } = useTheme();
+  const router = useRouter();
+  const user = useAppSelector(s => s.auth.user);
   const [ universities, setUniversities ] = useState<University[] | null>(null);
   const [data, setData] = useState<TeamsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -384,10 +387,16 @@ const TeamsPage: React.FC = () => {
                     <span className="font-semibold">{team.league}</span>
                   </div>
                   <button
-                    onClick={() => window.location.href = `/fan/${team.id}`}
+                    onClick={() => {
+                      if (user) {
+                        router.push(`/team/fan/${team.id}`);
+                      } else {
+                        router.push(`/team/${team.id}`);
+                      }
+                    }}
                     className="w-full mt-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 text-white px-4 py-2 rounded-lg font-semibold hover:from-unill-yellow-500 hover:to-unill-purple-600 transition-all"
                   >
-                    Fan Page
+                    View Team
                   </button>
                 </div>
               </div>

@@ -1,4 +1,4 @@
-import { TeamTheme } from "@/pages/fan/[slug]";
+import { TeamTheme } from "@/pages/team/fan/[slug]";
 
 export interface Sport {
   id: string;
