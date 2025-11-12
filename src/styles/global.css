@@ -46,7 +46,7 @@ body {
 }
 
 body {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%);
   color: #0a0a0a;
   line-height: 1.6;
 }

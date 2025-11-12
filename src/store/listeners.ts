@@ -36,56 +36,8 @@ listenerMiddleware.startListening({
       console.error('Failed to set up live fixtures listener:', error);
     }
 
-    subscribeAuth(async (user) => {
-      try {
-        listenerApi.dispatch(setUser(user));
-
-        /* clear previous role data */
-        listenerApi.dispatch(clearAdminData());
-        listenerApi.dispatch(clearCorrespondentData());
-        listenerApi.dispatch(clearFanData());
-        listenerApi.dispatch(clearSportTeamData());
-
-        if (!user) return;
-
-        /* load role-specific slice */
-        switch (user.role) {
-          case 'admin': {
-            try {
-              const data = await loadAdminData();
-              listenerApi.dispatch(setAdminData(data));
-            } catch (error) {
-              console.error('Failed to load admin data:', error);
-            }
-            break;
-          }
-          case 'correspondent':
-              // Correspondent data loading is handled in components when needed
-              break;
-          case 'fan': {
-            try {
-              const data = await loadFanData(user.uid);
-              listenerApi.dispatch(setFanData(data));
-            } catch (error) {
-              console.error('Failed to load fan data:', error);
-            }
-            break;
-          }
-          case 'sport-team': {
-            if (!user.teamId) break;
-            try {
-              const data = await loadSportTeamData(user.teamId);
-              listenerApi.dispatch(setSportTeamData(data));
-            } catch (error) {
-              console.error('Failed to load sport team data:', error);
-            }
-            break;
-          }
-        }
-      } catch (error) {
-        console.error('Error in auth listener:', error);
-      }
-    });
+    // Auth listener is now handled in _app.tsx to ensure it runs on app start
+    // This prevents duplicate listeners and ensures proper initialization
   },
 });
 
