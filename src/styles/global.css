@@ -46,7 +46,17 @@ body {
 }
 
 body {
-  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%);
+  background-color: #7d3f9f; /* Lighter Purple Base (was #3f005c) */
+  background-image:
+      /* Large, subtle radial glow from bottom-center for atmosphere (adjusted color for lighter base) */
+      radial-gradient(circle at 50% 120%, rgba(190,100,255,.35) 0%, rgba(190,100,255,0) 50%),
+      /* Individual shooting stars/streaks - glow at the TOP edge */
+      linear-gradient(0deg, rgba(255,255,255,0) 85%, rgba(255,255,255,.1) 95%, rgba(255,255,255, .3) 98%, rgba(255,255,255,0) 100%) no-repeat 20% 100% / 10px 400px,
+      linear-gradient(0deg, rgba(255,255,255,0) 85%, rgba(255,255,255,.08) 95%, rgba(255,255,255, .25) 98%, rgba(255,255,255,0) 100%) no-repeat 50% 110% / 12px 500px,
+      linear-gradient(0deg, rgba(255,255,255,0) 85%, rgba(255,255,255,.12) 95%, rgba(255,255,255, .4) 98%, rgba(255,255,255,0) 100%) no-repeat 80% 90% / 8px 350px;
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
   color: #0a0a0a;
   line-height: 1.6;
 }
