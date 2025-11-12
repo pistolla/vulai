@@ -8,8 +8,8 @@ import { fetchMerch } from '@/store/adminThunk';
 import { useLiveMatch } from '@/hooks/useLiveMatch';
 import { usePlayerStats } from '@/hooks/usePlayerStats';
 import { useClientSideLibs } from '@/utils/clientLibs';
-import UserHeader from '@/components/UserHeader';
 import { apiService } from '@/services/apiService';
+import Layout from '@/components/Layout';
 
 /* ---------------------------------
     Mock data (replace with Firestore)
@@ -110,8 +110,7 @@ export default function TeamPage() {
   const isFollowed = (id: string) => followedPlayers.includes(id);
 
   return (
-    <>
-      <UserHeader />
+    <Layout title="Home" description="Discover excellence in university athletics at Unill Sports">
 
       {/* ------- HERO ------- */}
       <section id="home" className="h-screen flex items-center justify-center relative mt-16 overflow-hidden">
@@ -320,7 +319,7 @@ export default function TeamPage() {
           <p className="mt-4 opacity-80">Advanced drone technology provides real-time tactical analysis, player tracking, and performance metrics.</p>
         </div>
       </Modal>
-    </>
+    </Layout>
   );
 }
 

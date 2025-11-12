@@ -30,7 +30,7 @@ export default function UserHeader({ theme = 'crimson' }: UserHeaderProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  if (!user) return null;
+  // Show header for both logged in and logged out users
 
   const handleLogout = async () => {
     await signOut().then(() => {
@@ -41,7 +41,7 @@ export default function UserHeader({ theme = 'crimson' }: UserHeaderProps) {
       console.error("Sign-out error:", error);
       window.location.href = '/';
     });
-    
+
   };
 
   const currentTheme = themes[theme];
@@ -56,40 +56,57 @@ export default function UserHeader({ theme = 'crimson' }: UserHeaderProps) {
               <span className="text-3xl font-bold bg-gradient-to-r from-unill-purple-400 to-unill-yellow-500 bg-clip-text text-transparent">Uni Limelight Sports</span>
             </a>
           </div>
-          <div className="flex items-center space-x-4">
-            <div className="text-right">
-              <p className="text-sm font-medium">{user.displayName || user.email}</p>
-              <p className="text-xs opacity-75 capitalize">{user.role}</p>
-            </div>
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50">
-                  <div className="py-1">
-                    <a
-                      href="/profile"
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Profile Settings
-                    </a>
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Logout
-                    </button>
+          {user ? (
+            <div className="flex items-center space-x-4">
+              <div className="text-right">
+                <p className="text-sm font-medium">{user.displayName || user.email}</p>
+                <p className="text-xs opacity-75 capitalize">{user.role}</p>
+              </div>
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50">
+                    <div className="py-1">
+                      <a
+                        href="/profile"
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Profile Settings
+                      </a>
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Logout
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex items-center space-x-4">
+              <a
+                href="/login"
+                className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Login
+              </a>
+              <a
+                href="/register"
+                className="bg-white text-gray-900 hover:bg-gray-100 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Register
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </header>
