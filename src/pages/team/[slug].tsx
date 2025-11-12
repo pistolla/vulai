@@ -112,25 +112,6 @@ export default function TeamPage() {
   return (
     <>
       <UserHeader />
-      {/* ------- HEADER ------- */}
-      <header className="fixed top-0 w-full px-12 py-4 flex justify-between items-center z-50 backdrop-blur-md bg-black/70 text-white transition">
-        <div className="logo flex items-center gap-2">
-          <i className="fas fa-atom" />
-          <span className="font-bold text-xl bg-gradient-to-r from-[var(--primary-color)] to-[var(--secondary-color)] bg-clip-text text-transparent">
-            {teamData?.name || 'Team'} Live
-          </span>
-        </div>
-        <nav>
-          <ul className="flex gap-6">
-            <li><a href="#team" className="relative hover:after:w-full after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:h-[2px] after:w-0 after:bg-[var(--accent-color)] after:transition-all">Team</a></li>
-            <li><a href={`/team/fan/${slug}`} className="relative hover:after:w-full after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:h-[2px] after:w-0 after:bg-[var(--accent-color)] after:transition-all">Fan Page</a></li>
-          </ul>
-        </nav>
-        <div className="flex gap-3">
-          <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-white/10 transition"><i className="fas fa-moon" /></button>
-          <button onClick={() => dispatch(setTheme('quantum'))} className="p-2 rounded-full hover:bg-white/10 transition"><i className="fas fa-palette" /></button>
-        </div>
-      </header>
 
       {/* ------- HERO ------- */}
       <section id="home" className="h-screen flex items-center justify-center relative mt-16 overflow-hidden">
