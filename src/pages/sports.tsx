@@ -256,7 +256,7 @@ const SportsPage: React.FC = () => {
   return (
     <Layout title="Sports Programs" description="Explore comprehensive university sports programs including Football, Basketball, Volleyball, Rugby, Hockey, Badminton, Table Tennis, Chess, Athletics and more">
       {/* Hero Section */}
-      <section className={`pt-24 pb-16 bg-gradient-to-b from-black/30 to-transparent ${mounted && theme === 'light' ? 'bg-gradient-to-b from-mauve-100 via-mauve-50 to-mauve-200' : ''}`}>
+      <section className={`pt-24 pb-16 bg-gradient-to-b from-black/30 to-transparent ${mounted && theme === 'light' ? 'bg-transparent' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl md:text-6xl font-black mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
             Sports Programs
@@ -268,7 +268,7 @@ const SportsPage: React.FC = () => {
       </section>
       
       {/* Sport Selection */}
-      <section className={`py-16 ${mounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
+      <section className={`py-16 ${mounted && theme === 'light' ? 'bg-transparent' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
             <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent text-center">
@@ -306,7 +306,7 @@ const SportsPage: React.FC = () => {
       </section>
       
       {/* Sport Details */}
-      <section id="sport-details" className={`py-16 ${mounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
+      <section id="sport-details" className={`py-16 ${mounted && theme === 'light' ? 'bg-transparent' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
             <div>
@@ -456,7 +456,7 @@ const SportsPage: React.FC = () => {
       
       
       {/* Getting Started */}
-      <section className={`py-16 ${mounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
+      <section className={`py-16 ${mounted && theme === 'light' ? 'bg-transparent' : ''}`}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="bg-white/10 backdrop-blur-md rounded-lg p-12 border border-white/20">
             <h2 className="text-4xl font-bold mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
