@@ -110,7 +110,7 @@ export const TeamSportLayout: React.FC<TeamSportLayoutProps> = ({ leagueData }) 
                         {Object.values(stage.matches || {}).map((match: any, idx: number) => {
                           if (match.participants) {
                             return Object.values(match.participants).map((participant: any, pIdx: number) => (
-                              <span key={`${idx}-${pIdx}`} className="text-xs bg-white/10 text-gray-300 px-2 py-1 rounded">
+                              <span key={`${idx}-${pIdx}`} className="text-xs bg-white/10 text-gray-700 px-2 py-1 rounded">
                                 {participant.refId}
                               </span>
                             ));
@@ -138,16 +138,16 @@ export const TeamSportLayout: React.FC<TeamSportLayoutProps> = ({ leagueData }) 
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-white/20">
-                <th className="pb-3 text-gray-300">Pos</th>
-                <th className="pb-3 text-gray-300">Team</th>
-                <th className="pb-3 text-gray-300 text-center">P</th>
-                <th className="pb-3 text-gray-300 text-center">W</th>
-                <th className="pb-3 text-gray-300 text-center">D</th>
-                <th className="pb-3 text-gray-300 text-center">L</th>
-                <th className="pb-3 text-gray-300 text-center">GF</th>
-                <th className="pb-3 text-gray-300 text-center">GA</th>
-                <th className="pb-3 text-gray-300 text-center">GD</th>
-                <th className="pb-3 text-gray-300 text-center">Pts</th>
+                <th className="pb-3 text-gray-700">Pos</th>
+                <th className="pb-3 text-gray-700">Team</th>
+                <th className="pb-3 text-gray-700 text-center">P</th>
+                <th className="pb-3 text-gray-700 text-center">W</th>
+                <th className="pb-3 text-gray-700 text-center">D</th>
+                <th className="pb-3 text-gray-700 text-center">L</th>
+                <th className="pb-3 text-gray-700 text-center">GF</th>
+                <th className="pb-3 text-gray-700 text-center">GA</th>
+                <th className="pb-3 text-gray-700 text-center">GD</th>
+                <th className="pb-3 text-gray-700 text-center">Pts</th>
               </tr>
             </thead>
             <tbody>

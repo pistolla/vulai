@@ -109,7 +109,7 @@ export default function LoginPage() {
             <div className="py-8 px-6 sm:p-10">
               <div className="text-center">
                 <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white">Sign in to your account</h2>
-                <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-700">
                   Or <a href="/register" className="font-medium text-blue-600 hover:text-blue-500">create a new account</a>
                 </p>
               </div>
@@ -222,7 +222,7 @@ export default function LoginPage() {
                     <div className="w-full border-t border-gray-300" />
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-gray-500 dark:bg-gray-800 dark:text-gray-300">Or continue with</span>
+                    <span className="px-2 bg-white text-gray-500 dark:bg-gray-800 dark:text-gray-700">Or continue with</span>
                   </div>
                 </div>
 

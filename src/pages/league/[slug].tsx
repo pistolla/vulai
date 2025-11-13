@@ -96,7 +96,7 @@ const LeaguePage: React.FC = () => {
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-unill-yellow-400 mx-auto"></div>
-              <p className="mt-4 text-gray-300">Loading league data...</p>
+              <p className="mt-4 text-gray-700">Loading league data...</p>
             </div>
           </div>
         </div>
@@ -129,7 +129,7 @@ const LeaguePage: React.FC = () => {
             <h1 className="text-5xl md:text-6xl font-black mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
               {leagueData.name}
             </h1>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-6">
+            <p className="text-xl text-gray-700 max-w-3xl mx-auto mb-6">
               {leagueData.description}
             </p>
             <div className="flex items-center justify-center space-x-4">

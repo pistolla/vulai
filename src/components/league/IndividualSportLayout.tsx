@@ -106,7 +106,7 @@ export const IndividualSportLayout: React.FC<IndividualSportLayoutProps> = ({ le
             <div key={stageKey} className="bg-white/5 rounded-lg p-6">
               <div className="text-center">
                 <h4 className="text-lg font-semibold mb-2 text-white">{stage.name}</h4>
-                <p className="text-sm text-gray-300 mb-3">{stage.groupName}</p>
+                <p className="text-sm text-gray-700 mb-3">{stage.groupName}</p>
                 <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium mb-3 ${
                   stage.status === 'completed' ? 'bg-green-500 text-white' :
                   stage.status === 'active' ? 'bg-blue-500 text-white' :
@@ -114,7 +114,7 @@ export const IndividualSportLayout: React.FC<IndividualSportLayoutProps> = ({ le
                 }`}>
                   {stage.status.charAt(0).toUpperCase() + stage.status.slice(1)}
                 </div>
-                <div className="text-sm text-gray-300">
+                <div className="text-sm text-gray-700">
                   {stage.matchCount} {stage.matchCount === 1 ? 'match' : 'matches'}
                 </div>
               </div>
@@ -142,21 +142,21 @@ export const IndividualSportLayout: React.FC<IndividualSportLayoutProps> = ({ le
                 </span>
                 <div>
                   <h4 className="text-lg font-semibold text-white">{player.name}</h4>
-                  <p className="text-sm text-gray-300">{player.points} points</p>
+                  <p className="text-sm text-gray-700">{player.points} points</p>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="text-center">
                   <div className="text-green-400 font-bold text-lg">{player.wins}</div>
-                  <div className="text-gray-300">Wins</div>
+                  <div className="text-gray-700">Wins</div>
                 </div>
                 <div className="text-center">
                   <div className="text-red-400 font-bold text-lg">{player.losses}</div>
-                  <div className="text-gray-300">Losses</div>
+                  <div className="text-gray-700">Losses</div>
                 </div>
                 <div className="text-center">
                   <div className="text-blue-400 font-bold text-lg">{player.matchesPlayed}</div>
-                  <div className="text-gray-300">Played</div>
+                  <div className="text-gray-700">Played</div>
                 </div>
               </div>
               {player.matchesPlayed > 0 && (
@@ -198,7 +198,7 @@ export const IndividualSportLayout: React.FC<IndividualSportLayoutProps> = ({ le
                             <div className="flex-1">
                               {match.participants && Object.values(match.participants).map((participant: any, idx: number) => (
                                 <div key={idx} className="flex items-center justify-between mb-1">
-                                  <span className="text-gray-300">{participant.refId}</span>
+                                  <span className="text-gray-700">{participant.refId}</span>
                                   {match.status === 'completed' && (
                                     <span className="font-bold text-unill-yellow-400">{participant.score}</span>
                                   )}

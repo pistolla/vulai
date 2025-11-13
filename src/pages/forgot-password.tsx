@@ -96,7 +96,7 @@ export default function ForgotPasswordPage() {
             <div className="py-8 px-6 sm:p-10">
               <form className="space-y-6" onSubmit={onSubmit}>
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email Address</label>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-700">Email Address</label>
                   <div className="mt-1">
                     <input
                       id="email"

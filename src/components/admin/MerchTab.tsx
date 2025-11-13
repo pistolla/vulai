@@ -10,7 +10,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
           <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">{title}</h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:text-gray-700 dark:hover:text-gray-100">
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -44,7 +44,7 @@ function MerchandiseForm({ formData, setFormData, universities, teams, selectedU
     <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Name</label>
           <input
             type="text"
             required
@@ -54,7 +54,7 @@ function MerchandiseForm({ formData, setFormData, universities, teams, selectedU
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Price</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Price</label>
           <input
             type="number"
             required
@@ -64,7 +64,7 @@ function MerchandiseForm({ formData, setFormData, universities, teams, selectedU
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Description</label>
           <input
             type="text"
             required
@@ -74,7 +74,7 @@ function MerchandiseForm({ formData, setFormData, universities, teams, selectedU
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Image URL</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Image URL</label>
           <input
             type="text"
             value={formData.image}
@@ -83,7 +83,7 @@ function MerchandiseForm({ formData, setFormData, universities, teams, selectedU
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">University</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">University</label>
           <select
             value={selectedUniversity}
             onChange={(e) => handleUniversityChange(e.target.value)}
@@ -96,7 +96,7 @@ function MerchandiseForm({ formData, setFormData, universities, teams, selectedU
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Team</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Team</label>
           <select
             value={selectedTeam}
             onChange={(e) => handleTeamChange(e.target.value)}

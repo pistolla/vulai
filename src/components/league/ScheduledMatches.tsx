@@ -91,7 +91,7 @@ export const ScheduledMatches: React.FC<ScheduledMatchesProps> = ({ leagueData }
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(match.status)}`}>
                   {getStatusText(match.status)}
                 </span>
-                <div className="text-right text-sm text-gray-300">
+                <div className="text-right text-sm text-gray-700">
                   <div>{formatDate(match.date)}</div>
                   <div>{formatTime(match.date)}</div>
                 </div>
@@ -140,7 +140,7 @@ export const ScheduledMatches: React.FC<ScheduledMatchesProps> = ({ leagueData }
               {/* Live Match Progress */}
               {match.status === 'live' && (
                 <div className="bg-white/10 rounded-lg p-3 mb-4">
-                  <div className="flex items-center justify-between text-sm text-gray-300 mb-2">
+                  <div className="flex items-center justify-between text-sm text-gray-700 mb-2">
                     <span>Match in progress</span>
                     <span className="animate-pulse text-red-400">● LIVE</span>
                   </div>
@@ -157,13 +157,13 @@ export const ScheduledMatches: React.FC<ScheduledMatchesProps> = ({ leagueData }
                     <div className="text-lg font-semibold bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
                       {formatDate(match.date)}
                     </div>
-                    <div className="text-sm text-gray-300">{formatTime(match.date)}</div>
+                    <div className="text-sm text-gray-700">{formatTime(match.date)}</div>
                   </div>
                 </div>
               )}
               
               {/* Venue */}
-              <div className="text-center text-sm text-gray-300">
+              <div className="text-center text-sm text-gray-700">
                 📍 {match.venue || 'Venue TBD'}
               </div>
 

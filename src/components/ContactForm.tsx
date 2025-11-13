@@ -37,7 +37,7 @@ export default function ContactForm() {
         <h3 className="text-lg font-medium text-gray-900 dark:text-white">Send us a message</h3>
         <form onSubmit={onSubmit} className="mt-6 space-y-6">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-700">Name</label>
             <div className="mt-1">
               <input
                 type="text"
@@ -53,7 +53,7 @@ export default function ContactForm() {
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-700">Email</label>
             <div className="mt-1">
               <input
                 id="email"
@@ -69,7 +69,7 @@ export default function ContactForm() {
           </div>
 
           <div>
-            <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Subject</label>
+            <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-700">Subject</label>
             <div className="mt-1">
               <select
                 id="subject"
@@ -88,7 +88,7 @@ export default function ContactForm() {
           </div>
 
           <div>
-            <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Message</label>
+            <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-700">Message</label>
             <div className="mt-1">
               <textarea
                 id="message"

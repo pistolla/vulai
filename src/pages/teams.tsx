@@ -109,7 +109,7 @@ const TeamsPage: React.FC = () => {
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-unill-yellow-400 mx-auto"></div>
-            <p className="mt-4 text-gray-300">
+            <p className="mt-4 text-gray-700">
               {loading ? 'Loading teams data...' : 'Preparing teams...'}
             </p>
           </div>
@@ -125,7 +125,7 @@ const TeamsPage: React.FC = () => {
       <Layout title="Teams & Players" description="Meet our university sports teams and players. View rosters, player profiles, statistics, and team achievements.">
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <p className="text-gray-300">No teams available.</p>
+            <p className="text-gray-700">No teams available.</p>
           </div>
         </div>
       </Layout>
@@ -267,7 +267,7 @@ const TeamsPage: React.FC = () => {
           <h1 className="text-5xl md:text-6xl font-black mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
             Teams & Players
           </h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-700 max-w-3xl mx-auto">
             Meet our exceptional student-athletes and discover the talented teams representing Unill University across multiple sports disciplines.
           </p>
         </div>
@@ -280,7 +280,7 @@ const TeamsPage: React.FC = () => {
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
               Our Teams
             </h2>
-            <p className="text-xl text-gray-300">Select a team to view detailed roster and player information</p>
+            <p className="text-xl text-gray-700">Select a team to view detailed roster and player information</p>
           </div>
           
           {/* University Filter Buttons */}
@@ -318,7 +318,7 @@ const TeamsPage: React.FC = () => {
                 onChange={(e) => setTeamSearchQuery(e.target.value)}
                 className="w-full px-4 py-3 pl-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-unill-yellow-400 focus:border-transparent"
               />
-              <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               {teamSearchQuery && (
@@ -337,7 +337,7 @@ const TeamsPage: React.FC = () => {
           {/* Teams Results Count */}
           {teamSearchQuery && (
             <div className="text-center mb-6">
-              <p className="text-gray-300">
+              <p className="text-gray-700">
                 Found {filteredTeams.length} team{filteredTeams.length !== 1 ? 's' : ''} matching "{teamSearchQuery}"
               </p>
             </div>
@@ -359,7 +359,7 @@ const TeamsPage: React.FC = () => {
                   <h3 className="text-2xl font-bold bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent mb-2">
                     {team.name}
                   </h3>
-                  <p className="text-gray-300 mb-4">{team.sport} Team</p>
+                  <p className="text-gray-700 mb-4">{team.sport} Team</p>
                   <div className="flex justify-center space-x-4 text-sm">
                     <div className="bg-gradient-to-r from-unill-purple-500/20 to-unill-yellow-500/20 border border-unill-yellow-400/30 px-3 py-1 rounded-full">
                       <span className="font-semibold">{team.record}</span> Record
@@ -371,19 +371,19 @@ const TeamsPage: React.FC = () => {
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-300">Coach:</span>
+                    <span className="text-gray-700">Coach:</span>
                     <span className="font-semibold">{team.coach}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-300">Founded:</span>
+                    <span className="text-gray-700">Founded:</span>
                     <span className="font-semibold">{team.founded}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-300">Players:</span>
+                    <span className="text-gray-700">Players:</span>
                     <span className="font-semibold">{team.players?.length || 0}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-300">League:</span>
+                    <span className="text-gray-700">League:</span>
                     <span className="font-semibold">{team.league}</span>
                   </div>
                   <button
@@ -412,7 +412,7 @@ const TeamsPage: React.FC = () => {
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
               {currentSelectedTeam.name} {currentSelectedTeam.sport} Team Roster
             </h2>
-            <p className="text-xl text-gray-300">Meet our talented student-athletes</p>
+            <p className="text-xl text-gray-700">Meet our talented student-athletes</p>
           </div>
           
           {/* Filter and Search */}
@@ -471,7 +471,7 @@ const TeamsPage: React.FC = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full px-4 py-2 pl-10 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-unill-yellow-400 focus:border-transparent"
                 />
-                <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
@@ -493,7 +493,7 @@ const TeamsPage: React.FC = () => {
                   <h3 className="text-lg font-bold bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent mb-1">
                     {player.name}
                   </h3>
-                  <p className="text-gray-300 text-sm mb-2">{player.position}</p>
+                  <p className="text-gray-700 text-sm mb-2">{player.position}</p>
                   <div className="flex justify-center space-x-2 text-xs">
                     <span className="bg-gradient-to-r from-unill-purple-500/20 to-unill-yellow-500/20 border border-unill-yellow-400/30 px-2 py-1 rounded">
                       #{player.number}
@@ -519,7 +519,7 @@ const TeamsPage: React.FC = () => {
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
               Team Performance
             </h2>
-            <p className="text-xl text-gray-300">Statistical analysis of our teams' achievements</p>
+            <p className="text-xl text-gray-700">Statistical analysis of our teams' achievements</p>
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -547,7 +547,7 @@ const TeamsPage: React.FC = () => {
             <h2 className="text-4xl font-bold mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
               Join Our Team
             </h2>
-            <p className="text-xl text-gray-300 mb-8">
+            <p className="text-xl text-gray-700 mb-8">
               Interested in becoming part of Unill's athletic legacy? We're always looking for talented student-athletes 
               who share our passion for excellence and sportsmanship.
             </p>
@@ -602,7 +602,7 @@ const TeamsPage: React.FC = () => {
                     <h3 className="text-2xl font-bold bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
                       {selectedPlayer.name}
                     </h3>
-                    <p className="text-gray-300">{selectedPlayer.position}</p>
+                    <p className="text-gray-700">{selectedPlayer.position}</p>
                   </div>
                 </div>
                 <button 
@@ -663,7 +663,7 @@ const TeamsPage: React.FC = () => {
               
               <div className="mb-6">
                 <h4 className="font-semibold mb-3">Biography</h4>
-                <p className="text-gray-300 text-sm leading-relaxed">
+                <p className="text-gray-700 text-sm leading-relaxed">
                   {selectedPlayer.name} is a standout {selectedPlayer.position} known for their exceptional skills and dedication to the sport. 
                   With a strong work ethic and natural talent, they have become a key player for the {currentSelectedTeam.name}.
                   Their commitment to both athletics and academics makes them a true student-athlete role model.

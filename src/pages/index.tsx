@@ -129,7 +129,7 @@ const HomePage: React.FC = () => {
       <div className="flex-shrink-0 w-80 bg-white/10 backdrop-blur-md rounded-lg p-4 border border-white/20 animate-pulse-live">
         <div className="flex items-center justify-between mb-3">
           <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">LIVE</span>
-          <span className="text-sm text-gray-300 capitalize">{match.sport}</span>
+          <span className="text-sm text-gray-700 capitalize">{match.sport}</span>
         </div>
         <div className="text-center">
           <div className="flex items-center justify-between mb-3">
@@ -147,7 +147,7 @@ const HomePage: React.FC = () => {
               </p>
             </div>
           </div>
-          <p className="text-xs text-gray-300 mb-3">{match.venue} • {match.time}</p>
+          <p className="text-xs text-gray-700 mb-3">{match.venue} • {match.time}</p>
           <button
             onClick={() => window.location.href = `/live-match/${match.id}`}
             className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded text-sm font-semibold hover:from-red-600 hover:to-red-700 transition-all"
@@ -165,7 +165,7 @@ const HomePage: React.FC = () => {
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-unill-yellow-400 mx-auto"></div>
-            <p className="mt-4 text-gray-300">Loading...</p>
+            <p className="mt-4 text-gray-700">Loading...</p>
           </div>
         </div>
       </Layout>
@@ -224,7 +224,7 @@ const HomePage: React.FC = () => {
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
               Live & Upcoming Matches
             </h2>
-            <p className="text-xl text-gray-300">Stay updated with the latest university sports action</p>
+            <p className="text-xl text-gray-700">Stay updated with the latest university sports action</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -243,7 +243,7 @@ const HomePage: React.FC = () => {
                   }`}>
                     {match.status.toUpperCase()}
                   </span>
-                  <span className="text-sm text-gray-300 capitalize">{match.sport}</span>
+                  <span className="text-sm text-gray-700 capitalize">{match.sport}</span>
                 </div>
                 <div className="text-center">
                   <div className="flex items-center justify-between mb-4">
@@ -269,7 +269,7 @@ const HomePage: React.FC = () => {
                       )}
                     </div>
                   </div>
-                  <p className="text-sm text-gray-300">
+                  <p className="text-sm text-gray-700">
                     {match.venue} • {match.time}
                     {match.status === 'completed' && ' • Final'}
                   </p>
@@ -287,7 +287,7 @@ const HomePage: React.FC = () => {
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
               Official Merchandise
             </h2>
-            <p className="text-xl text-gray-300">Show your university pride with our exclusive sports merchandise</p>
+            <p className="text-xl text-gray-700">Show your university pride with our exclusive sports merchandise</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -323,7 +323,7 @@ const HomePage: React.FC = () => {
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
               University Sports Excellence
             </h2>
-            <p className="text-xl text-gray-300">Numbers that speak to our athletic achievements</p>
+            <p className="text-xl text-gray-700">Numbers that speak to our athletic achievements</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -332,7 +332,7 @@ const HomePage: React.FC = () => {
                 {data?.stats.sportsPrograms}+
               </div>
               <div className="text-lg font-semibold mb-2">Sports Programs</div>
-              <div className="text-sm text-gray-300">Diverse athletic opportunities</div>
+              <div className="text-sm text-gray-700">Diverse athletic opportunities</div>
             </div>
 
             <div className="text-center bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
@@ -340,7 +340,7 @@ const HomePage: React.FC = () => {
                 {data?.stats.studentAthletes}+
               </div>
               <div className="text-lg font-semibold mb-2">Student Athletes</div>
-              <div className="text-sm text-gray-300">Active participants</div>
+              <div className="text-sm text-gray-700">Active participants</div>
             </div>
 
             <div className="text-center bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
@@ -348,7 +348,7 @@ const HomePage: React.FC = () => {
                 {data?.stats.championships}
               </div>
               <div className="text-lg font-semibold mb-2">Championships</div>
-              <div className="text-sm text-gray-300">University titles won</div>
+              <div className="text-sm text-gray-700">University titles won</div>
             </div>
 
             <div className="text-center bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
@@ -356,7 +356,7 @@ const HomePage: React.FC = () => {
                 {data?.stats.facilities}
               </div>
               <div className="text-lg font-semibold mb-2">Facilities</div>
-              <div className="text-sm text-gray-300">State-of-the-art venues</div>
+              <div className="text-sm text-gray-700">State-of-the-art venues</div>
             </div>
           </div>
         </div>

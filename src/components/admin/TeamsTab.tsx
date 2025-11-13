@@ -9,7 +9,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
           <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">{title}</h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-100">
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:text-gray-700 dark:hover:text-gray-100">
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -30,7 +30,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel }: any) {
     <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Team Name</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Team Name</label>
           <input
             type="text"
             required
@@ -40,7 +40,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel }: any) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Sport</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Sport</label>
           <select
             value={formData.sport}
             onChange={(e) => setFormData({...formData, sport: e.target.value})}
@@ -54,7 +54,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel }: any) {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">University</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">University</label>
           <input
             type="text"
             value={formData.university}
@@ -63,7 +63,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel }: any) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Coach</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Coach</label>
           <input
             type="text"
             value={formData.coach}
@@ -72,7 +72,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel }: any) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Founded Year</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Founded Year</label>
           <input
             type="number"
             value={formData.founded}
@@ -81,7 +81,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel }: any) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">League</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">League</label>
           <input
             type="text"
             value={formData.league}

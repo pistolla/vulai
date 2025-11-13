@@ -240,7 +240,7 @@ const SportsPage: React.FC = () => {
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-unill-yellow-400 mx-auto"></div>
-            <p className="mt-4 text-gray-300">
+            <p className="mt-4 text-gray-700">
               {loading ? 'Loading sports data...' : 'Preparing sports programs...'}
             </p>
           </div>
@@ -261,7 +261,7 @@ const SportsPage: React.FC = () => {
           <h1 className="text-5xl md:text-6xl font-black mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
             Sports Programs
           </h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-700 max-w-3xl mx-auto">
             Discover comprehensive information about our diverse university sports programs, from team dynamics to individual excellence.
           </p>
         </div>
@@ -320,7 +320,7 @@ const SportsPage: React.FC = () => {
               <h2 className="text-4xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
                 {selectedSport.name}
               </h2>
-              <p className="text-lg text-gray-300 leading-relaxed">
+              <p className="text-lg text-gray-700 leading-relaxed">
                 {selectedSport.description}
               </p>
               
@@ -361,7 +361,7 @@ const SportsPage: React.FC = () => {
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
               Current Active Leagues
             </h2>
-            <p className="text-xl text-gray-300">Explore ongoing tournaments and competitions</p>
+            <p className="text-xl text-gray-700">Explore ongoing tournaments and competitions</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -402,10 +402,10 @@ const SportsPage: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-white">{league.name}</h3>
-                      <p className="text-sm text-gray-300 capitalize">{league.sportType} Sport</p>
+                      <p className="text-sm text-gray-700 capitalize">{league.sportType} Sport</p>
                     </div>
                   </div>
-                  <div className="space-y-2 text-sm text-gray-300">
+                  <div className="space-y-2 text-sm text-gray-700">
                     <div className="flex justify-between">
                       <span>Type:</span>
                       <span className="font-semibold capitalize">{league.sportType}</span>
@@ -462,7 +462,7 @@ const SportsPage: React.FC = () => {
             <h2 className="text-4xl font-bold mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
               Ready to Get Started?
             </h2>
-            <p className="text-xl text-gray-300 mb-8">
+            <p className="text-xl text-gray-700 mb-8">
               Join any team sports programs by filling an online form. 
               We will help you get in touch with the team management.
             </p>

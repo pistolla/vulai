@@ -32,7 +32,7 @@ export default function ContactPage() {
             {/* Left: info cards */}
             <div className="max-w-lg mx-auto lg:max-w-none" data-aos="fade-right">
               <h2 className="text-2xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-3xl">Get in touch</h2>
-              <p className="mt-3 text-lg text-gray-500 dark:text-gray-300">Have questions about our platform or want to feature your university's sports program? Fill out the form and we'll get back to you soon.</p>
+              <p className="mt-3 text-lg text-gray-500 dark:text-gray-700">Have questions about our platform or want to feature your university's sports program? Fill out the form and we'll get back to you soon.</p>
               <div className="mt-12 space-y-8">
                 <IconCard icon="mail" title="Email" content="contact@unisports.live" />
                 <IconCard icon="phone" title="Phone" content="+1 (555) 123-4567" />
@@ -90,7 +90,7 @@ function IconCard({ icon, title, content }: { icon: string; title: string; conte
       </div>
       <div className="ml-4">
         <h3 className="text-lg font-medium text-gray-900 dark:text-white">{title}</h3>
-        <p className="mt-1 text-base text-gray-500 dark:text-gray-300">{content}</p>
+        <p className="mt-1 text-base text-gray-500 dark:text-gray-700">{content}</p>
       </div>
     </div>
   );
@@ -102,7 +102,7 @@ function FAQItem({ question, answer, delay }: { question: string; answer: string
       <div>
         <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">{question}</h3>
         <div className="mt-2">
-          <p className="text-base text-gray-500 dark:text-gray-300">{answer}</p>
+          <p className="text-base text-gray-500 dark:text-gray-700">{answer}</p>
         </div>
       </div>
     </div>

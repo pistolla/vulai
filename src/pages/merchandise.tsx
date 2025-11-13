@@ -137,7 +137,7 @@ const MerchandisePage: React.FC = () => {
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-unill-yellow-400 mx-auto"></div>
-              <p className="mt-4 text-gray-300">Loading merchandise...</p>
+              <p className="mt-4 text-gray-700">Loading merchandise...</p>
             </div>
           </div>
         </div>
@@ -153,7 +153,7 @@ const MerchandisePage: React.FC = () => {
           <h1 className="text-5xl md:text-6xl font-black mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
             Official Merchandise
           </h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-700 max-w-3xl mx-auto">
             Show your university pride with our exclusive collection of sports merchandise and apparel.
           </p>
         </div>
@@ -172,7 +172,7 @@ const MerchandisePage: React.FC = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-4 py-3 pl-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-unill-yellow-400 focus:border-transparent"
               />
-              <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
@@ -213,7 +213,7 @@ const MerchandisePage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {filteredMerchandise.length === 0 ? (
             <div className="text-center py-20">
-              <h3 className="text-2xl font-bold text-gray-300 mb-4">No items found</h3>
+              <h3 className="text-2xl font-bold text-gray-700 mb-4">No items found</h3>
               <p className="text-gray-400">Try adjusting your search or filter criteria.</p>
             </div>
           ) : (
@@ -240,7 +240,7 @@ const MerchandisePage: React.FC = () => {
                 {merchandise.length}+
               </div>
               <div className="text-lg font-semibold mb-2">Products Available</div>
-              <div className="text-sm text-gray-300">Official merchandise</div>
+              <div className="text-sm text-gray-700">Official merchandise</div>
             </div>
 
             <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
@@ -248,7 +248,7 @@ const MerchandisePage: React.FC = () => {
                 24/7
               </div>
               <div className="text-lg font-semibold mb-2">Online Store</div>
-              <div className="text-sm text-gray-300">Shop anytime</div>
+              <div className="text-sm text-gray-700">Shop anytime</div>
             </div>
 
             <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
@@ -256,7 +256,7 @@ const MerchandisePage: React.FC = () => {
                 100%
               </div>
               <div className="text-lg font-semibold mb-2">Official</div>
-              <div className="text-sm text-gray-300">Authentic products</div>
+              <div className="text-sm text-gray-700">Authentic products</div>
             </div>
           </div>
         </div>

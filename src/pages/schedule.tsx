@@ -148,7 +148,7 @@ const SchedulePage: React.FC = () => {
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-unill-yellow-400 mx-auto"></div>
-            <p className="mt-4 text-gray-300">
+            <p className="mt-4 text-gray-700">
               {loading ? 'Loading schedule data...' : 'Preparing schedule...'}
             </p>
           </div>
@@ -229,13 +229,13 @@ const SchedulePage: React.FC = () => {
           </div>
         </div>
         <div className="calendar-grid grid grid-cols-7 gap-2">
-          <div className="font-semibold text-center p-2 text-gray-300">Sun</div>
-          <div className="font-semibold text-center p-2 text-gray-300">Mon</div>
-          <div className="font-semibold text-center p-2 text-gray-300">Tue</div>
-          <div className="font-semibold text-center p-2 text-gray-300">Wed</div>
-          <div className="font-semibold text-center p-2 text-gray-300">Thu</div>
-          <div className="font-semibold text-center p-2 text-gray-300">Fri</div>
-          <div className="font-semibold text-center p-2 text-gray-300">Sat</div>
+          <div className="font-semibold text-center p-2 text-gray-700">Sun</div>
+          <div className="font-semibold text-center p-2 text-gray-700">Mon</div>
+          <div className="font-semibold text-center p-2 text-gray-700">Tue</div>
+          <div className="font-semibold text-center p-2 text-gray-700">Wed</div>
+          <div className="font-semibold text-center p-2 text-gray-700">Thu</div>
+          <div className="font-semibold text-center p-2 text-gray-700">Fri</div>
+          <div className="font-semibold text-center p-2 text-gray-700">Sat</div>
           {days}
         </div>
       </div>
@@ -351,7 +351,7 @@ const SchedulePage: React.FC = () => {
           <h1 className="text-5xl md:text-6xl font-black mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
             Schedule & Results
           </h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-700 max-w-3xl mx-auto">
             Stay updated with live scores, upcoming fixtures, and match results across all university sports programs.
           </p>
         </div>
@@ -412,7 +412,7 @@ const SchedulePage: React.FC = () => {
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
               Sports Calendar
             </h2>
-            <p className="text-xl text-gray-300">Click on any date to view matches and events</p>
+            <p className="text-xl text-gray-700">Click on any date to view matches and events</p>
           </div>
           
           {renderCalendar()}
@@ -426,7 +426,7 @@ const SchedulePage: React.FC = () => {
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
               Live & Upcoming Matches
             </h2>
-            <p className="text-xl text-gray-300">Real-time updates from ongoing university sports events</p>
+            <p className="text-xl text-gray-700">Real-time updates from ongoing university sports events</p>
           </div>
           
           <div id="matches-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -447,7 +447,7 @@ const SchedulePage: React.FC = () => {
                   }`}>
                     {match.status.toUpperCase()}
                   </span>
-                  <span className="text-sm text-gray-300 capitalize">{match.sport}</span>
+                  <span className="text-sm text-gray-700 capitalize">{match.sport}</span>
                 </div>
                 <div className="text-center mb-6">
                   <div className="flex items-center justify-between mb-4">
@@ -473,7 +473,7 @@ const SchedulePage: React.FC = () => {
                   </div>
                   {match.status === 'live' && match.score && (
                     <div className="bg-white/10 rounded-lg p-3 mb-4">
-                      <p className="text-sm text-gray-300">3rd Quarter • 2:45 remaining</p>
+                      <p className="text-sm text-gray-700">3rd Quarter • 2:45 remaining</p>
                       <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
                         <div className="bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 h-2 rounded-full" style={{ width: '75%' }}></div>
                       </div>
@@ -484,10 +484,10 @@ const SchedulePage: React.FC = () => {
                       <p className="text-lg font-semibold bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
                         {mounted ? new Date(match.date).toLocaleDateString() : ''}
                       </p>
-                      <p className="text-sm text-gray-300">{match.time}</p>
+                      <p className="text-sm text-gray-700">{match.time}</p>
                     </div>
                   )}
-                  <p className="text-sm text-gray-300">📍 {match.venue}</p>
+                  <p className="text-sm text-gray-700">📍 {match.venue}</p>
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -516,7 +516,7 @@ const SchedulePage: React.FC = () => {
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
               Active Leagues
             </h2>
-            <p className="text-xl text-gray-300">Explore ongoing tournaments and competitions</p>
+            <p className="text-xl text-gray-700">Explore ongoing tournaments and competitions</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -535,10 +535,10 @@ const SchedulePage: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-white">{league.name}</h3>
-                      <p className="text-sm text-gray-300 capitalize">{league.sportType} Sport</p>
+                      <p className="text-sm text-gray-700 capitalize">{league.sportType} Sport</p>
                     </div>
                   </div>
-                  <div className="space-y-2 text-sm text-gray-300">
+                  <div className="space-y-2 text-sm text-gray-700">
                     <div className="flex justify-between">
                       <span>Type:</span>
                       <span className="font-semibold capitalize">{league.sportType}</span>
@@ -574,7 +574,7 @@ const SchedulePage: React.FC = () => {
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
               This Week in Numbers
             </h2>
-            <p className="text-xl text-gray-300">Quick overview of university sports activity</p>
+            <p className="text-xl text-gray-700">Quick overview of university sports activity</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -583,7 +583,7 @@ const SchedulePage: React.FC = () => {
                 {data.stats.totalMatches}
               </div>
               <div className="text-lg font-semibold mb-2">Total Matches</div>
-              <div className="text-sm text-gray-300">This week</div>
+              <div className="text-sm text-gray-700">This week</div>
             </div>
 
             <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 text-center border border-white/20">
@@ -591,7 +591,7 @@ const SchedulePage: React.FC = () => {
                 {data.stats.liveNow}
               </div>
               <div className="text-lg font-semibold mb-2">Live Now</div>
-              <div className="text-sm text-gray-300">Ongoing matches</div>
+              <div className="text-sm text-gray-700">Ongoing matches</div>
             </div>
 
             <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 text-center border border-white/20">
@@ -599,7 +599,7 @@ const SchedulePage: React.FC = () => {
                 {data.stats.homeGames}
               </div>
               <div className="text-lg font-semibold mb-2">Home Games</div>
-              <div className="text-sm text-gray-300">At university venues</div>
+              <div className="text-sm text-gray-700">At university venues</div>
             </div>
 
             <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 text-center border border-white/20">
@@ -607,7 +607,7 @@ const SchedulePage: React.FC = () => {
                 {data.stats.expectedAttendance.toLocaleString()}
               </div>
               <div className="text-lg font-semibold mb-2">Expected Attendance</div>
-              <div className="text-sm text-gray-300">Total spectators</div>
+              <div className="text-sm text-gray-700">Total spectators</div>
             </div>
           </div>
         </div>

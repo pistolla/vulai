@@ -125,7 +125,7 @@ export default function ResetPasswordPage() {
             <div className="py-8 px-6 sm:p-10">
               <form className="space-y-6" onSubmit={onSubmit}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">New Password</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">New Password</label>
                   <div className="relative mt-1">
                     <input
                       type={showPassword ? "text" : "password"}
@@ -156,7 +156,7 @@ export default function ResetPasswordPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirm New Password</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Confirm New Password</label>
                   <div className="relative mt-1">
                     <input
                       type={showConfirmPassword ? "text" : "password"}

@@ -88,7 +88,7 @@ export default function PlayerPage() {
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-cyan-400 mx-auto"></div>
-              <p className="mt-4 text-gray-300">Loading player data...</p>
+              <p className="mt-4 text-gray-700">Loading player data...</p>
             </div>
           </div>
         </div>
