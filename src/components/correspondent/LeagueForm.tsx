@@ -2,19 +2,21 @@ import { useAppDispatch } from "@/hooks/redux";
 import { League, SportType } from "@/models";
 import { createLeague } from "@/store/correspondentThunk";
 import { useState } from "react";
+import { useTheme } from "@/components/ThemeProvider";
 
 // --- LeagueForm ---
 export const LeagueForm: React.FC<{ onCreate?: (l: League) => void }> = ({ onCreate }) => {
     const dispatch = useAppDispatch();
+    const { theme } = useTheme();
     const [name, setName] = useState('');
     const [sportType, setSportType] = useState<SportType>('team');
     const [description, setDescription] = useState('');
     const [creating, setCreating] = useState(false);
-  
+
     const submit = async (e?: React.FormEvent) => {
       e?.preventDefault();
       if (!name.trim()) return alert('Please provide a league name');
-      
+
       setCreating(true);
       try {
         const res = await dispatch(createLeague({ name: name.trim(), sportType, description: description.trim() }));
@@ -30,23 +32,35 @@ export const LeagueForm: React.FC<{ onCreate?: (l: League) => void }> = ({ onCre
         setCreating(false);
       }
     };
-  
+
     return (
-      <form onSubmit={submit} className="p-4 bg-card rounded-lg shadow-sm">
+      <form onSubmit={submit} className={`p-4 rounded-lg shadow-sm ${
+        theme === 'light'
+          ? 'bg-white/10 backdrop-blur-md border border-white/20'
+          : 'bg-card'
+      }`}>
         <h3 className="text-lg font-semibold mb-2">Create League</h3>
         <div className="grid gap-2">
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="League name"
-            className="input"
+            className={`input ${
+              theme === 'light'
+                ? 'bg-white/20 border-white/30 text-white placeholder:text-white/70'
+                : ''
+            }`}
             disabled={creating}
             required
           />
           <select
             value={sportType}
             onChange={(e) => setSportType(e.target.value as SportType)}
-            className="input"
+            className={`input ${
+              theme === 'light'
+                ? 'bg-white/20 border-white/30 text-white'
+                : ''
+            }`}
             disabled={creating}
           >
             <option value="team">Team sport</option>
@@ -56,7 +70,11 @@ export const LeagueForm: React.FC<{ onCreate?: (l: League) => void }> = ({ onCre
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Description (optional)"
-            className="input"
+            className={`input ${
+              theme === 'light'
+                ? 'bg-white/20 border-white/30 text-white placeholder:text-white/70'
+                : ''
+            }`}
             disabled={creating}
           />
           <div className="flex gap-2">
