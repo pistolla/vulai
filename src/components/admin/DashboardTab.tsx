@@ -1,16 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useAppSelector } from '@/hooks/redux';
 import { apiService } from '@/services/apiService';
+import { FiUsers, FiPlayCircle, FiShoppingBag, FiMessageSquare, FiArrowRight, FiCalendar } from 'react-icons/fi';
 
 /* ---------------------------------
-    MiniCard component (from team page)
+    MiniCard component
 ---------------------------------- */
 function MiniCard({ title, img, children }: { title: string; img?: string; children: React.ReactNode }) {
   return (
-    <div className="flex-shrink-0 w-full h-full bg-white backdrop-blur-sm border border-gray-200 rounded-2xl p-5 hover:-translate-y-2 transition">
-      <h3 className="text-lg mb-3 text-blue-600">{title}</h3>
-      {img && <img src={img} alt={title} className="w-full h-32 object-cover rounded mb-3" />}
-      <div className="text-sm opacity-90">{children}</div>
+    <div className="flex-shrink-0 w-full h-full bg-white dark:bg-gray-800 backdrop-blur-md border border-gray-200 dark:border-gray-700 rounded-2xl p-5 hover:-translate-y-2 transition-all duration-300 shadow-sm hover:shadow-xl">
+      <h3 className="text-lg font-bold mb-3 text-blue-600 dark:text-blue-400">{title}</h3>
+      {img && (
+        <div className="relative overflow-hidden rounded-xl mb-4 group">
+          <img src={img} alt={title} className="w-full h-32 object-cover transition-transform duration-500 group-hover:scale-110" />
+          <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+        </div>
+      )}
+      <div className="text-sm text-gray-600 dark:text-gray-300 space-y-2">{children}</div>
     </div>
   );
 }
@@ -24,7 +30,6 @@ function KenyaMap({ live, upcoming, onPin }: any) {
   useEffect(() => {
     const loadMatches = async () => {
       try {
-        // Try to load from Firebase API first
         const matchesData = await apiService.getSchedule();
         if (matchesData && matchesData.length > 0) {
           setMatches(matchesData);
@@ -33,12 +38,9 @@ function KenyaMap({ live, upcoming, onPin }: any) {
         }
       } catch (error) {
         console.error('Failed to load matches from Firebase:', error);
-        // Fallback to local JSON file
         try {
           const response = await fetch('/data/schedule.json');
-          if (!response.ok) {
-            throw new Error('Failed to load schedule data');
-          }
+          if (!response.ok) throw new Error('Failed to load schedule data');
           const data = await response.json();
           setMatches(data.matches || []);
         } catch (localError) {
@@ -49,18 +51,13 @@ function KenyaMap({ live, upcoming, onPin }: any) {
         setLoading(false);
       }
     };
-
     loadMatches();
   }, []);
 
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
-
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
@@ -80,185 +77,73 @@ function KenyaMap({ live, upcoming, onPin }: any) {
     }
   };
 
-  // Determine how many cards to show based on screen size
   const cardsToShow = isMobile ? 1 : 3;
   const visibleMatches = matches.slice(currentSlide, currentSlide + cardsToShow);
 
   if (loading) {
     return (
-      <div className="relative w-full h-96 bg-gradient-to-br from-green-100 to-blue-100 rounded-lg overflow-hidden shadow-lg flex items-center justify-center">
+      <div className="relative w-full h-96 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading matches...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-500 dark:text-gray-400 font-medium">Loading match radar...</p>
         </div>
       </div>
     );
   }
 
-  if (matches.length === 0) {
-    return (
-      <div className="relative w-full h-96 bg-gradient-to-br from-green-100 to-blue-100 rounded-lg overflow-hidden shadow-lg flex items-center justify-center">
-        <p className="text-gray-600">No matches found.</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="relative w-full h-96 bg-gradient-to-br from-green-100 to-blue-100 rounded-lg overflow-hidden shadow-lg">
-      {/* Slider Container */}
+    <div className="relative w-full h-96 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 rounded-2xl overflow-hidden shadow-inner border border-gray-100 dark:border-gray-700">
       <div className="relative h-full">
         {isMobile ? (
-          // Mobile: Single card slider
           matches.map((match: any, index: number) => (
             <div
               key={match.id}
-              className={`absolute inset-0 transition-opacity duration-500 ${index === currentSlide ? 'opacity-100' : 'opacity-0'}`}
+              className={`absolute inset-0 p-4 transition-all duration-500 transform ${index === currentSlide ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'}`}
             >
-              <MiniCard
-                title={`${match.homeTeam} vs ${match.awayTeam}`}
-                img="https://picsum.photos/seed/game/400/250"
-              >
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Score:</span>
-                    <span className="font-bold">{match.score ? `${match.score.home} - ${match.score.away}` : 'Not started'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Sport:</span>
-                    <span>{match.sport}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Venue:</span>
-                    <span>{match.venue}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Date:</span>
-                    <span>{match.date}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Time:</span>
-                    <span>{match.time}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Status:</span>
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      match.status === 'live' ? 'bg-red-100 text-red-800' :
-                      match.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {match.status}
-                    </span>
-                  </div>
-                </div>
+              <MiniCard title={`${match.homeTeam} vs ${match.awayTeam}`} img={`https://picsum.photos/seed/${match.id}/400/250`}>
+                <MatchInfo match={match} />
               </MiniCard>
             </div>
           ))
         ) : (
-          // Desktop: Show 3 cards side by side
-          <div className="grid grid-cols-3 gap-4 h-full p-4">
-            {visibleMatches.map((match: any, index: number) => (
-              <MiniCard
-                key={match.id}
-                title={`${match.homeTeam} vs ${match.awayTeam}`}
-                img="https://picsum.photos/seed/game/400/250"
-              >
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Score:</span>
-                    <span className="font-bold">{match.score ? `${match.score.home} - ${match.score.away}` : 'Not started'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Sport:</span>
-                    <span>{match.sport}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Venue:</span>
-                    <span>{match.venue}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Date:</span>
-                    <span>{match.date}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Time:</span>
-                    <span>{match.time}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Status:</span>
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      match.status === 'live' ? 'bg-red-100 text-red-800' :
-                      match.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {match.status}
-                    </span>
-                  </div>
-                </div>
+          <div className="grid grid-cols-3 gap-6 h-full p-6">
+            {visibleMatches.map((match: any) => (
+              <MiniCard key={match.id} title={`${match.homeTeam} vs ${match.awayTeam}`} img={`https://picsum.photos/seed/${match.id}/400/250`}>
+                <MatchInfo match={match} />
               </MiniCard>
             ))}
           </div>
         )}
 
-        {/* Navigation Arrows - Only show on mobile */}
-        {isMobile && matches.length > 1 && (
-          <>
-            <button
-              onClick={prevSlide}
-              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg transition-all"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <button
-              onClick={nextSlide}
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg transition-all"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </>
-        )}
+        {/* Navigation */}
+        <div className="absolute top-1/2 -translate-y-1/2 left-2 right-2 flex justify-between pointer-events-none">
+          <button onClick={prevSlide} className={`p-3 rounded-full bg-white/90 dark:bg-gray-800/90 shadow-lg pointer-events-auto transition-all ${currentSlide === 0 ? 'opacity-0 cursor-default' : 'hover:scale-110 active:scale-95'}`}><FiArrowRight className="rotate-180" /></button>
+          <button onClick={nextSlide} className={`p-3 rounded-full bg-white/90 dark:bg-gray-800/90 shadow-lg pointer-events-auto transition-all ${(!isMobile && currentSlide >= matches.length - 3) ? 'opacity-0 cursor-default' : 'hover:scale-110 active:scale-95'}`}><FiArrowRight /></button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-        {/* Dots Indicator - Only show on mobile */}
-        {isMobile && matches.length > 1 && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
-            {matches.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentSlide(index)}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  index === currentSlide ? 'bg-blue-600' : 'bg-white/50'
-                }`}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Desktop Navigation - Show arrows when there are more matches */}
-        {!isMobile && matches.length > 3 && (
-          <>
-            <button
-              onClick={prevSlide}
-              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg transition-all"
-              disabled={currentSlide === 0}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <button
-              onClick={nextSlide}
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg transition-all"
-              disabled={currentSlide >= matches.length - 3}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </>
-        )}
+function MatchInfo({ match }: { match: any }) {
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between items-center">
+        <span className="opacity-70">Score:</span>
+        <span className="font-bold text-blue-600 dark:text-blue-400">{match.score ? `${match.score.home} - ${match.score.away}` : 'TBD'}</span>
+      </div>
+      <div className="flex justify-between items-center text-xs">
+        <span className="opacity-70">Venue:</span>
+        <span className="truncate max-w-[120px]">{match.venue}</span>
+      </div>
+      <div className="flex justify-between items-center pt-2">
+        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${match.status === 'live' ? 'bg-red-500 text-white animate-pulse' :
+            match.status === 'completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+              'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
+          }`}>
+          {match.status}
+        </span>
+        <span className="text-xs font-medium">{match.date} • {match.time}</span>
       </div>
     </div>
   );
@@ -266,14 +151,29 @@ function KenyaMap({ live, upcoming, onPin }: any) {
 
 function ActivityFeed({ users }: any) {
   return (
-    <div className="lg:col-span-2 bg-white rounded-xl shadow-lg p-6">
-      <h3 className="text-xl font-bold text-gray-900 mb-4">Recent User Activity</h3>
-      <div className="space-y-3">
-        {users.slice(0, 3).map((u: any) => (
-          <div key={u.uid} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center"><span className="text-white font-bold text-sm">{u.name.slice(0, 2).toUpperCase()}</span></div>
-            <div className="flex-1"><p className="font-semibold text-gray-900">{u.name}</p><p className="text-sm text-gray-600">{u.role} • {u.university || '—'}</p><p className="text-xs text-gray-500">Registered recently</p></div>
-            <div className="flex flex-col items-end"><span className={`px-2 py-1 rounded-full text-xs ${u.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{u.status}</span></div>
+    <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-xl shadow-black/5 p-6 border border-gray-100 dark:border-gray-700">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-xl font-bold dark:text-white">Recent Activity</h3>
+        <button className="text-sm text-blue-600 dark:text-blue-400 font-medium hover:underline">View All</button>
+      </div>
+      <div className="space-y-4">
+        {users.slice(0, 4).map((u: any, idx: number) => (
+          <div key={u.uid} className="group flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all border border-transparent hover:border-gray-100 dark:hover:border-gray-600">
+            <div className="relative">
+              <div className="w-12 h-12 bg-gradient-to-tr from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg transform group-hover:rotate-12 transition-transform">
+                <span className="text-white font-bold text-lg">{u.name.slice(0, 1).toUpperCase()}</span>
+              </div>
+              <div className={`absolute -bottom-1 -right-1 w-4 h-4 border-2 border-white dark:border-gray-800 rounded-full ${u.status === 'active' ? 'bg-green-500' : 'bg-yellow-500'}`} />
+            </div>
+            <div className="flex-1">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{u.name}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{u.role} at {u.university || 'Unill Sports'}</p>
+                </div>
+                <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">{idx + 1}h ago</span>
+              </div>
+            </div>
           </div>
         ))}
       </div>
@@ -283,178 +183,98 @@ function ActivityFeed({ users }: any) {
 
 function Schedule({ upcoming }: any) {
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6">
-      <h3 className="text-xl font-bold text-gray-900 mb-4">Today's Schedule</h3>
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl shadow-black/5 p-6 border border-gray-100 dark:border-gray-700">
+      <div className="flex items-center space-x-2 mb-6">
+        <FiCalendar className="text-blue-600 dark:text-blue-400" />
+        <h3 className="text-xl font-bold dark:text-white">Today's Slate</h3>
+      </div>
       <div className="space-y-4">
-        {upcoming.slice(0, 3).map((g: any) => (
-          <div key={g.id} className="p-3 bg-blue-50 border-l-4 border-blue-500 rounded"><p className="font-semibold text-gray-900 text-sm">{g.homeTeamName} vs {g.awayTeamName}</p><p className="text-sm text-gray-600">{g.sport} • {new Date(g.scheduledAt).toLocaleTimeString()}</p></div>
-        ))}
-      </div>
-      <button className="w-full mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">View Full Schedule</button>
-    </div>
-  );
-}
-
-function StatCard({ color, value, label, change }: any) {
-  const grad = `bg-gradient-to-br from-${color}-500 to-${color}-600`;
-  return (
-    <div className={`p-6 rounded-xl shadow-lg text-white transform hover:scale-105 transition-all duration-200 float ${grad}`}>
-      <div className="flex items-center justify-between">
-        <div>
-          <p className={`text-${color}-100 text-sm`}>{label}</p>
-          <p className="text-3xl font-bold mt-1">{value}</p>
-          <p className={`text-${color}-200 text-xs mt-1`}>↗ {change}</p>
-        </div>
-        <svg className={`w-10 h-10 text-${color}-200`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-      </div>
-    </div>
-  );
-}
-
-function ShimmerCard() {
-  return (
-    <div className="p-6 rounded-xl shadow-lg bg-white animate-pulse">
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-          <div className="h-8 bg-gray-200 rounded w-1/2 mb-2"></div>
-          <div className="h-3 bg-gray-200 rounded w-1/4"></div>
-        </div>
-        <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
-      </div>
-    </div>
-  );
-}
-
-function ShimmerTable({ rows = 5 }: { rows?: number }) {
-  return (
-    <div className="bg-white rounded-xl shadow-lg p-6 animate-pulse">
-      <div className="space-y-4">
-        {Array.from({ length: rows }).map((_, i) => (
-          <div key={i} className="flex items-center space-x-4">
-            <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
-            <div className="flex-1 space-y-2">
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+        {upcoming.slice(0, 4).map((g: any) => (
+          <div key={g.id} className="relative p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl overflow-hidden group">
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 transform scale-y-0 group-hover:scale-y-100 transition-transform" />
+            <p className="font-bold text-gray-900 dark:text-white text-sm truncate">{g.homeTeamName} vs {g.awayTeamName}</p>
+            <div className="flex items-center justify-between mt-2 text-xs text-gray-500 dark:text-gray-400">
+              <span className="flex items-center"><span className="w-2 h-2 rounded-full bg-blue-400 mr-2" />{g.sport}</span>
+              <span>{new Date(g.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
-            <div className="w-16 h-6 bg-gray-200 rounded"></div>
           </div>
         ))}
+        {upcoming.length === 0 && <p className="text-center py-10 text-gray-500 italic">No games scheduled for today.</p>}
+      </div>
+      <button className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl transition-all font-bold shadow-lg hover:shadow-blue-500/30 active:scale-95">Full Schedule</button>
+    </div>
+  );
+}
+
+function StatCard({ icon: Icon, color, value, label, change, trendingUp }: any) {
+  const colorMap: any = {
+    blue: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-900/30',
+    green: 'text-green-600 bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-900/30',
+    purple: 'text-purple-600 bg-purple-50 dark:bg-purple-900/20 border-purple-100 dark:border-purple-900/30',
+    orange: 'text-orange-600 bg-orange-50 dark:bg-orange-900/20 border-orange-100 dark:border-orange-900/30',
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-xl shadow-black/5 hover:-translate-y-1 transition-all group">
+      <div className="flex justify-between items-start">
+        <div className={`p-3 rounded-xl ${colorMap[color]} group-hover:scale-110 transition-transform`}>
+          <Icon className="w-6 h-6" />
+        </div>
+        <div className={`flex items-center text-xs font-bold ${trendingUp ? 'text-green-500' : 'text-red-500'}`}>
+          {trendingUp ? '↑' : '↓'} {change}
+        </div>
+      </div>
+      <div className="mt-4">
+        <h4 className="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wider">{label}</h4>
+        <div className="text-3xl font-black mt-1 dark:text-white tabular-nums">{value}</div>
       </div>
     </div>
   );
 }
 
-export default function DashboardTab({ stats, live, users, upcoming, openGame, adminData }: any) {
+export default function DashboardTab({ stats, live, users, upcoming, openGame }: any) {
   const { loading } = useAppSelector(s => s.admin);
-  const hasStats = stats && Object.keys(stats).length > 0;
-  const hasLiveGames = live?.length > 0;
-  const hasUpcomingGames = upcoming?.length > 0;
-  const hasRecentUsers = users?.length > 0;
   const isLoading = loading.dashboard;
 
   return (
-    <div id="content-dashboard" className="slide-in-left">
-      {/* stats cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+    <div className="space-y-8 animate-in fade-in duration-700">
+      {/* Stats Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {isLoading ? (
-          <>
-            <ShimmerCard />
-            <ShimmerCard />
-            <ShimmerCard />
-            <ShimmerCard />
-          </>
-        ) : hasStats ? (
-          <>
-            <StatCard color="blue"  value={stats.users}      label="Total Users"     change="+12%" />
-            <StatCard color="green" value={stats.liveGames}  label="Live Games"      change="+3"   />
-            <StatCard color="purple"value={`KSh ${stats.merchSales}`} label="Merchandise Sales" change="+8%" />
-            <StatCard color="orange"value={stats.pendingReviews} label="Pending Reviews" change="-2"   />
-          </>
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-40 bg-gray-100 dark:bg-gray-800 animate-pulse rounded-2xl" />
+          ))
         ) : (
           <>
-            <div className="p-6 rounded-xl shadow-lg bg-white text-center">
-              <p className="text-gray-500">No stats available</p>
-            </div>
-            <div className="p-6 rounded-xl shadow-lg bg-white text-center">
-              <p className="text-gray-500">No stats available</p>
-            </div>
-            <div className="p-6 rounded-xl shadow-lg bg-white text-center">
-              <p className="text-gray-500">No stats available</p>
-            </div>
-            <div className="p-6 rounded-xl shadow-lg bg-white text-center">
-              <p className="text-gray-500">No stats available</p>
-            </div>
+            <StatCard icon={FiUsers} color="blue" label="Total Users" value={stats.users || '0'} change="12%" trendingUp />
+            <StatCard icon={FiPlayCircle} color="green" label="Live Matches" value={stats.liveGames || '0'} change="2" trendingUp />
+            <StatCard icon={FiShoppingBag} color="purple" label="Sales (KSh)" value={stats.merchSales || '0'} change="8%" trendingUp />
+            <StatCard icon={FiMessageSquare} color="orange" label="Reviews" value={stats.pendingReviews || '0'} change="5" trendingDown={false} />
           </>
         )}
       </div>
 
-      {/* map */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-gray-900">Live Games Across Kenya</h2>
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" /><span>Live</span>
-            <div className="w-2 h-2 bg-yellow-500 rounded-full ml-4" /><span>Upcoming</span>
+      {/* Main Radar Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-gray-100 dark:border-gray-700 shadow-2xl shadow-black/5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <div>
+            <h2 className="text-3xl font-black dark:text-white tracking-tight">Match Radar</h2>
+            <p className="text-gray-500 dark:text-gray-400 font-medium">Monitoring active tournaments across all regions</p>
+          </div>
+          <div className="flex items-center bg-gray-50 dark:bg-gray-700 p-1.5 rounded-full border border-gray-200 dark:border-gray-600">
+            <span className="flex items-center px-4 py-2 bg-white dark:bg-gray-800 rounded-full text-sm font-bold shadow-sm dark:text-white">
+              <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-ping mr-2.5" />
+              Live Now
+            </span>
           </div>
         </div>
-        {isLoading ? (
-          <div className="h-96 bg-gradient-to-br from-green-100 to-blue-100 rounded-lg flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-pulse">
-                <div className="w-32 h-32 bg-gray-200 rounded-lg mx-auto mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded w-48 mx-auto mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-32 mx-auto"></div>
-              </div>
-            </div>
-          </div>
-        ) : hasLiveGames || hasUpcomingGames ? (
-          <KenyaMap live={live} upcoming={upcoming} onPin={openGame} />
-        ) : (
-          <div className="h-96 bg-gradient-to-br from-green-100 to-blue-100 rounded-lg flex items-center justify-center">
-            <p className="text-gray-600">No games available</p>
-          </div>
-        )}
-        <p className="text-gray-600 mt-4 text-center italic">Click on the pins to view live game details and commentary</p>
+        <KenyaMap live={live} upcoming={upcoming} onPin={openGame} />
       </div>
 
-      {/* bottom grids */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {isLoading ? (
-          <>
-            <div className="lg:col-span-2 bg-white rounded-xl shadow-lg p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Recent User Activity</h3>
-              <ShimmerTable rows={3} />
-            </div>
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Today's Schedule</h3>
-              <ShimmerTable rows={3} />
-            </div>
-          </>
-        ) : (
-          <>
-            {hasRecentUsers ? (
-              <ActivityFeed users={users} />
-            ) : (
-              <div className="lg:col-span-2 bg-white rounded-xl shadow-lg p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Recent User Activity</h3>
-                <div className="text-center py-8">
-                  <p className="text-gray-500">No recent user activity</p>
-                </div>
-              </div>
-            )}
-            {hasUpcomingGames ? (
-              <Schedule upcoming={upcoming} />
-            ) : (
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Today's Schedule</h3>
-                <div className="text-center py-8">
-                  <p className="text-gray-500">No upcoming games</p>
-                </div>
-              </div>
-            )}
-          </>
-        )}
+      {/* Activity and Schedule Swiper */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <ActivityFeed users={users || []} />
+        <Schedule upcoming={upcoming || []} />
       </div>
     </div>
   );

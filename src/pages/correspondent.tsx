@@ -9,6 +9,7 @@ import { GameLiveCommentaryTab } from '@/components/correspondent/GameLiveCommen
 import { ManageLeagueTab } from '@/components/correspondent/ManageLeagueTab';
 import { useClientSideLibs } from '@/utils/clientLibs';
 import { fetchLeagues } from '@/store/correspondentThunk';
+import { FiUser, FiFileText, FiVideo, FiRadio, FiTrophy, FiArrowRight } from 'react-icons/fi';
 
 type TabType = 'profile' | 'excel' | 'video' | 'commentary' | 'league';
 
@@ -25,19 +26,15 @@ export default function CorrespondentDashboardPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Load leagues data asynchronously
         await dispatch(fetchLeagues());
         setDataLoaded(true);
       } catch (error) {
         console.error('Failed to load correspondent data:', error);
-        // Still set dataLoaded to true to show UI even if data loading fails
         setDataLoaded(true);
       }
     };
-
     loadData();
 
-    // Simulate initial loading for dashboard data
     const timer = setTimeout(() => {
       setLoading(false);
     }, 1000);
@@ -49,169 +46,140 @@ export default function CorrespondentDashboardPage() {
     {
       id: 'profile' as TabType,
       name: 'Profile',
-      icon: 'user',
+      icon: FiUser,
+      color: 'blue',
       description: 'Manage your correspondent account'
     },
     {
       id: 'excel' as TabType,
-      name: 'Upload Team Excel',
-      icon: 'file-text',
+      name: 'Team Roster',
+      icon: FiFileText,
+      color: 'green',
       description: 'Upload Excel files with team data'
     },
     {
       id: 'video' as TabType,
-      name: 'Upload Team Video',
-      icon: 'video',
+      name: 'Match Reels',
+      icon: FiVideo,
+      color: 'red',
       description: 'Upload game videos to Google Drive'
     },
     {
       id: 'commentary' as TabType,
-      name: 'Game Live Commentary',
-      icon: 'radio',
+      name: 'Live Booth',
+      icon: FiRadio,
+      color: 'purple',
       description: 'Provide live commentary for games'
     },
     {
       id: 'league' as TabType,
-      name: 'Manage League',
-      icon: 'trophy',
+      name: 'League Manager',
+      icon: FiTrophy,
+      color: 'yellow',
       description: 'Manage leagues, groups, and matches'
     }
   ];
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'profile':
-        return <ProfileTab />;
-      case 'excel':
-        return <UploadTeamExcelTab />;
-      case 'video':
-        return <UploadTeamVideoTab />;
-      case 'commentary':
-        return <GameLiveCommentaryTab />;
-      case 'league':
-        return <ManageLeagueTab />;
-      default:
-        return <ProfileTab />;
+      case 'profile': return <ProfileTab />;
+      case 'excel': return <UploadTeamExcelTab />;
+      case 'video': return <UploadTeamVideoTab />;
+      case 'commentary': return <GameLiveCommentaryTab />;
+      case 'league': return <ManageLeagueTab />;
+      default: return <ProfileTab />;
     }
   };
 
   if (loading || !dataLoaded) {
     return (
       <CorrespondentGuard>
-        <UserHeader />
-
-        {/* ------- HEADER ------- */}
-        <section className="bg-white shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <h1 className="text-3xl font-bold text-gray-900">Correspondent Dashboard</h1>
-            <p className="text-gray-600 mt-2">
-              Welcome back, {user?.displayName || 'Correspondent'}! Manage your sports coverage and content.
-            </p>
-          </div>
-        </section>
-
-        {/* ------- LOADING STATE ------- */}
-        <section className="py-8">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-center py-20">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-4 text-gray-600">
-                  {loading ? 'Loading dashboard...' : 'Loading data...'}
-                </p>
-              </div>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+          <UserHeader />
+          <div className="flex items-center justify-center py-40">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-4 text-gray-500 font-medium">Powering up your workspace...</p>
             </div>
           </div>
-        </section>
+        </div>
       </CorrespondentGuard>
     );
   }
 
   return (
     <CorrespondentGuard>
-      <UserHeader />
-      
-      {/* ------- HEADER ------- */}
-      <section className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold text-gray-900">Correspondent Dashboard</h1>
-          <p className="text-gray-600 mt-2">
-            Welcome back, {user?.displayName || 'Correspondent'}! Manage your sports coverage and content.
-          </p>
-        </div>
-      </section>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-500">
+        <UserHeader />
 
-      {/* ------- MAIN CONTENT ------- */}
-      <section className="py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          {/* Tab Navigation */}
-          <div className="mb-8">
-            <div className="border-b border-gray-200">
-              <nav className="-mb-px flex space-x-8 overflow-x-auto">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
-                      activeTab === tab.id
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+            <div data-aos="fade-right">
+              <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">Reporter Central</h1>
+              <p className="text-gray-500 dark:text-gray-400 font-medium mt-1">
+                Active coverage for <span className="text-blue-600 dark:text-blue-400 underline decoration-blue-500/30 underline-offset-4">{user?.displayName || 'Correspondent'}</span>
+              </p>
+            </div>
+
+            <div className="flex items-center space-x-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-1.5 rounded-[2rem] shadow-xl shadow-black/5 border border-white/20 dark:border-gray-700 overflow-x-auto no-scrollbar">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center space-x-2 px-5 py-3 rounded-[1.5rem] text-sm font-bold transition-all whitespace-nowrap ${activeTab === tab.id
+                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 ring-4 ring-blue-500/10'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-gray-950 dark:hover:text-white'
                     }`}
-                  >
-                    <i data-feather={tab.icon} className="w-4 h-4" />
-                    <span>{tab.name}</span>
-                  </button>
-                ))}
-              </nav>
+                >
+                  <tab.icon className="w-5 h-5" />
+                  <span>{tab.name}</span>
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Tab Content */}
-          <div data-aos="fade-up" key={activeTab}>
+          <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-3xl rounded-[3rem] border border-gray-100/50 dark:border-gray-800/50 p-8 shadow-2xl shadow-black/5 min-h-[500px]" data-aos="zoom-in-up">
             {renderTabContent()}
           </div>
 
-          {/* Quick Actions Cards - Only show on profile tab */}
           {activeTab === 'profile' && (
-            <div className="mt-12">
-              <h3 className="text-xl font-semibold mb-6">Quick Actions</h3>
+            <div className="mt-16 animate-in slide-in-from-bottom duration-700">
+              <div className="flex items-center justify-between mb-8 px-2">
+                <h3 className="text-2xl font-black dark:text-white tracking-tight">Operational Modules</h3>
+                <div className="h-px flex-1 bg-gray-100 dark:bg-gray-800 mx-8" />
+              </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {tabs.slice(1).map((tab, index) => (
-                  <div
+                  <button
                     key={tab.id}
-                    className="bg-white rounded-lg shadow-md p-6 cursor-pointer hover:shadow-lg transition-shadow"
+                    className="group bg-white dark:bg-gray-800 rounded-[2.5rem] p-8 text-left border border-gray-100 dark:border-gray-700 shadow-xl shadow-black/5 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden"
                     data-aos="fade-up"
                     data-aos-delay={index * 100}
                     onClick={() => setActiveTab(tab.id)}
                   >
-                    <div className="flex items-center mb-4">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center mr-4 ${
-                        tab.id === 'excel' ? 'bg-green-100' :
-                        tab.id === 'video' ? 'bg-red-100' :
-                        tab.id === 'commentary' ? 'bg-purple-100' :
-                        'bg-yellow-100'
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-gray-100 to-transparent dark:from-gray-700/30 opacity-0 group-hover:opacity-100 transition-opacity rounded-bl-full" />
+
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 group-hover:rotate-6 ${tab.color === 'green' ? 'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400' :
+                        tab.color === 'red' ? 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
+                          tab.color === 'purple' ? 'bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400' :
+                            'bg-yellow-50 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400'
                       }`}>
-                        <i
-                          data-feather={tab.icon}
-                          className={`w-6 h-6 ${
-                            tab.id === 'excel' ? 'text-green-600' :
-                            tab.id === 'video' ? 'text-red-600' :
-                            tab.id === 'commentary' ? 'text-purple-600' :
-                            'text-yellow-600'
-                          }`}
-                        />
-                      </div>
+                      <tab.icon className="w-7 h-7" />
                     </div>
-                    <h4 className="text-lg font-semibold mb-2">{tab.name}</h4>
-                    <p className="text-gray-600 text-sm">{tab.description}</p>
-                  </div>
+
+                    <h4 className="text-lg font-black dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors uppercase tracking-tight">{tab.name}</h4>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm font-medium mb-6 leading-relaxed">{tab.description}</p>
+
+                    <div className="flex items-center text-xs font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">
+                      Launch Module <FiArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </button>
                 ))}
               </div>
             </div>
           )}
-        </div>
-      </section>
+        </main>
+      </div>
     </CorrespondentGuard>
   );
 }

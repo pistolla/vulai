@@ -16,7 +16,31 @@ export interface Sport {
   };
 }
 
+export interface PlayerStats {
+  gamesPlayed: number;
+  points: number;
+  rebounds?: number;
+  assists?: number;
+  goals?: number;
+  cleanSheets?: number;
+  yellowCards?: number;
+  redCards?: number;
+  manOfTheMatch?: number;
+  performanceHistory: { date: string; score: number }[];
+}
+
+export interface PlayerSocial {
+  followers: number;
+  following: number;
+  badges: { id: string; name: string; icon: string; awardedAt: string }[];
+  rank?: number;
+  level: number;
+  xp: number;
+  nextLevelXp: number;
+}
+
 export interface Player {
+  id: string;
   name: string;
   position: string;
   year: string;
@@ -24,6 +48,10 @@ export interface Player {
   height: string;
   weight: string;
   avatar: string;
+  universityId: string;
+  sportId: string;
+  stats?: PlayerStats;
+  social?: PlayerSocial;
 }
 
 export interface Team {

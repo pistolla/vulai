@@ -124,31 +124,28 @@ export default function ProfilePage() {
               <nav className="flex">
                 <button
                   onClick={() => setActiveTab('profile')}
-                  className={`py-4 px-6 text-sm font-medium ${
-                    activeTab === 'profile'
+                  className={`py-4 px-6 text-sm font-medium ${activeTab === 'profile'
                       ? 'border-b-2 border-blue-500 text-blue-600'
                       : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                    }`}
                 >
                   Profile Settings
                 </button>
                 <button
                   onClick={() => setActiveTab('cart')}
-                  className={`py-4 px-6 text-sm font-medium ${
-                    activeTab === 'cart'
+                  className={`py-4 px-6 text-sm font-medium ${activeTab === 'cart'
                       ? 'border-b-2 border-blue-500 text-blue-600'
                       : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                    }`}
                 >
                   Cart
                 </button>
                 <button
                   onClick={() => setActiveTab('orders')}
-                  className={`py-4 px-6 text-sm font-medium ${
-                    activeTab === 'orders'
+                  className={`py-4 px-6 text-sm font-medium ${activeTab === 'orders'
                       ? 'border-b-2 border-blue-500 text-blue-600'
                       : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                    }`}
                 >
                   Orders
                 </button>
@@ -168,7 +165,7 @@ export default function ProfilePage() {
                         <input
                           type="text"
                           value={profileData.displayName}
-                          onChange={(e) => setProfileData({...profileData, displayName: e.target.value})}
+                          onChange={(e) => setProfileData({ ...profileData, displayName: e.target.value })}
                           className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
@@ -176,7 +173,7 @@ export default function ProfilePage() {
                         <label className="block text-sm font-medium text-gray-700">University</label>
                         <select
                           value={profileData.universityId}
-                          onChange={(e) => setProfileData({...profileData, universityId: e.target.value})}
+                          onChange={(e) => setProfileData({ ...profileData, universityId: e.target.value })}
                           className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                         >
                           <option value="">Select University</option>
@@ -191,7 +188,7 @@ export default function ProfilePage() {
                           <input
                             type="tel"
                             value={profileData.phoneNumber}
-                            onChange={(e) => setProfileData({...profileData, phoneNumber: e.target.value})}
+                            onChange={(e) => setProfileData({ ...profileData, phoneNumber: e.target.value })}
                             className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                             placeholder="+1234567890"
                           />
@@ -213,6 +210,29 @@ export default function ProfilePage() {
                     </form>
                   </div>
 
+                  {/* Player Specific Actions */}
+                  {user.role === 'player' && (
+                    <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-2xl border border-blue-100 dark:border-blue-900/30">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          <div className="p-3 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-500/30">
+                            <FiActivity className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <h4 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">Performance Lab</h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Manage your scouting vitals and athlete statistics</p>
+                          </div>
+                        </div>
+                        <Link href="/profile/edit-stats">
+                          <button className="flex items-center space-x-2 px-6 py-2.5 bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 rounded-xl font-bold text-sm shadow-sm hover:shadow-md transition-all active:scale-95">
+                            <span>Open Stats</span>
+                            <FiChevronRight />
+                          </button>
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Password Management */}
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 mb-4">Change Password</h3>
@@ -222,7 +242,7 @@ export default function ProfilePage() {
                         <input
                           type="password"
                           value={passwordData.currentPassword}
-                          onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                          onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                           className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                           required
                         />
@@ -232,7 +252,7 @@ export default function ProfilePage() {
                         <input
                           type="password"
                           value={passwordData.newPassword}
-                          onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                          onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                           className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                           required
                         />
@@ -242,7 +262,7 @@ export default function ProfilePage() {
                         <input
                           type="password"
                           value={passwordData.confirmPassword}
-                          onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+                          onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                           className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                           required
                         />
@@ -272,11 +292,10 @@ export default function ProfilePage() {
                       </div>
                       <button
                         onClick={handle2FAToggle}
-                        className={`px-4 py-2 rounded-md ${
-                          twoFactorEnabled
+                        className={`px-4 py-2 rounded-md ${twoFactorEnabled
                             ? 'bg-red-600 text-white hover:bg-red-700'
                             : 'bg-green-600 text-white hover:bg-green-700'
-                        }`}
+                          }`}
                       >
                         {twoFactorEnabled ? 'Disable 2FA' : 'Enable 2FA'}
                       </button>
