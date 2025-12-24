@@ -35,7 +35,10 @@ export default function EditPlayerStatsPage() {
                 weight: player.weight || 0,
                 bodyFat: player.bodyFat || 0,
                 bio: player.bio || '',
-                socialLinks: player.socialLinks || { instagram: '', twitter: '' }
+                socialLinks: {
+                    instagram: player.socialLinks?.instagram || '',
+                    twitter: player.socialLinks?.twitter || ''
+                }
             });
         }
     }, [player]);
