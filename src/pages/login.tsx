@@ -105,7 +105,7 @@ export default function LoginPage() {
       {/* ------- LOGIN CARD ------- */}
       <div className="py-8 bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white">
         <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white login-card rounded-lg shadow-xl overflow-hidden" data-aos="zoom-in">
+          <div className="bg-white dark:bg-gray-900 login-card rounded-lg shadow-xl overflow-hidden" data-aos="zoom-in">
             <div className="py-8 px-6 sm:p-10">
               <div className="text-center">
                 <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white">Sign in to your account</h2>

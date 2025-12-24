@@ -101,7 +101,7 @@ export default function RegisterPage() {
       {/* ------- FORM ------- */}
       <section className="py-8 bg-gradient-to-r from-unill-purple-500 to-unill-yellow-500 text-white">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gray-50 rounded-lg shadow-md p-8" data-aos="fade-up">
+          <div className="bg-gray-50 dark:bg-gray-900 rounded-lg shadow-md p-8" data-aos="fade-up">
             <h2 className="text-2xl font-bold text-center mb-8 text-gray-900 dark:text-white">Create Your Account</h2>
 
             {/* Role Selection */}
