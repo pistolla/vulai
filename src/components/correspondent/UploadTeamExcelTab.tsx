@@ -45,53 +45,71 @@ export const UploadTeamExcelTab: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-2xl font-semibold mb-6">Upload Team Excel Data</h2>
-      
-      <div className="mb-6">
-        <h3 className="text-lg font-medium mb-3">Supported File Formats</h3>
-        <div className="flex flex-wrap gap-2">
-          <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">.xlsx</span>
-          <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">.xls</span>
-          <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">.csv</span>
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl shadow-black/5 border border-gray-100 dark:border-gray-700 p-8">
+      <h2 className="text-3xl font-black dark:text-white mb-8">Upload Team Roster</h2>
+
+      <div className="mb-8">
+        <h3 className="text-xl font-bold dark:text-white mb-4">Supported File Formats</h3>
+        <div className="flex flex-wrap gap-3">
+          <span className="px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full text-sm font-bold">.xlsx</span>
+          <span className="px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full text-sm font-bold">.xls</span>
+          <span className="px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full text-sm font-bold">.csv</span>
         </div>
       </div>
 
-      <div className="mb-6">
-        <h3 className="text-lg font-medium mb-3">Expected Data Format</h3>
-        <div className="bg-gray-50 rounded-lg p-4">
-          <p className="text-sm text-gray-600 mb-2">Your Excel file should contain the following columns:</p>
-          <ul className="text-sm text-gray-600 space-y-1">
-            <li>• <strong>Jersey Number</strong> - Player's jersey number</li>
-            <li>• <strong>First Name</strong> - Player's first name</li>
-            <li>• <strong>Last Name</strong> - Player's last name</li>
-            <li>• <strong>Position</strong> - Player's position (optional)</li>
-            <li>• <strong>Year</strong> - Academic year (FR, SO, JR, SR, GR)</li>
+      <div className="mb-8">
+        <h3 className="text-xl font-bold dark:text-white mb-4">Expected Data Format</h3>
+        <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 border border-gray-100 dark:border-gray-600">
+          <p className="text-gray-700 dark:text-gray-300 mb-4 font-medium">Your Excel file should contain the following columns:</p>
+          <ul className="text-gray-600 dark:text-gray-300 space-y-2">
+            <li className="flex items-center">
+              <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+              <strong className="dark:text-white">Jersey Number</strong> - Player's jersey number
+            </li>
+            <li className="flex items-center">
+              <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+              <strong className="dark:text-white">First Name</strong> - Player's first name
+            </li>
+            <li className="flex items-center">
+              <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+              <strong className="dark:text-white">Last Name</strong> - Player's last name
+            </li>
+            <li className="flex items-center">
+              <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+              <strong className="dark:text-white">Position</strong> - Player's position (optional)
+            </li>
+            <li className="flex items-center">
+              <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+              <strong className="dark:text-white">Year</strong> - Academic year (FR, SO, JR, SR, GR)
+            </li>
           </ul>
         </div>
       </div>
 
       <div
-        className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors"
+        className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl p-12 text-center hover:border-blue-400 dark:hover:border-blue-500 transition-colors bg-gray-50 dark:bg-gray-700/50"
         onDragOver={handleDragOver}
         onDrop={handleDrop}
       >
         <div className="flex flex-col items-center">
-          <svg
-            className="w-12 h-12 text-gray-400 mb-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-            />
-          </svg>
-          <p className="text-gray-600 mb-4">
-            Drag and drop your Excel file here, or click to browse
+          <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-6">
+            <svg
+              className="w-8 h-8 text-blue-600 dark:text-blue-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+              />
+            </svg>
+          </div>
+          <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Drop your Excel file here</h4>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
+            Or click to browse your files
           </p>
           <input
             ref={excelRef}
@@ -102,30 +120,22 @@ export const UploadTeamExcelTab: React.FC = () => {
           />
           <button
             onClick={onExcel}
-            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors cursor-pointer"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/30 transition-all active:scale-95"
           >
             Browse Files
           </button>
         </div>
       </div>
 
-      <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+      <div className="mt-8 p-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl">
         <div className="flex">
-          <svg
-            className="w-5 h-5 text-yellow-400 mr-2 mt-0.5"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-              clipRule="evenodd"
-            />
-          </svg>
+          <div className="w-6 h-6 bg-yellow-400 dark:bg-yellow-600 rounded-full flex items-center justify-center mr-3 mt-0.5">
+            <span className="text-yellow-800 dark:text-yellow-200 text-sm">!</span>
+          </div>
           <div>
-            <h4 className="text-sm font-medium text-yellow-800">Important Notes</h4>
-            <p className="text-sm text-yellow-700 mt-1">
-              Make sure your data is properly formatted before uploading. Invalid data may cause upload failures.
+            <h4 className="text-lg font-bold text-yellow-800 dark:text-yellow-200">Important Notes</h4>
+            <p className="text-yellow-700 dark:text-yellow-300 mt-2">
+              Make sure your data is properly formatted before uploading. Invalid data may cause upload failures. Double-check column headers and data types.
             </p>
           </div>
         </div>
