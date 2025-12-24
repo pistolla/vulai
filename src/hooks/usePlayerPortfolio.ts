@@ -15,7 +15,8 @@ export interface Player {
   joinedAt: string;
   kitNumber: number;
   avatar?: string;
-  socials: { instagram?: string; twitter?: string };
+  bio?: string;
+  socialLinks?: { instagram?: string; twitter?: string };
   social?: {
     level?: number;
     xp?: number;
