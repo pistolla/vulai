@@ -54,76 +54,86 @@ export const StageManager: React.FC<{ league: League; group: Group }> = ({ leagu
     };
 
     return (
-      <div className="p-2">
-        <details open={isOpen} onToggle={(e) => setIsOpen(e.currentTarget.open)}>
-          <summary className="cursor-pointer font-medium text-sm">
-            Stages ({stages.length})
-          </summary>
-          <div className="mt-3 space-y-3">
-            <form onSubmit={submit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Stage name"
-                className={`input ${
-                  theme === 'light'
-                    ? 'bg-white/20 border-white/30 text-white placeholder:text-white/70'
-                    : ''
-                }`}
-                disabled={loading}
-                required
-              />
-              <input
-                value={order}
-                onChange={(e) => setOrder(Number(e.target.value))}
-                type="number"
-                placeholder="Order"
-                className={`input ${
-                  theme === 'light'
-                    ? 'bg-white/20 border-white/30 text-white placeholder:text-white/70'
-                    : ''
-                }`}
-                disabled={loading}
-                min="1"
-              />
-              <select
-                value={type}
-                onChange={(e) => setType(e.target.value as StageType)}
-                className={`input ${
-                  theme === 'light'
-                    ? 'bg-white/20 border-white/30 text-white'
-                    : ''
-                }`}
-                disabled={loading}
-              >
-                <option value="knockout">Knockout</option>
-                <option value="round_robin">Round Robin</option>
-              </select>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={loading || !name.trim()}
-              >
-                {loading ? 'Adding...' : 'Add Stage'}
-              </button>
+      <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+        >
+          <h4 className="font-bold text-gray-900 dark:text-white">Stages ({stages.length})</h4>
+          <svg
+            className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        {isOpen && (
+          <div className="mt-4 space-y-4 animate-in slide-in-from-top duration-300">
+            <form onSubmit={submit} className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-600">
+              <h5 className="font-bold text-gray-900 dark:text-white mb-3">Add New Stage</h5>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest mb-1">Stage Name</label>
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Round of 16"
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    disabled={loading}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest mb-1">Order</label>
+                  <input
+                    value={order}
+                    onChange={(e) => setOrder(Number(e.target.value))}
+                    type="number"
+                    placeholder="1"
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+                    disabled={loading}
+                    min="1"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest mb-1">Type</label>
+                  <select
+                    value={type}
+                    onChange={(e) => setType(e.target.value as StageType)}
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+                    disabled={loading}
+                  >
+                    <option value="knockout">Knockout</option>
+                    <option value="round_robin">Round Robin</option>
+                  </select>
+                </div>
+                <div className="flex items-end">
+                  <button
+                    type="submit"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-bold shadow-lg shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-70"
+                    disabled={loading || !name.trim()}
+                  >
+                    {loading ? 'Adding...' : 'Add Stage'}
+                  </button>
+                </div>
+              </div>
             </form>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               {loading && stages.length === 0 ? (
-                <div className="text-center py-4">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mx-auto"></div>
-                  <p className="mt-2 text-xs">Loading stages...</p>
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="mt-3 text-gray-500 dark:text-gray-400 font-medium">Loading stages...</p>
                 </div>
               ) : (
                 stages.map((s: any) => (
-                  <div key={s.id} className={`p-3 rounded flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 ${
-                    theme === 'light'
-                      ? 'bg-white/10'
-                      : 'bg-card-subtle'
-                  }`}>
+                  <div key={s.id} className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-600 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium">{s.name}</div>
-                      <div className="text-sm text-muted">{s.type} • Order {s.order}</div>
+                      <div className="font-bold text-gray-900 dark:text-white">{s.name}</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300">{s.type.replace('_', ' ')} • Order {s.order}</div>
                     </div>
                     <div className="flex-shrink-0">
                       <MatchManager league={league} group={group} stage={s} />
@@ -132,13 +142,15 @@ export const StageManager: React.FC<{ league: League; group: Group }> = ({ leagu
                 ))
               )}
               {stages.length === 0 && !loading && (
-                <div className="text-center py-4 text-muted text-sm">
-                  No stages yet. Add your first stage above.
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <div className="text-3xl mb-2">🏅</div>
+                  <p className="font-medium">No stages yet.</p>
+                  <p className="text-sm">Add your first stage to organize tournament phases.</p>
                 </div>
               )}
             </div>
           </div>
-        </details>
+        )}
       </div>
     );
   };
