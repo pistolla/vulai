@@ -52,6 +52,11 @@ export interface Player {
   sportId: string;
   stats?: PlayerStats;
   social?: PlayerSocial;
+  bio?: string;
+  socialLinks?: {
+    instagram: string;
+    twitter: string;
+  };
 }
 
 export interface Team {
