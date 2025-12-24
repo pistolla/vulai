@@ -3,45 +3,148 @@ import { useState } from "react";
 import { GroupManager } from "./GroupManager";
 import { LeagueForm } from "./LeagueForm";
 import { LeagueList } from "./LeagueList";
+import { StageManager } from "./StageManager";
+import { MatchManager } from "./MatchManager";
 import { useTheme } from "@/components/ThemeProvider";
 
 // --- Top-level Dashboard Component ---
 export const LeagueDashboard: React.FC = () => {
-    const [selected, setSelected] = useState<League | null>(null);
+    const [selectedLeague, setSelectedLeague] = useState<League | null>(null);
+    const [selectedGroup, setSelectedGroup] = useState<any | null>(null);
+    const [currentStep, setCurrentStep] = useState<'leagues' | 'groups' | 'stages'>('leagues');
     const { theme } = useTheme();
 
-    return (
-        <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
-          {/* Mobile: Stack vertically */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="col-span-1 space-y-6">
-              <LeagueForm onCreate={(l) => setSelected(l)} />
-              <LeagueList onSelect={(l) => setSelected(l)} />
+    const steps = [
+      { id: 'leagues', label: 'Leagues', icon: '🏆' },
+      { id: 'groups', label: 'Groups', icon: '👥' },
+      { id: 'stages', label: 'Stages & Matches', icon: '🏅' }
+    ];
+
+    const canAccessStep = (step: string) => {
+      if (step === 'leagues') return true;
+      if (step === 'groups') return !!selectedLeague;
+      if (step === 'stages') return !!selectedGroup;
+      return false;
+    };
+
+    const renderStepContent = () => {
+      switch (currentStep) {
+        case 'leagues':
+          return (
+            <div className="space-y-6">
+              <LeagueForm onCreate={(l) => { setSelectedLeague(l); setCurrentStep('groups'); }} />
+              <LeagueList onSelect={(l) => { setSelectedLeague(l); setCurrentStep('groups'); }} />
             </div>
-  
-            <div className="col-span-1 lg:col-span-2 space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div>
-                  <GroupManager league={selected} />
-                </div>
-                <div>
-                  {selected && <div className="space-y-6">
-                    {/* Show selected league summary */}
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl shadow-black/5 border border-gray-100 dark:border-gray-700">
-                      <h3 className="text-xl font-black dark:text-white mb-2">{selected.name}</h3>
-                      <p className="text-gray-600 dark:text-gray-300 mb-4">{selected.description}</p>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Type:</span>
-                        <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full text-sm font-bold">{selected.sportType}</span>
-                      </div>
-                    </div>
-                  </div>}
+          );
+        case 'groups':
+          return selectedLeague ? (
+            <div className="space-y-6">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl shadow-black/5 border border-gray-100 dark:border-gray-700">
+                <h3 className="text-xl font-black dark:text-white mb-2">{selectedLeague.name}</h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">{selectedLeague.description}</p>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Type:</span>
+                  <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full text-sm font-bold">{selectedLeague.sportType}</span>
                 </div>
               </div>
-  
-              {/* optional: a global points/leaderboard area could go here when group is chosen */}
+              <GroupManager
+                league={selectedLeague}
+                onGroupSelect={(group) => { setSelectedGroup(group); setCurrentStep('stages'); }}
+              />
+            </div>
+          ) : null;
+        case 'stages':
+          return selectedGroup ? (
+            <div className="space-y-6">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl shadow-black/5 border border-gray-100 dark:border-gray-700">
+                <h3 className="text-xl font-black dark:text-white mb-2">{selectedGroup.name}</h3>
+                <p className="text-gray-600 dark:text-gray-300">Manage stages and matches for this group</p>
+              </div>
+              <StageManager league={selectedLeague!} group={selectedGroup!} />
+            </div>
+          ) : null;
+        default:
+          return null;
+      }
+    };
+
+    return (
+      <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
+        {/* Step Navigation */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-black dark:text-white">League Management Wizard</h2>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              Step {steps.findIndex(s => s.id === currentStep) + 1} of {steps.length}
             </div>
           </div>
+          <div className="flex items-center space-x-2">
+            {steps.map((step, index) => {
+              const isActive = step.id === currentStep;
+              const isCompleted = steps.findIndex(s => s.id === currentStep) > index;
+              const isAccessible = canAccessStep(step.id);
+
+              return (
+                <div key={step.id} className="flex items-center">
+                  <button
+                    onClick={() => isAccessible && setCurrentStep(step.id as any)}
+                    disabled={!isAccessible}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                      isActive
+                        ? 'bg-blue-600 text-white shadow-lg'
+                        : isCompleted
+                        ? 'bg-green-600 text-white'
+                        : isAccessible
+                        ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <span>{step.icon}</span>
+                    <span className="hidden sm:inline">{step.label}</span>
+                  </button>
+                  {index < steps.length - 1 && (
+                    <div className={`w-8 h-0.5 ${isCompleted ? 'bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
-      );
+
+        {/* Step Content */}
+        <div className="min-h-[400px]">
+          {renderStepContent()}
+        </div>
+
+        {/* Navigation Buttons */}
+        <div className="flex justify-between mt-8">
+          <button
+            onClick={() => {
+              const currentIndex = steps.findIndex(s => s.id === currentStep);
+              if (currentIndex > 0) {
+                const prevStep = steps[currentIndex - 1].id as any;
+                if (canAccessStep(prevStep)) setCurrentStep(prevStep);
+              }
+            }}
+            disabled={currentStep === 'leagues'}
+            className="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => {
+              const currentIndex = steps.findIndex(s => s.id === currentStep);
+              if (currentIndex < steps.length - 1) {
+                const nextStep = steps[currentIndex + 1].id as any;
+                if (canAccessStep(nextStep)) setCurrentStep(nextStep);
+              }
+            }}
+            disabled={!canAccessStep(steps[steps.findIndex(s => s.id === currentStep) + 1]?.id)}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    );
   };

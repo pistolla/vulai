@@ -9,7 +9,7 @@ import { StageManager } from "./StageManager";
 import { useTheme } from "@/components/ThemeProvider";
 
 // --- GroupManager ---
-export const GroupManager: React.FC<{ league: League | null }> = ({ league }) => {
+export const GroupManager: React.FC<{ league: League | null; onGroupSelect?: (group: any) => void }> = ({ league, onGroupSelect }) => {
     const dispatch = useAppDispatch();
     const groups = useAppSelector((s: RootState) => (league ? s.correspondent.groups[league.id!] ?? [] : []));
     const { theme } = useTheme();
@@ -85,13 +85,13 @@ export const GroupManager: React.FC<{ league: League | null }> = ({ league }) =>
             ) : (
               <ul className="space-y-3">
                 {groups.map((g) => (
-                  <li key={g.id} className="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                  <li key={g.id} className="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer" onClick={() => onGroupSelect?.(g)}>
                     <div className="flex-1 min-w-0">
                       <div className="font-bold text-gray-900 dark:text-white">{g.name}</div>
                       <div className="text-sm text-gray-600 dark:text-gray-300">{g.description || 'No description'}</div>
                     </div>
                     <div className="flex-shrink-0">
-                      <StageManager league={league} group={g} />
+                      <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">Select Group →</div>
                     </div>
                   </li>
                 ))}
