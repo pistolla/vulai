@@ -302,7 +302,7 @@ export default function RegisterPage() {
 
             {/* Verification Section */}
             {showVerification && (
-              <div className="mt-8 p-6 bg-green-50 border border-green-200 rounded-md">
+              <div className="mt-8 p-6 bg-gray-50 dark:bg-gray-900 border border-green-200 rounded-md">
                 <h3 className="text-lg font-semibold text-green-800 mb-2">Check Your Email</h3>
                 <p className="text-green-700 mb-4">
                   Registration successful! Please check your email and click the verification link to complete your account setup. You can then log in.

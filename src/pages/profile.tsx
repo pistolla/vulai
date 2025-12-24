@@ -118,9 +118,9 @@ export default function ProfilePage() {
   return (
     <FanGuard>
       <UserHeader />
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
             {/* Tab Navigation */}
             <div className="border-b border-gray-200">
               <nav className="flex">
@@ -160,10 +160,10 @@ export default function ProfilePage() {
                 <div className="space-y-8">
                   {/* Profile Information */}
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Profile Information</h3>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Profile Information</h3>
                     <form onSubmit={handleProfileUpdate} className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">Display Name</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Display Name</label>
                         <input
                           type="text"
                           value={profileData.displayName}
@@ -172,7 +172,7 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">University</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">University</label>
                         <select
                           value={profileData.universityId}
                           onChange={(e) => setProfileData({ ...profileData, universityId: e.target.value })}
@@ -185,7 +185,7 @@ export default function ProfilePage() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">Phone Number</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone Number</label>
                         <div className="flex space-x-2">
                           <input
                             type="tel"
@@ -237,10 +237,10 @@ export default function ProfilePage() {
 
                   {/* Password Management */}
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Change Password</h3>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Change Password</h3>
                     <form onSubmit={handlePasswordChange} className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">Current Password</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Current Password</label>
                         <input
                           type="password"
                           value={passwordData.currentPassword}
@@ -250,7 +250,7 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">New Password</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">New Password</label>
                         <input
                           type="password"
                           value={passwordData.newPassword}
@@ -260,7 +260,7 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">Confirm New Password</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirm New Password</label>
                         <input
                           type="password"
                           value={passwordData.confirmPassword}
@@ -280,14 +280,14 @@ export default function ProfilePage() {
 
                   {/* Two-Factor Authentication */}
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Two-Factor Authentication</h3>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Two-Factor Authentication</h3>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
                           {twoFactorEnabled ? '2FA is enabled' : '2FA is disabled'}
                         </p>
                         {twoFactorEnabled && twoFactorSecret && (
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             Secret: {twoFactorSecret}
                           </p>
                         )}
