@@ -106,7 +106,7 @@ export default function RegisterPage() {
 
             {/* Role Selection */}
             <div className="mb-8">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-700 mb-4">Account Type</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Account Type</label>
               <div className="grid md:grid-cols-2 gap-4">
                 <RoleCard
                   icon="user"
@@ -128,7 +128,7 @@ export default function RegisterPage() {
             <form className="space-y-6" onSubmit={onSubmit}>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-700 mb-2">First Name</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">First Name</label>
                   <input
                     type="text"
                     value={firstName}
@@ -139,7 +139,7 @@ export default function RegisterPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-700 mb-2">Last Name</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Last Name</label>
                   <input
                     type="text"
                     value={lastName}
@@ -152,7 +152,7 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-700 mb-2">Email Address</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Address</label>
                 <input
                   type="email"
                   value={email}
@@ -164,7 +164,7 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-700 mb-2">University</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">University</label>
                 <Select
                   value={university}
                   onChange={setUniversity}
@@ -215,7 +215,7 @@ export default function RegisterPage() {
 
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-700 mb-2">Password</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
@@ -244,7 +244,7 @@ export default function RegisterPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-700 mb-2">Confirm Password</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Confirm Password</label>
                   <div className="relative">
                     <input
                       type={showConfirmPassword ? "text" : "password"}
@@ -283,7 +283,7 @@ export default function RegisterPage() {
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   required
                 />
-                <label htmlFor="terms" className="ml-2 block text-sm text-gray-700 dark:text-gray-700">
+                <label htmlFor="terms" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
                   I agree to the <a href="#" className="text-blue-600 hover:text-blue-500">Terms of Service</a> and <a href="#" className="text-blue-600 hover:text-blue-500">Privacy Policy</a>
                 </label>
               </div>
@@ -358,8 +358,8 @@ function RoleCard({
       }`}
     >
       <i data-feather={icon} className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-      <h3 className="font-semibold text-gray-600">{title}</h3>
-      <p className="text-sm text-gray-600">{desc}</p>
+      <h3 className="font-semibold text-gray-600 dark:text-gray-300">{title}</h3>
+      <p className="text-sm text-gray-600 dark:text-gray-300">{desc}</p>
     </div>
   );
 }
