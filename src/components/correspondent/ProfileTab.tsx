@@ -25,12 +25,12 @@ export const ProfileTab: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-2xl font-semibold mb-6">Profile Management</h2>
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+      <h2 className="text-2xl font-semibold mb-6 dark:text-white">Profile Management</h2>
       <form className="space-y-4" onSubmit={handleSubmit}>
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               First Name
             </label>
             <input
@@ -42,7 +42,7 @@ export const ProfileTab: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Last Name
             </label>
             <input
@@ -55,7 +55,7 @@ export const ProfileTab: React.FC = () => {
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Email
           </label>
           <input
@@ -67,7 +67,7 @@ export const ProfileTab: React.FC = () => {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             University ID
           </label>
           <input
@@ -79,7 +79,7 @@ export const ProfileTab: React.FC = () => {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Phone Number
           </label>
           <input
@@ -97,7 +97,7 @@ export const ProfileTab: React.FC = () => {
             onChange={e => onProfileChange('twoFactorEnabled', e.target.checked.toString())}
             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
           />
-          <label htmlFor="twoFactor" className="ml-2 block text-sm text-gray-700">
+          <label htmlFor="twoFactor" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
             Enable Two-Factor Authentication
           </label>
         </div>
