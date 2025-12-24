@@ -16,33 +16,25 @@ export const LeagueList: React.FC<{ onSelect?: (league: League) => void }> = ({ 
     }, [dispatch]);
 
     return (
-      <div className={`p-4 rounded-lg shadow-sm ${
-        theme === 'light'
-          ? 'bg-white/10 backdrop-blur-md border border-white/20'
-          : 'bg-card'
-      }`}>
-        <h3 className="text-lg font-semibold mb-2">Leagues</h3>
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl shadow-black/5 border border-gray-100 dark:border-gray-700">
+        <h3 className="text-xl font-black dark:text-white mb-4">Your Leagues</h3>
         {loading ? (
-          <div className="text-center py-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-sm">Loading leagues...</p>
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-500 dark:text-gray-400 font-medium">Loading leagues...</p>
           </div>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-3">
             {leagues.map((l: League) => (
-              <li key={l.id} className={`flex justify-between items-center p-3 rounded transition-colors ${
-                theme === 'light'
-                  ? 'hover:bg-white/20'
-                  : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-              }`}>
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate">{l.name}</div>
-                  <div className="text-sm text-muted truncate">{l.sportType} • {l.description}</div>
-                </div>
-                <div className="ml-2 flex-shrink-0">
+              <li key={l.id} className="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors group">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-gray-900 dark:text-white truncate mb-1">{l.name}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300 truncate">{l.sportType} • {l.description}</div>
+                  </div>
                   <button
                     onClick={() => onSelect?.(l)}
-                    className="btn btn-ghost text-sm px-3 py-1"
+                    className="ml-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-sm hover:shadow-md transition-all active:scale-95"
                   >
                     Open
                   </button>
@@ -50,8 +42,10 @@ export const LeagueList: React.FC<{ onSelect?: (league: League) => void }> = ({ 
               </li>
             ))}
             {leagues.length === 0 && (
-              <li className="text-center py-8 text-muted">
-                No leagues found. Create your first league above.
+              <li className="text-center py-12 text-gray-500 dark:text-gray-400">
+                <div className="text-4xl mb-2">🏆</div>
+                <p className="font-medium">No leagues found.</p>
+                <p className="text-sm">Create your first league above to get started.</p>
               </li>
             )}
           </ul>

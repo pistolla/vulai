@@ -34,59 +34,51 @@ export const LeagueForm: React.FC<{ onCreate?: (l: League) => void }> = ({ onCre
     };
 
     return (
-      <form onSubmit={submit} className={`p-4 rounded-lg shadow-sm ${
-        theme === 'light'
-          ? 'bg-white/10 backdrop-blur-md border border-white/20'
-          : 'bg-card'
-      }`}>
-        <h3 className="text-lg font-semibold mb-2">Create League</h3>
-        <div className="grid gap-2">
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="League name"
-            className={`input ${
-              theme === 'light'
-                ? 'bg-white/20 border-white/30 text-white placeholder:text-white/70'
-                : ''
-            }`}
-            disabled={creating}
-            required
-          />
-          <select
-            value={sportType}
-            onChange={(e) => setSportType(e.target.value as SportType)}
-            className={`input ${
-              theme === 'light'
-                ? 'bg-white/20 border-white/30 text-white'
-                : ''
-            }`}
-            disabled={creating}
-          >
-            <option value="team">Team sport</option>
-            <option value="individual">Individual sport</option>
-          </select>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Description (optional)"
-            className={`input ${
-              theme === 'light'
-                ? 'bg-white/20 border-white/30 text-white placeholder:text-white/70'
-                : ''
-            }`}
-            disabled={creating}
-          />
-          <div className="flex gap-2">
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={creating || !name.trim()}
-            >
-              {creating ? 'Creating...' : 'Create'}
-            </button>
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl shadow-black/5 border border-gray-100 dark:border-gray-700">
+        <h3 className="text-xl font-black dark:text-white mb-4">Create League</h3>
+        <form onSubmit={submit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">League Name</label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter league name"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              disabled={creating}
+              required
+            />
           </div>
-        </div>
-      </form>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sport Type</label>
+            <select
+              value={sportType}
+              onChange={(e) => setSportType(e.target.value as SportType)}
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 dark:text-white"
+              disabled={creating}
+            >
+              <option value="team">Team Sport</option>
+              <option value="individual">Individual Sport</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Optional description"
+              rows={3}
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none"
+              disabled={creating}
+            />
+          </div>
+          <button
+            type="submit"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-xl font-bold shadow-lg shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-70"
+            disabled={creating || !name.trim()}
+          >
+            {creating ? 'Creating League...' : 'Create League'}
+          </button>
+        </form>
+      </div>
     );
   };

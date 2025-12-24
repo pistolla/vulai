@@ -54,51 +54,41 @@ export const GroupManager: React.FC<{ league: League | null }> = ({ league }) =>
     };
 
     return (
-      <div className={`p-4 rounded-lg shadow-sm ${
-        theme === 'light'
-          ? 'bg-white/10 backdrop-blur-md border border-white/20'
-          : 'bg-card'
-      }`}>
-        <h3 className="text-lg font-semibold mb-2">Groups for {league?.name ?? '—'}</h3>
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl shadow-black/5 border border-gray-100 dark:border-gray-700">
+        <h3 className="text-xl font-black dark:text-white mb-4">Groups for {league?.name ?? '—'}</h3>
         {league ? (
           <>
-            <form onSubmit={submit} className="flex flex-col sm:flex-row gap-2 mb-3">
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Group name"
-                className={`input flex-1 ${
-                  theme === 'light'
-                    ? 'bg-white/20 border-white/30 text-white placeholder:text-white/70'
-                    : ''
-                }`}
-                disabled={loading}
-              />
-              <button
-                type="submit"
-                className="btn btn-primary whitespace-nowrap"
-                disabled={loading || !name.trim()}
-              >
-                {loading ? 'Adding...' : 'Add Group'}
-              </button>
+            <form onSubmit={submit} className="mb-6">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Enter group name"
+                  className="flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  disabled={loading}
+                />
+                <button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-70 whitespace-nowrap"
+                  disabled={loading || !name.trim()}
+                >
+                  {loading ? 'Adding...' : 'Add Group'}
+                </button>
+              </div>
             </form>
 
             {loading && groups.length === 0 ? (
-              <div className="text-center py-4">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-2 text-sm">Loading groups...</p>
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-4 text-gray-500 dark:text-gray-400 font-medium">Loading groups...</p>
               </div>
             ) : (
-              <ul className="space-y-2">
+              <ul className="space-y-3">
                 {groups.map((g) => (
-                  <li key={g.id} className={`p-3 rounded flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 ${
-                    theme === 'light'
-                      ? 'bg-white/10'
-                      : 'bg-card-subtle'
-                  }`}>
+                  <li key={g.id} className="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium">{g.name}</div>
-                      <div className="text-sm text-muted">{g.description}</div>
+                      <div className="font-bold text-gray-900 dark:text-white">{g.name}</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300">{g.description || 'No description'}</div>
                     </div>
                     <div className="flex-shrink-0">
                       <StageManager league={league} group={g} />
@@ -106,16 +96,20 @@ export const GroupManager: React.FC<{ league: League | null }> = ({ league }) =>
                   </li>
                 ))}
                 {groups.length === 0 && !loading && (
-                  <li className="text-center py-4 text-muted">
-                    No groups yet. Add your first group above.
+                  <li className="text-center py-12 text-gray-500 dark:text-gray-400">
+                    <div className="text-4xl mb-2">👥</div>
+                    <p className="font-medium">No groups yet.</p>
+                    <p className="text-sm">Add your first group above to organize matches.</p>
                   </li>
                 )}
               </ul>
             )}
           </>
         ) : (
-          <div className="text-center py-8 text-muted">
-            Select a league first to manage groups
+          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+            <div className="text-4xl mb-2">🏆</div>
+            <p className="font-medium">Select a league first</p>
+            <p className="text-sm">Choose a league to manage its groups and stages.</p>
           </div>
         )}
       </div>
