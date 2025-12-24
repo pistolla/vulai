@@ -14,7 +14,19 @@ export interface Player {
   injuryNote: string;
   joinedAt: string;
   kitNumber: number;
+  avatar?: string;
   socials: { instagram?: string; twitter?: string };
+  social?: {
+    level?: number;
+    xp?: number;
+    nextLevelXp?: number;
+    followers?: string;
+    badges?: { id: string; name: string; icon: string }[];
+  };
+  stats?: {
+    gamesPlayed?: number;
+    points?: number;
+  };
 }
 
 export const usePlayerPortfolio = (playerId: string) => {

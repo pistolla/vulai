@@ -3,7 +3,7 @@
 import { useEffect, useState, FormEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/router';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
-import { login, loginGoogle, loginFacebook, loginTwitter } from '@/services/firebase'; // thin Promise wrappers
+import { login, loginGoogle, loginFacebook, loginTwitter, getAuthErrorMessage } from '@/services/firebase'; // thin Promise wrappers
 import { setUser } from '@/store/slices/authSlice';
 import { useClientSideLibs } from '@/utils/clientLibs';
 
@@ -51,7 +51,7 @@ export default function LoginPage() {
         default: router.replace('/login');
       }
     } catch (err: any) {
-      setError(err.message || 'Login failed');
+      setError(getAuthErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -74,7 +74,7 @@ export default function LoginPage() {
         default: router.replace('/login');
       }
     } catch (err: any) {
-      setError(err.message || 'Social login failed');
+      setError(getAuthErrorMessage(err));
     } finally {
       setLoading(false);
     }

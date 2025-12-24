@@ -118,6 +118,12 @@ export const resetPassword = async (email: string): Promise<void> => {
   await sendPasswordResetEmail(auth, email);
 };
 
+export const resendVerificationEmail = async (): Promise<void> => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('No authenticated user');
+  await sendEmailVerification(user);
+};
+
 export const signOut = async () => {
   try {
     await fbSignOut(auth);
@@ -240,4 +246,159 @@ export const disable2FA = async () => {
     twoFactorEnabled: false,
     twoFactorSecret: null
   });
+};
+
+/* ---------- Error Handling ---------- */
+export const getAuthErrorMessage = (error: any): string => {
+  const code = error.code;
+  switch (code) {
+    case 'auth/invalid-email':
+      return 'The email address is not valid.';
+    case 'auth/user-disabled':
+      return 'This user account has been disabled.';
+    case 'auth/user-not-found':
+      return 'No user found with this email address.';
+    case 'auth/wrong-password':
+      return 'Incorrect password.';
+    case 'auth/email-already-in-use':
+      return 'An account with this email already exists.';
+    case 'auth/weak-password':
+      return 'Password is too weak. Please choose a stronger password.';
+    case 'auth/operation-not-allowed':
+      return 'This operation is not allowed.';
+    case 'auth/account-exists-with-different-credential':
+      return 'An account already exists with the same email but different sign-in credentials.';
+    case 'auth/invalid-credential':
+      return 'The credential is invalid or has expired.';
+    case 'auth/credential-already-in-use':
+      return 'This credential is already associated with a different user account.';
+    case 'auth/invalid-verification-code':
+      return 'The verification code is invalid.';
+    case 'auth/invalid-verification-id':
+      return 'The verification ID is invalid.';
+    case 'auth/missing-verification-code':
+      return 'Please enter the verification code.';
+    case 'auth/code-expired':
+      return 'The verification code has expired.';
+    case 'auth/expired-action-code':
+      return 'The action code has expired.';
+    case 'auth/invalid-action-code':
+      return 'The action code is invalid.';
+    case 'auth/user-token-expired':
+      return 'The user\'s token has expired.';
+    case 'auth/user-token-revoked':
+      return 'The user\'s token has been revoked.';
+    case 'auth/invalid-user-token':
+      return 'The user\'s token is invalid.';
+    case 'auth/requires-recent-login':
+      return 'This operation requires recent authentication. Please log in again.';
+    case 'auth/provider-already-linked':
+      return 'The account is already linked to another provider.';
+    case 'auth/no-such-provider':
+      return 'No such provider.';
+    case 'auth/invalid-continue-uri':
+      return 'The continue URL is invalid.';
+    case 'auth/missing-continue-uri':
+      return 'A continue URL must be provided.';
+    case 'auth/unauthorized-continue-uri':
+      return 'The continue URL is not authorized.';
+    case 'auth/network-request-failed':
+      return 'A network error occurred. Please check your connection.';
+    case 'auth/too-many-requests':
+      return 'Too many requests. Please try again later.';
+    case 'auth/captcha-check-failed':
+      return 'The reCAPTCHA check failed.';
+    case 'auth/web-storage-unsupported':
+      return 'Web storage is not supported or is disabled.';
+    case 'auth/app-deleted':
+      return 'The Firebase app has been deleted.';
+    case 'auth/app-not-authorized':
+      return 'The app is not authorized to use Firebase Authentication.';
+    case 'auth/argument-error':
+      return 'An invalid argument was provided.';
+    case 'auth/invalid-api-key':
+      return 'The API key is invalid.';
+    case 'auth/invalid-app-credential':
+      return 'The app credential is invalid.';
+    case 'auth/invalid-app-id':
+      return 'The app ID is invalid.';
+    case 'auth/invalid-auth-event':
+      return 'An invalid authentication event occurred.';
+    case 'auth/invalid-cert-hash':
+      return 'The certificate hash is invalid.';
+    case 'auth/invalid-custom-token':
+      return 'The custom token is invalid.';
+    case 'auth/invalid-dynamic-link-domain':
+      return 'The dynamic link domain is invalid.';
+    case 'auth/invalid-persistence-type':
+      return 'The persistence type is invalid.';
+    case 'auth/unsupported-persistence-type':
+      return 'The persistence type is not supported.';
+    case 'auth/missing-android-pkg-name':
+      return 'An Android package name must be provided.';
+    case 'auth/missing-ios-bundle-id':
+      return 'An iOS bundle ID must be provided.';
+    case 'auth/invalid-cordova-configuration':
+      return 'The Cordova configuration is invalid.';
+    case 'auth/missing-app-credential':
+      return 'The app credential is missing.';
+    case 'auth/invalid-app-name':
+      return 'The app name is invalid.';
+    case 'auth/invalid-client-id':
+      return 'The client ID is invalid.';
+    case 'auth/invalid-client-type':
+      return 'The client type is invalid.';
+    case 'auth/invalid-continue-uri':
+      return 'The continue URL is invalid.';
+    case 'auth/missing-continue-uri':
+      return 'A continue URL must be provided.';
+    case 'auth/unauthorized-continue-uri':
+      return 'The continue URL is not authorized.';
+    case 'auth/missing-iframe-start':
+      return 'The iframe start is missing.';
+    case 'auth/missing-iframe-src':
+      return 'The iframe src is missing.';
+    case 'auth/missing-iframe-opener':
+      return 'The iframe opener is missing.';
+    case 'auth/invalid-message-payload':
+      return 'The message payload is invalid.';
+    case 'auth/missing-message-payload':
+      return 'The message payload is missing.';
+    case 'auth/missing-phone-number':
+      return 'A phone number must be provided.';
+    case 'auth/invalid-phone-number':
+      return 'The phone number is invalid.';
+    case 'auth/missing-verification-code':
+      return 'Please enter the verification code.';
+    case 'auth/invalid-verification-code':
+      return 'The verification code is invalid.';
+    case 'auth/missing-verification-id':
+      return 'The verification ID is missing.';
+    case 'auth/invalid-verification-id':
+      return 'The verification ID is invalid.';
+    case 'auth/missing-app-token':
+      return 'The app token is missing.';
+    case 'auth/invalid-app-token':
+      return 'The app token is invalid.';
+    case 'auth/missing-recaptcha-token':
+      return 'The reCAPTCHA token is missing.';
+    case 'auth/invalid-recaptcha-token':
+      return 'The reCAPTCHA token is invalid.';
+    case 'auth/invalid-recaptcha-action':
+      return 'The reCAPTCHA action is invalid.';
+    case 'auth/missing-client-type':
+      return 'The client type is missing.';
+    case 'auth/missing-recaptcha-version':
+      return 'The reCAPTCHA version is missing.';
+    case 'auth/invalid-recaptcha-version':
+      return 'The reCAPTCHA version is invalid.';
+    case 'auth/invalid-req-type':
+      return 'The request type is invalid.';
+    case 'auth/missing-password':
+      return 'A password must be provided.';
+    case 'auth/missing-email':
+      return 'An email address must be provided.';
+    default:
+      return error.message || 'An unknown error occurred.';
+  }
 };

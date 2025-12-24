@@ -9,7 +9,7 @@ import { GameLiveCommentaryTab } from '@/components/correspondent/GameLiveCommen
 import { ManageLeagueTab } from '@/components/correspondent/ManageLeagueTab';
 import { useClientSideLibs } from '@/utils/clientLibs';
 import { fetchLeagues } from '@/store/correspondentThunk';
-import { FiUser, FiFileText, FiVideo, FiRadio, FiTrophy, FiArrowRight } from 'react-icons/fi';
+import { FiUser, FiFileText, FiVideo, FiRadio, FiAward, FiArrowRight } from 'react-icons/fi';
 
 type TabType = 'profile' | 'excel' | 'video' | 'commentary' | 'league';
 
@@ -74,7 +74,7 @@ export default function CorrespondentDashboardPage() {
     {
       id: 'league' as TabType,
       name: 'League Manager',
-      icon: FiTrophy,
+      icon: FiAward,
       color: 'yellow',
       description: 'Manage leagues, groups, and matches'
     }

@@ -3,7 +3,7 @@
 import { useEffect, useState, FormEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/router';
 import { useAppDispatch } from '@/hooks/redux';
-import { register, fetchUniversities } from '@/services/firebase'; // thin Promise-based helper we built earlier
+import { register, fetchUniversities, getAuthErrorMessage, resendVerificationEmail } from '@/services/firebase'; // thin Promise-based helper we built earlier
 import { useClientSideLibs } from '@/utils/clientLibs';
 import Select from 'react-select';
 
@@ -27,6 +27,8 @@ export default function RegisterPage() {
   const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState('');
   const [success,   setSuccess]   = useState('');
+  const [showVerification, setShowVerification] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
   const [universities, setUniversities] = useState<{value: string, label: string}[]>([]);
 
   /* ---------- init animations ---------- */
@@ -59,11 +61,24 @@ export default function RegisterPage() {
           universityId: university?.value, // we store this in Firestore
         }
       );
-      setSuccess('Registration successful! Please check your email and click the verification link to complete your account setup. You can then log in.');
+      setShowVerification(true);
     } catch (err: any) {
-      setError(err.message || 'Registration failed');
+      setError(getAuthErrorMessage(err));
     } finally {
       setLoading(false);
+    }
+  };
+
+  /* ---------- resend verification ---------- */
+  const onResendVerification = async () => {
+    setResendLoading(true);
+    try {
+      await resendVerificationEmail();
+      setSuccess('Verification email sent! Please check your inbox.');
+    } catch (err: any) {
+      setError(getAuthErrorMessage(err));
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -284,6 +299,23 @@ export default function RegisterPage() {
                 {loading ? 'Creating Account…' : 'Create Account'}
               </button>
             </form>
+
+            {/* Verification Section */}
+            {showVerification && (
+              <div className="mt-8 p-6 bg-green-50 border border-green-200 rounded-md">
+                <h3 className="text-lg font-semibold text-green-800 mb-2">Check Your Email</h3>
+                <p className="text-green-700 mb-4">
+                  Registration successful! Please check your email and click the verification link to complete your account setup. You can then log in.
+                </p>
+                <button
+                  onClick={onResendVerification}
+                  disabled={resendLoading}
+                  className="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-70"
+                >
+                  {resendLoading ? 'Sending…' : 'Resend Verification Email'}
+                </button>
+              </div>
+            )}
 
             <div className="mt-6 text-center">
               <p className="text-gray-600 dark:text-gray-400">

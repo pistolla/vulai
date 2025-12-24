@@ -10,7 +10,7 @@ import { usePlayerGallery } from '@/hooks/usePlayerGallery';
 import { usePlayerTrophies } from '@/hooks/usePlayerTrophies';
 import { useTrainingLogs } from '@/hooks/useTrainingLogs';
 import { updatePlayerVitals, uploadPlayerImage, addPlayerTrophy, addTrainingLog } from '@/store/playerThunk';
-import { FiCamera, FiTrophy, FiActivity, FiEdit, FiShare2, FiStar, FiChevronRight, FiTrendingUp } from 'react-icons/fi';
+import { FiCamera, FiAward, FiActivity, FiEdit, FiShare2, FiStar, FiChevronRight, FiTrendingUp } from 'react-icons/fi';
 import { useClientSideLibs } from '@/utils/clientLibs';
 
 /* ---------------------------------
@@ -60,7 +60,7 @@ export default function PlayerPage() {
     dispatch(uploadPlayerImage({ playerId, file, caption: 'Action Shot' })).finally(() => setUploading(false));
   };
 
-  const levelProgress = player?.social ? (player.social.xp / player.social.nextLevelXp) * 100 : 65;
+  const levelProgress = player?.social?.xp !== undefined && player?.social?.nextLevelXp !== undefined && player.social.nextLevelXp > 0 ? (player.social.xp / player.social.nextLevelXp) * 100 : 65;
 
   if (!player) {
     return (
@@ -206,7 +206,7 @@ export default function PlayerPage() {
             <div className="bg-white/5 p-10 rounded-[3rem] border border-white/10">
               <div className="flex justify-between items-center mb-10">
                 <h3 className="text-xl font-black uppercase tracking-tight">Achievements</h3>
-                <FiTrophy className="text-yellow-500 w-6 h-6" />
+                <FiAward className="text-yellow-500 w-6 h-6" />
               </div>
               <div className="grid grid-cols-4 gap-4">
                 {player.social?.badges?.map((b: any) => (
