@@ -354,7 +354,7 @@ function RoleCard({
     <div
       onClick={onClick}
       className={`border-2 rounded-lg p-4 text-center cursor-pointer transition-colors ${
-        selected ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-500'
+        selected ? 'border-blue-500 bg-blue-100' : 'border-gray-300 hover:border-blue-500'
       }`}
     >
       <i data-feather={icon} className="w-8 h-8 text-gray-400 mx-auto mb-2" />
