@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { updateProfile, updatePassword, updatePhoneNumber, enable2FA, disable2FA } from '@/services/firebase';
 import { fetchUniversities } from '@/services/firebase';
 import { University } from '@/models';
 import FanGuard from '@/guards/FanGuard';
 import UserHeader from '@/components/UserHeader';
+import { FiActivity, FiChevronRight } from 'react-icons/fi';
 import dynamic from 'next/dynamic';
 
 // Dynamically import components to avoid SSR issues
@@ -211,7 +213,7 @@ export default function ProfilePage() {
                   </div>
 
                   {/* Player Specific Actions */}
-                  {user.role === 'player' && (
+                  {user.role === 'fan' && (
                     <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-2xl border border-blue-100 dark:border-blue-900/30">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
