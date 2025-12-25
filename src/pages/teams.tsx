@@ -287,7 +287,7 @@ const TeamsPage: React.FC = () => {
           <div className="mb-6">
             <div className="flex flex-wrap gap-3 justify-center">
               <button
-                className={`px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all ${
+                className={`px-4 py-2 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 hover:bg-gray-200' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20'} transition-all ${
                   selectedUniversity === 'all' ? 'ring-2 ring-unill-yellow-400' : ''
                 }`}
                 onClick={() => setSelectedUniversity('all')}
@@ -297,7 +297,7 @@ const TeamsPage: React.FC = () => {
               {universities && universities.map((university) => (
                 <button
                   key={university.id}
-                  className={`px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all ${
+                  className={`px-4 py-2 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 hover:bg-gray-200' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20'} transition-all ${
                     selectedUniversity === university.id ? 'ring-2 ring-unill-yellow-400' : ''
                   }`}
                   onClick={() => setSelectedUniversity(university.id)}
@@ -316,7 +316,7 @@ const TeamsPage: React.FC = () => {
                 placeholder="Search teams by name, sport, coach, or league..."
                 value={teamSearchQuery}
                 onChange={(e) => setTeamSearchQuery(e.target.value)}
-                className="w-full px-4 py-3 pl-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-unill-yellow-400 focus:border-transparent"
+                className={`w-full px-4 py-3 pl-12 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 placeholder-gray-500' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-gray-300'} focus:outline-none focus:ring-2 focus:ring-unill-yellow-400 focus:border-transparent`}
               />
               <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -420,40 +420,40 @@ const TeamsPage: React.FC = () => {
             <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
               {/* Position Filter */}
               <div className="flex flex-wrap gap-3">
-                <button 
-                  className={`filter-btn active px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all ${
+                <button
+                  className={`filter-btn active px-4 py-2 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 hover:bg-gray-200' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20'} transition-all ${
                     positionFilter === 'all' ? 'active' : ''
                   }`}
                   onClick={() => setPositionFilter('all')}
                 >
                   All Positions
                 </button>
-                <button 
-                  className={`filter-btn px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all ${
+                <button
+                  className={`filter-btn px-4 py-2 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 hover:bg-gray-200' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20'} transition-all ${
                     positionFilter === 'quarterback' ? 'active' : ''
                   }`}
                   onClick={() => setPositionFilter('quarterback')}
                 >
                   Quarterback
                 </button>
-                <button 
-                  className={`filter-btn px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all ${
+                <button
+                  className={`filter-btn px-4 py-2 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 hover:bg-gray-200' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20'} transition-all ${
                     positionFilter === 'running-back' ? 'active' : ''
                   }`}
                   onClick={() => setPositionFilter('running-back')}
                 >
                   Running Back
                 </button>
-                <button 
-                  className={`filter-btn px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all ${
+                <button
+                  className={`filter-btn px-4 py-2 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 hover:bg-gray-200' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20'} transition-all ${
                     positionFilter === 'wide-receiver' ? 'active' : ''
                   }`}
                   onClick={() => setPositionFilter('wide-receiver')}
                 >
                   Wide Receiver
                 </button>
-                <button 
-                  className={`filter-btn px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all ${
+                <button
+                  className={`filter-btn px-4 py-2 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 hover:bg-gray-200' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20'} transition-all ${
                     positionFilter === 'defensive' ? 'active' : ''
                   }`}
                   onClick={() => setPositionFilter('defensive')}
@@ -469,7 +469,7 @@ const TeamsPage: React.FC = () => {
                   placeholder="Search players..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-4 py-2 pl-10 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-unill-yellow-400 focus:border-transparent"
+                  className={`w-full px-4 py-2 pl-10 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 placeholder-gray-500' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-gray-300'} focus:outline-none focus:ring-2 focus:ring-unill-yellow-400 focus:border-transparent`}
                 />
                 <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />

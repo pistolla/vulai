@@ -104,6 +104,21 @@ export const updateUniversity = async (id: string, data: Partial<University>) =>
 export const deleteUniversity = async (id: string) =>
   deleteDoc(doc(db, 'universities', id));
 
+/* ---------- teams ---------- */
+export const loadTeams = async (): Promise<Team[]> => {
+  const snap = await getDocs(collection(db, 'teams'));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() } as Team));
+};
+
+export const addTeam = async (team: Omit<Team, 'id'>) =>
+  addDoc(collection(db, 'teams'), { ...team, createdAt: serverTimestamp() });
+
+export const updateTeam = async (id: string, data: Partial<Team>) =>
+  updateDoc(doc(db, 'teams', id), data);
+
+export const deleteTeam = async (id: string) =>
+  deleteDoc(doc(db, 'teams', id));
+
 /* ---------- games ---------- */
 export const loadGames = async () => {
   const fixSnap = await getDocs(collection(db, 'fixtures'));

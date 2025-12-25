@@ -4,20 +4,18 @@ import { apiService } from '@/services/apiService';
 // Modal Component
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen px-4 bg-black bg-opacity-50 dark:bg-opacity-70">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-          <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">{title}</h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:text-gray-700 dark:hover:text-gray-100">
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <div className="p-6">
-            {children}
-          </div>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-950/80 backdrop-blur-md animate-in fade-in duration-300">
+      <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-300">
+        <div className="flex justify-between items-center p-8 border-b border-gray-100 dark:border-gray-800">
+          <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">{title}</h3>
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500">
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="p-8">
+          {children}
         </div>
       </div>
     </div>
@@ -27,24 +25,25 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
 // Team Form Component
 function TeamForm({ formData, setFormData, onSubmit, submitLabel }: any) {
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Team Name</label>
+          <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Team Name</label>
           <input
             type="text"
             required
             value={formData.name}
             onChange={(e) => setFormData({...formData, name: e.target.value})}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold"
+            placeholder="e.g. Eagles FC"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Sport</label>
+          <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Sport</label>
           <select
             value={formData.sport}
             onChange={(e) => setFormData({...formData, sport: e.target.value})}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold appearance-none"
           >
             <option value="football">Football</option>
             <option value="basketball">Basketball</option>
@@ -54,55 +53,55 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel }: any) {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">University</label>
+          <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">University</label>
           <input
             type="text"
             value={formData.university}
             onChange={(e) => setFormData({...formData, university: e.target.value})}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold"
+            placeholder="e.g. UNILL-001"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Coach</label>
+          <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Coach</label>
           <input
             type="text"
             value={formData.coach}
             onChange={(e) => setFormData({...formData, coach: e.target.value})}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold"
+            placeholder="e.g. John Smith"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Founded Year</label>
+          <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Founded Year</label>
           <input
             type="number"
             value={formData.founded}
             onChange={(e) => setFormData({...formData, founded: e.target.value})}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold"
+            placeholder="e.g. 2020"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">League</label>
+          <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">League</label>
           <input
             type="text"
             value={formData.league}
             onChange={(e) => setFormData({...formData, league: e.target.value})}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold"
+            placeholder="e.g. Premier League"
           />
         </div>
       </div>
-      <div className="flex justify-end space-x-3 pt-4">
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
-        >
-          {submitLabel}
-        </button>
+      <div className="flex space-x-4 pt-4">
+        <button type="button" className="flex-1 py-4 text-sm font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">Cancel</button>
+        <button type="submit" className="flex-[2] py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black shadow-lg shadow-blue-500/30 transition-all active:scale-95">{submitLabel}</button>
       </div>
     </form>
   );
 }
 
-export default function TeamsTab({ adminData }: any) {
+export default function TeamsTab({ adminData, create, update, deleteU }: any) {
   const [teams, setTeams] = useState<any[]>([]);
   const [universities, setUniversities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -182,34 +181,34 @@ export default function TeamsTab({ adminData }: any) {
   }, []);
 
   const handleAddTeam = async () => {
-    try {
-      // This would need to be implemented in the API service
-      alert('Add team functionality would be implemented here');
-      setNewTeam({ name: '', sport: 'football', university: '', coach: '', founded: '', league: '' });
-      setShowAddModal(false);
-    } catch (error) {
-      alert('Failed to add team: ' + (error as Error).message);
-    }
+    await create({
+      name: newTeam.name,
+      sport: newTeam.sport,
+      universityId: newTeam.university,
+      coach: newTeam.coach,
+      foundedYear: newTeam.founded ? parseInt(newTeam.founded) : undefined,
+      league: newTeam.league,
+    });
+    resetNewTeam();
+    setShowAddModal(false);
   };
 
   const handleEditTeam = async () => {
-    try {
-      // This would need to be implemented in the API service
-      alert('Edit team functionality would be implemented here');
-      setEditingTeam(null);
-    } catch (error) {
-      alert('Failed to edit team: ' + (error as Error).message);
-    }
+    await update(editingTeam.id, {
+      name: editingTeam.name,
+      sport: editingTeam.sport,
+      universityId: editingTeam.university,
+      coach: editingTeam.coach,
+      foundedYear: editingTeam.founded,
+      league: editingTeam.league,
+    });
+    setEditingTeam(null);
+    setShowEditModal(false);
   };
 
   const handleDeleteTeam = async (id: string) => {
     if (confirm('Are you sure you want to delete this team?')) {
-      try {
-        // This would need to be implemented in the API service
-        alert('Delete team functionality would be implemented here');
-      } catch (error) {
-        alert('Failed to delete team: ' + (error as Error).message);
-      }
+      await deleteU(id);
     }
   };
 
