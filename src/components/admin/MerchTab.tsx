@@ -228,30 +228,14 @@ export default function MerchTab({ items, create, remove, adminData }: any) {
   const isLoading = reduxLoading.merch;
 
   return (
-    <div id="content-merchandise" className="slide-in-left">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
-        <div><h2 className="text-2xl font-bold text-gray-900">Merchandise Management</h2><p className="text-gray-600">Create team themes, designs, and manage merchandise.</p></div>
-        <button onClick={() => setShowAddModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"><svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>Add Merchandise</button>
-      </div>
+    <>
+      <div id="content-merchandise" className="slide-in-left">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
+          <div><h2 className="text-2xl font-bold text-gray-900">Merchandise Management</h2><p className="text-gray-600">Create team themes, designs, and manage merchandise.</p></div>
+          <button onClick={() => setShowAddModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"><svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>Add Merchandise</button>
+        </div>
 
-      {/* Add Merchandise Modal */}
-      {showAddModal && (
-        <Modal title="Add New Merchandise" onClose={() => { setShowAddModal(false); resetNewItem(); }}>
-          <MerchandiseForm
-            formData={newItem}
-            setFormData={setNewItem}
-            universities={universities}
-            teams={teams}
-            selectedUniversity={selectedUniversity}
-            setSelectedUniversity={setSelectedUniversity}
-            selectedTeam={selectedTeam}
-            setSelectedTeam={setSelectedTeam}
-            onSubmit={handleAddMerch}
-            submitLabel="Add Merchandise"
-          />
-        </Modal>
-      )}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoading ? (
           <>
             <ShimmerCard />
@@ -275,5 +259,24 @@ export default function MerchTab({ items, create, remove, adminData }: any) {
         )}
       </div>
     </div>
+
+    {/* Add Merchandise Modal */}
+    {showAddModal && (
+      <Modal title="Add New Merchandise" onClose={() => { setShowAddModal(false); resetNewItem(); }}>
+          <MerchandiseForm
+            formData={newItem}
+            setFormData={setNewItem}
+            universities={universities}
+            teams={teams}
+            selectedUniversity={selectedUniversity}
+            setSelectedUniversity={setSelectedUniversity}
+            selectedTeam={selectedTeam}
+            setSelectedTeam={setSelectedTeam}
+            onSubmit={handleAddMerch}
+            submitLabel="Add Merchandise"
+          />
+      </Modal>
+    )}
+  </>
   );
 }

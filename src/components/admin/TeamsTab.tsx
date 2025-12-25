@@ -234,37 +234,14 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
   };
 
   return (
-    <div id="content-teams" className="slide-in-left">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
-        <div><h2 className="text-2xl font-bold text-gray-900">Teams Management</h2><p className="text-gray-600">Manage teams and their players.</p></div>
-        <button onClick={() => setShowAddModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"><svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>Add Team</button>
-      </div>
+    <>
+      <div id="content-teams" className="slide-in-left">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
+          <div><h2 className="text-2xl font-bold text-gray-900">Teams Management</h2><p className="text-gray-600">Manage teams and their players.</p></div>
+          <button onClick={() => setShowAddModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"><svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>Add Team</button>
+        </div>
 
-      {/* Add Team Modal */}
-      {showAddModal && (
-        <Modal title="Add New Team" onClose={() => { setShowAddModal(false); resetNewTeam(); }}>
-          <TeamForm
-            formData={newTeam}
-            setFormData={setNewTeam}
-            onSubmit={handleAddTeam}
-            submitLabel="Add Team"
-          />
-        </Modal>
-      )}
-
-      {/* Edit Team Modal */}
-      {showEditModal && editingTeam && (
-        <Modal title="Edit Team" onClose={() => { setShowEditModal(false); setEditingTeam(null); }}>
-          <TeamForm
-            formData={editingTeam}
-            setFormData={setEditingTeam}
-            onSubmit={handleEditTeam}
-            submitLabel="Update Team"
-          />
-        </Modal>
-      )}
-
-      {showPlayersModal && selectedTeam && (
+        {showPlayersModal && selectedTeam && (
         <div className="bg-gray-50 p-4 rounded-lg mb-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold">Players for {selectedTeam.name}</h3>
@@ -397,5 +374,30 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
         )}
       </div>
     </div>
+
+    {/* Add Team Modal */}
+    {showAddModal && (
+      <Modal title="Add New Team" onClose={() => { setShowAddModal(false); resetNewTeam(); }}>
+          <TeamForm
+            formData={newTeam}
+            setFormData={setNewTeam}
+            onSubmit={handleAddTeam}
+            submitLabel="Add Team"
+          />
+      </Modal>
+    )}
+
+    {/* Edit Team Modal */}
+    {showEditModal && editingTeam && (
+      <Modal title="Edit Team" onClose={() => { setShowEditModal(false); setEditingTeam(null); }}>
+          <TeamForm
+            formData={editingTeam}
+            setFormData={setEditingTeam}
+            onSubmit={handleEditTeam}
+            submitLabel="Update Team"
+          />
+      </Modal>
+    )}
+  </>
   );
 }

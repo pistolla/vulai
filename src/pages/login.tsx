@@ -132,7 +132,7 @@ export default function LoginPage() {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="py-3 px-4 block w-full pl-10 shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md text-gray-700 dark:text-white"
+                        className="py-3 px-4 block w-full pl-10 shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-white"
                         placeholder="Email address"
                       />
                     </div>
@@ -153,7 +153,7 @@ export default function LoginPage() {
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="py-3 px-4 block w-full pl-10 pr-10 shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md text-gray-700 dark:text-white"
+                        className="py-3 px-4 block w-full pl-10 pr-10 shadow-sm focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md bg-white dark:bg-gray-800 text-gray-700 dark:text-white"
                         placeholder="Password"
                       />
                       <div className="absolute inset-y-0 right-0 pr-3 flex items-center">

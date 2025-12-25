@@ -4,9 +4,9 @@ import { apiService } from '@/services/apiService';
 // Modal Component
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-[100] overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 bg-black bg-opacity-50 dark:bg-opacity-70">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
           <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">{title}</h3>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:text-gray-700 dark:hover:text-gray-100">
@@ -176,37 +176,14 @@ export default function UniversitiesTab({ adminData, create, update, deleteU }: 
   };
 
   return (
-    <div id="content-universities" className="slide-in-left">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
-        <div><h2 className="text-2xl font-bold text-gray-900">Universities Management</h2><p className="text-gray-600">Manage university information and details.</p></div>
-        <button onClick={() => setShowAddModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"><svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>Add University</button>
-      </div>
+    <>
+      <div id="content-universities" className="slide-in-left">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
+          <div><h2 className="text-2xl font-bold text-gray-900">Universities Management</h2><p className="text-gray-600">Manage university information and details.</p></div>
+          <button onClick={() => setShowAddModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"><svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>Add University</button>
+        </div>
 
-      {/* Add University Modal */}
-      {showAddModal && (
-        <Modal title="Add New University" onClose={() => { setShowAddModal(false); resetNewUniversity(); }}>
-          <UniversityForm
-            formData={newUniversity}
-            setFormData={setNewUniversity}
-            onSubmit={handleAddUniversity}
-            submitLabel="Add University"
-          />
-        </Modal>
-      )}
-
-      {/* Edit University Modal */}
-      {showEditModal && editingUniversity && (
-        <Modal title="Edit University" onClose={() => { setShowEditModal(false); setEditingUniversity(null); }}>
-          <UniversityForm
-            formData={editingUniversity}
-            setFormData={setEditingUniversity}
-            onSubmit={handleEditUniversity}
-            submitLabel="Update University"
-          />
-        </Modal>
-      )}
-
-      <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="bg-white rounded-xl shadow-lg p-6">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
@@ -247,5 +224,30 @@ export default function UniversitiesTab({ adminData, create, update, deleteU }: 
         )}
       </div>
     </div>
+
+    {/* Add University Modal */}
+    {showAddModal && (
+      <Modal title="Add New University" onClose={() => { setShowAddModal(false); resetNewUniversity(); }}>
+          <UniversityForm
+            formData={newUniversity}
+            setFormData={setNewUniversity}
+            onSubmit={handleAddUniversity}
+            submitLabel="Add University"
+          />
+      </Modal>
+    )}
+
+    {/* Edit University Modal */}
+    {showEditModal && editingUniversity && (
+      <Modal title="Edit University" onClose={() => { setShowEditModal(false); setEditingUniversity(null); }}>
+          <UniversityForm
+            formData={editingUniversity}
+            setFormData={setEditingUniversity}
+            onSubmit={handleEditUniversity}
+            submitLabel="Update University"
+          />
+      </Modal>
+    )}
+  </>
   );
 }
