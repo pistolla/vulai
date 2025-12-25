@@ -1,9 +1,11 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import { University } from '@/models';
 import {
   loadAdminDashboard, loadUsers, approveUser, deleteUserDoc,
   loadMerch, addMerch, updateMerch, deleteMerch,
   loadReviews, approveReview, rejectReview,
   loadGames, updateFixtureScore, startGame, endGame,
+  loadUniversities, addUniversity, updateUniversity, deleteUniversity,
 } from '@/services/firestoreAdmin';
 
 /* ---------- dashboard ---------- */
@@ -24,6 +26,12 @@ export const removeMerchT   = createAsyncThunk('merch/delete', deleteMerch);
 export const fetchReviews   = createAsyncThunk('review/fetch', loadReviews);
 export const approveReviewT = createAsyncThunk('review/approve', approveReview);
 export const rejectReviewT  = createAsyncThunk('review/reject',  rejectReview);
+
+/* ---------- universities ---------- */
+export const fetchUniversities = createAsyncThunk('universities/fetch', loadUniversities);
+export const createUniversityT = createAsyncThunk('universities/create', addUniversity);
+export const saveUniversityT   = createAsyncThunk('universities/save', ({ id, data }: { id: string; data: Partial<University> }) => updateUniversity(id, data));
+export const removeUniversityT = createAsyncThunk('universities/delete', deleteUniversity);
 
 /* ---------- games ---------- */
 export const fetchGames     = createAsyncThunk('games/fetch', loadGames);

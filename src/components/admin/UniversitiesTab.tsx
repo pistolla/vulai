@@ -89,7 +89,7 @@ function UniversityForm({ formData, setFormData, onSubmit, submitLabel }: any) {
   );
 }
 
-export default function UniversitiesTab({ adminData }: any) {
+export default function UniversitiesTab({ adminData, create, update, deleteU }: any) {
   const [universities, setUniversities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -146,34 +146,32 @@ export default function UniversitiesTab({ adminData }: any) {
   }, []);
 
   const handleAddUniversity = async () => {
-    try {
-      // This would need to be implemented in the API service
-      alert('Add university functionality would be implemented here');
-      resetNewUniversity();
-      setShowAddModal(false);
-    } catch (error) {
-      alert('Failed to add university: ' + (error as Error).message);
-    }
+    await create({
+      name: newUniversity.name,
+      location: newUniversity.location,
+      established: newUniversity.established ? parseInt(newUniversity.established) : undefined,
+      website: newUniversity.website,
+      description: newUniversity.description,
+    });
+    resetNewUniversity();
+    setShowAddModal(false);
   };
 
   const handleEditUniversity = async () => {
-    try {
-      // This would need to be implemented in the API service
-      alert('Edit university functionality would be implemented here');
-      setEditingUniversity(null);
-    } catch (error) {
-      alert('Failed to edit university: ' + (error as Error).message);
-    }
+    await update(editingUniversity.id, {
+      name: editingUniversity.name,
+      location: editingUniversity.location,
+      established: editingUniversity.established,
+      website: editingUniversity.website,
+      description: editingUniversity.description,
+    });
+    setEditingUniversity(null);
+    setShowEditModal(false);
   };
 
   const handleDeleteUniversity = async (id: string) => {
     if (confirm('Are you sure you want to delete this university?')) {
-      try {
-        // This would need to be implemented in the API service
-        alert('Delete university functionality would be implemented here');
-      } catch (error) {
-        alert('Failed to delete university: ' + (error as Error).message);
-      }
+      await deleteU(id);
     }
   };
 

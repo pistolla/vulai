@@ -137,7 +137,7 @@ function ShimmerCard() {
   );
 }
 
-export default function MerchTab({ items, remove, adminData }: any) {
+export default function MerchTab({ items, create, remove, adminData }: any) {
   const { loading: reduxLoading } = useAppSelector(s => s.admin);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedUniversity, setSelectedUniversity] = useState('');
@@ -192,23 +192,18 @@ export default function MerchTab({ items, remove, adminData }: any) {
   const filteredTeams = teams.filter(team => !selectedUniversity || team.university === selectedUniversity);
 
   const handleAddMerch = async () => {
-    try {
-      await apiService.createMerchandise({
-        name: newItem.name,
-        description: newItem.description,
-        price: parseFloat(newItem.price),
-        image: newItem.image || '/images/default-merch.jpg',
-        university: newItem.university,
-        team: newItem.team
-      });
-      alert('Merchandise added successfully!');
-      setNewItem({ name: '', description: '', price: '', image: '', university: '', team: '' });
-      setSelectedUniversity('');
-      setSelectedTeam('');
-      setShowAddModal(false);
-    } catch (error) {
-      alert('Failed to add merchandise: ' + (error as Error).message);
-    }
+    await create({
+      name: newItem.name,
+      description: newItem.description,
+      price: parseFloat(newItem.price),
+      image: newItem.image || '/images/default-merch.jpg',
+      university: newItem.university,
+      team: newItem.team
+    });
+    setNewItem({ name: '', description: '', price: '', image: '', university: '', team: '' });
+    setSelectedUniversity('');
+    setSelectedTeam('');
+    setShowAddModal(false);
   };
 
   const resetNewItem = () => {

@@ -89,6 +89,21 @@ export const approveReview = async (id: string) =>
 export const rejectReview  = async (id: string) =>
   updateDoc(doc(db, 'reviews', id), { status: 'rejected', reviewedAt: serverTimestamp() });
 
+/* ---------- universities ---------- */
+export const loadUniversities = async (): Promise<University[]> => {
+  const snap = await getDocs(collection(db, 'universities'));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() } as University));
+};
+
+export const addUniversity = async (uni: Omit<University, 'id'>) =>
+  addDoc(collection(db, 'universities'), { ...uni, createdAt: serverTimestamp() });
+
+export const updateUniversity = async (id: string, data: Partial<University>) =>
+  updateDoc(doc(db, 'universities', id), data);
+
+export const deleteUniversity = async (id: string) =>
+  deleteDoc(doc(db, 'universities', id));
+
 /* ---------- games ---------- */
 export const loadGames = async () => {
   const fixSnap = await getDocs(collection(db, 'fixtures'));

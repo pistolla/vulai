@@ -21,6 +21,7 @@ import {
   fetchMerch,
   fetchReviews,
   fetchGames,
+  fetchUniversities,
   approveUserT,
   deleteUserT,
   createMerchT,
@@ -30,6 +31,9 @@ import {
   updateScoreT,
   startGameT,
   endGameT,
+  createUniversityT,
+  saveUniversityT,
+  removeUniversityT,
 } from '@/store/adminThunk';
 
 export default function AdminDashboardPage() {
@@ -72,6 +76,7 @@ export default function AdminDashboardPage() {
     dispatch(fetchMerch());
     dispatch(fetchReviews());
     dispatch(fetchGames());
+    dispatch(fetchUniversities());
   }, []);
 
   /* ---------- Async CRUD handlers ---------- */
@@ -155,7 +160,34 @@ export default function AdminDashboardPage() {
       showNotification('Failed to end game', 'error');
     }
   };
-
+  
+  const createUniversity = async (uni: any) => {
+    try {
+      await dispatch(createUniversityT(uni)).unwrap();
+      showNotification('University created successfully', 'success');
+    } catch {
+      showNotification('Failed to create university', 'error');
+    }
+  };
+  
+  const updateUniversity = async (id: string, data: any) => {
+    try {
+      await dispatch(saveUniversityT({ id, data })).unwrap();
+      showNotification('University updated successfully', 'success');
+    } catch {
+      showNotification('Failed to update university', 'error');
+    }
+  };
+  
+  const deleteUniversity = async (id: string) => {
+    try {
+      await dispatch(removeUniversityT(id)).unwrap();
+      showNotification('University deleted successfully', 'success');
+    } catch {
+      showNotification('Failed to delete university', 'error');
+    }
+  };
+  
   const open = (k: keyof typeof modals, v: any = true) => setModals(p => ({ ...p, [k]: v }));
   const close = (k: keyof typeof modals) => setModals(p => ({ ...p, [k]: k === 'gameDetails' ? null : false }));
 
@@ -175,7 +207,7 @@ export default function AdminDashboardPage() {
     switch (activeTab) {
       case 'dashboard': return <DashboardTab stats={stats} live={live} users={users} upcoming={upcoming} openGame={(g: any) => open('gameDetails', g)} adminData={adminData} />;
       case 'users': return <UsersTab rows={users} approve={approveUser} deleteU={deleteUser} openAdd={() => open('addUser')} adminData={adminData} />;
-      case 'universities': return <UniversitiesTab adminData={adminData} />;
+      case 'universities': return <UniversitiesTab adminData={adminData} create={createUniversity} update={updateUniversity} deleteU={deleteUniversity} />;
       case 'teams': return <TeamsTab adminData={adminData} />;
       case 'players': return <PlayersTab adminData={adminData} />;
       case 'sports': return <SportsTab adminData={adminData} />;

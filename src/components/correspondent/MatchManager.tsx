@@ -1,6 +1,7 @@
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { League, Group, Stage, Participant, Match } from "@/models";
 import { firebaseLeagueService } from "@/services/firebaseCorrespondence";
+import { apiService } from "@/services/apiService";
 import { RootState } from "@/store";
 import { createMatch } from "@/store/correspondentThunk";
 import { setMatches } from "@/store/slices/correspondentSlice";
@@ -23,6 +24,7 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
     const [pRefType, setPRefType] = useState<'team' | 'individual'>(league.sportType === 'team' ? 'team' : 'individual');
     const [isLoading, setIsLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
+    const [teams, setTeams] = useState<any[]>([]);
 
     useEffect(() => {
       (async () => {
@@ -39,6 +41,17 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
       })();
     }, [league.id, group.id, stage.id, dispatch]);
 
+    useEffect(() => {
+      (async () => {
+        try {
+          const allTeams = await apiService.getTeams();
+          setTeams(allTeams);
+        } catch (error) {
+          console.error('Failed to load teams:', error);
+        }
+      })();
+    }, []);
+
     const addParticipant = () => {
       if (!pRefId.trim()) return alert('Participant reference ID is required');
 
@@ -47,14 +60,17 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
         return alert('Participant already added');
       }
 
-      setParticipants((s) => [...s, { refType: pRefType, refId: pRefId.trim(), name: pName.trim() || pRefId.trim(), score: 0 }]);
+      const selectedTeam = pRefType === 'team' ? teams.find(t => t.id === pRefId) : null;
+      const name = selectedTeam ? selectedTeam.name : (pName.trim() || pRefId.trim());
+
+      setParticipants((s) => [...s, { refType: pRefType, refId: pRefId.trim(), name, score: 0 }]);
       setPRefId('');
       setPName('');
     };
 
     const submit = async (e?: React.FormEvent) => {
       e?.preventDefault();
-      if (!participants.length) return alert('Add at least one participant');
+      if (participants.length < 2) return alert('Add at least two participants');
 
       try {
         setIsLoading(true);
@@ -137,13 +153,25 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
               <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg mb-4">
                 <h6 className="font-bold text-gray-900 dark:text-white mb-2">Add Participants</h6>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  <input
-                    value={pRefId}
-                    onChange={(e) => setPRefId(e.target.value)}
-                    placeholder="Participant ID"
-                    className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                    disabled={isLoading}
-                  />
+                  {pRefType === 'team' ? (
+                    <select
+                      value={pRefId}
+                      onChange={(e) => setPRefId(e.target.value)}
+                      className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+                      disabled={isLoading}
+                    >
+                      <option value="">Select Team</option>
+                      {teams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
+                    </select>
+                  ) : (
+                    <input
+                      value={pRefId}
+                      onChange={(e) => setPRefId(e.target.value)}
+                      placeholder="Participant ID"
+                      className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                      disabled={isLoading}
+                    />
+                  )}
                   <input
                     value={pName}
                     onChange={(e) => setPName(e.target.value)}
@@ -200,7 +228,7 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
 
               <button
                 type="submit"
-                disabled={isLoading || participants.length === 0}
+                disabled={isLoading || participants.length < 2}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-bold shadow-lg shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-70"
               >
                 {isLoading ? 'Creating Match...' : 'Create Match'}
