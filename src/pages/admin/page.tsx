@@ -38,6 +38,9 @@ import {
   createTeamT,
   saveTeamT,
   removeTeamT,
+  addPlayerToTeamT,
+  updatePlayerInTeamT,
+  deletePlayerFromTeamT,
 } from '@/store/adminThunk';
 
 export default function AdminDashboardPage() {
@@ -221,6 +224,33 @@ export default function AdminDashboardPage() {
       showNotification('Failed to delete team', 'error');
     }
   };
+
+  const addPlayerToTeam = async (teamId: string, player: any) => {
+    try {
+      await dispatch(addPlayerToTeamT({ teamId, player })).unwrap();
+      showNotification('Player added successfully', 'success');
+    } catch {
+      showNotification('Failed to add player', 'error');
+    }
+  };
+
+  const updatePlayerInTeam = async (teamId: string, playerId: string, playerData: any) => {
+    try {
+      await dispatch(updatePlayerInTeamT({ teamId, playerId, playerData })).unwrap();
+      showNotification('Player updated successfully', 'success');
+    } catch {
+      showNotification('Failed to update player', 'error');
+    }
+  };
+
+  const deletePlayerFromTeam = async (teamId: string, playerId: string) => {
+    try {
+      await dispatch(deletePlayerFromTeamT({ teamId, playerId })).unwrap();
+      showNotification('Player deleted successfully', 'success');
+    } catch {
+      showNotification('Failed to delete player', 'error');
+    }
+  };
   
   const open = (k: keyof typeof modals, v: any = true) => setModals(p => ({ ...p, [k]: v }));
   const close = (k: keyof typeof modals) => setModals(p => ({ ...p, [k]: k === 'gameDetails' ? null : false }));
@@ -242,7 +272,7 @@ export default function AdminDashboardPage() {
       case 'dashboard': return <DashboardTab stats={stats} live={live} users={users} upcoming={upcoming} openGame={(g: any) => open('gameDetails', g)} adminData={adminData} />;
       case 'users': return <UsersTab rows={users} approve={approveUser} deleteU={deleteUser} openAdd={() => open('addUser')} adminData={adminData} />;
       case 'universities': return <UniversitiesTab adminData={adminData} create={createUniversity} update={updateUniversity} deleteU={deleteUniversity} />;
-      case 'teams': return <TeamsTab adminData={adminData} create={createTeam} update={updateTeam} deleteU={deleteTeam} />;
+      case 'teams': return <TeamsTab adminData={adminData} create={createTeam} update={updateTeam} deleteU={deleteTeam} addPlayer={addPlayerToTeam} updatePlayer={updatePlayerInTeam} deletePlayer={deletePlayerFromTeam} />;
       case 'players': return <PlayersTab adminData={adminData} />;
       case 'sports': return <SportsTab adminData={adminData} />;
       case 'merchandise': return <MerchTab items={merch} create={createMerch} remove={removeMerch} adminData={adminData} />;

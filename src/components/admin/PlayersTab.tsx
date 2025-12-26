@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchPlayers, createPlayerT, savePlayerT, removePlayerT, addPlayerHighlightT } from '@/store/adminThunk';
+import { RootState } from '@/store';
 
 interface Player {
   id: string;
@@ -30,8 +33,11 @@ interface PlayersTabProps {
 }
 
 export default function PlayersTab({ adminData }: PlayersTabProps) {
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const { players, loading } = useSelector((state: RootState) => ({
+    players: state.admin.players,
+    loading: state.admin.loading.players,
+  }));
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showHighlightsModal, setShowHighlightsModal] = useState(false);
@@ -58,54 +64,13 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
     highlights: ''
   });
 
-  // Sample data - in real app this would come from Firebase
-  const samplePlayers: Player[] = [
-    {
-      id: '1',
-      name: 'Jake Morrison',
-      position: 'Quarterback',
-      year: 'Senior',
-      number: '12',
-      height: '6\'2"',
-      weight: '210 lbs',
-      team: 'Eagles',
-      university: 'University of Nairobi',
-      avatar: 'JM'
-    },
-    {
-      id: '2',
-      name: 'Marcus Johnson',
-      position: 'Running Back',
-      year: 'Junior',
-      number: '23',
-      height: '5\'11"',
-      weight: '195 lbs',
-      team: 'Titans',
-      university: 'Kenyatta University',
-      avatar: 'MJ'
-    }
-  ];
-
   useEffect(() => {
-    const loadPlayers = async () => {
-      try {
-        // Try Firebase first, fallback to sample data
-        setPlayers(samplePlayers);
-      } catch (error) {
-        console.error('Failed to load players:', error);
-        setPlayers(samplePlayers);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadPlayers();
-  }, []);
+    dispatch(fetchPlayers());
+  }, [dispatch]);
 
   const handleCreatePlayer = async () => {
     try {
-      // Firebase API call would go here
-      alert('Create player functionality would be implemented here');
+      await dispatch(createPlayerT(formData) as any);
       setShowCreateModal(false);
       resetForm();
     } catch (error) {
@@ -114,9 +79,9 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
   };
 
   const handleEditPlayer = async () => {
+    if (!selectedPlayer) return;
     try {
-      // Firebase API call would go here
-      alert('Update player functionality would be implemented here');
+      await dispatch(savePlayerT({ id: selectedPlayer.id, data: formData }) as any);
       setShowEditModal(false);
       setSelectedPlayer(null);
       resetForm();
@@ -128,9 +93,7 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
   const handleDeletePlayer = async (id: string) => {
     if (confirm('Are you sure you want to delete this player?')) {
       try {
-        // Firebase API call would go here
-        alert('Delete player functionality would be implemented here');
-        setPlayers(players.filter(p => p.id !== id));
+        await dispatch(removePlayerT(id) as any);
       } catch (error) {
         alert('Failed to delete player: ' + (error as Error).message);
       }
@@ -138,9 +101,21 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
   };
 
   const handleUpdateHighlights = async () => {
+    if (!selectedPlayer) return;
     try {
-      // Firebase API call would go here
-      alert('Update highlights functionality would be implemented here');
+      const highlight = {
+        season: highlightsData.season,
+        age: parseInt(highlightsData.age),
+        achievements: highlightsData.achievements.split(',').map(a => a.trim()),
+        stats: {
+          goals: highlightsData.goals ? parseInt(highlightsData.goals) : undefined,
+          assists: highlightsData.assists ? parseInt(highlightsData.assists) : undefined,
+          matches: highlightsData.matches ? parseInt(highlightsData.matches) : undefined,
+          rating: highlightsData.rating ? parseFloat(highlightsData.rating) : undefined,
+        },
+        highlights: highlightsData.highlights.split('\n').filter(h => h.trim()),
+      };
+      await dispatch(addPlayerHighlightT({ playerId: selectedPlayer.id, highlight }) as any);
       setShowHighlightsModal(false);
       setSelectedPlayer(null);
       resetHighlightsForm();

@@ -7,6 +7,9 @@ import {
   loadGames, updateFixtureScore, startGame, endGame,
   loadUniversities, addUniversity, updateUniversity, deleteUniversity,
   loadTeams, addTeam, updateTeam, deleteTeam,
+  addPlayerToTeam, updatePlayerInTeam, deletePlayerFromTeam,
+  loadPlayers, addPlayer, updatePlayer, deletePlayer,
+  addPlayerHighlight, updatePlayerHighlight, deletePlayerHighlight,
 } from '@/services/firestoreAdmin';
 
 /* ---------- dashboard ---------- */
@@ -39,9 +42,21 @@ export const fetchTeams = createAsyncThunk('teams/fetch', loadTeams);
 export const createTeamT = createAsyncThunk('teams/create', addTeam);
 export const saveTeamT   = createAsyncThunk('teams/save', ({ id, data }: { id: string; data: Partial<Team> }) => updateTeam(id, data));
 export const removeTeamT = createAsyncThunk('teams/delete', deleteTeam);
+export const addPlayerToTeamT = createAsyncThunk('teams/addPlayer', ({ teamId, player }: { teamId: string; player: any }) => addPlayerToTeam(teamId, player));
+export const updatePlayerInTeamT = createAsyncThunk('teams/updatePlayer', ({ teamId, playerId, playerData }: { teamId: string; playerId: string; playerData: any }) => updatePlayerInTeam(teamId, playerId, playerData));
+export const deletePlayerFromTeamT = createAsyncThunk('teams/deletePlayer', ({ teamId, playerId }: { teamId: string; playerId: string }) => deletePlayerFromTeam(teamId, playerId));
 
 /* ---------- games ---------- */
 export const fetchGames     = createAsyncThunk('games/fetch', loadGames);
 export const updateScoreT   = createAsyncThunk('games/score', ({ id, home, away }: { id: string; home: number; away: number }) => updateFixtureScore(id, home, away));
 export const startGameT     = createAsyncThunk('games/start',  startGame);
 export const endGameT       = createAsyncThunk('games/end',    endGame);
+
+/* ---------- players ---------- */
+export const fetchPlayers = createAsyncThunk('players/fetch', loadPlayers);
+export const createPlayerT = createAsyncThunk('players/create', addPlayer);
+export const savePlayerT   = createAsyncThunk('players/save', ({ id, data }: { id: string; data: any }) => updatePlayer(id, data));
+export const removePlayerT = createAsyncThunk('players/delete', deletePlayer);
+export const addPlayerHighlightT = createAsyncThunk('players/addHighlight', ({ playerId, highlight }: { playerId: string; highlight: any }) => addPlayerHighlight(playerId, highlight));
+export const savePlayerHighlightT = createAsyncThunk('players/saveHighlight', ({ playerId, highlightId, highlightData }: { playerId: string; highlightId: string; highlightData: any }) => updatePlayerHighlight(playerId, highlightId, highlightData));
+export const removePlayerHighlightT = createAsyncThunk('players/removeHighlight', ({ playerId, highlightId }: { playerId: string; highlightId: string }) => deletePlayerHighlight(playerId, highlightId));

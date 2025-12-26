@@ -8,12 +8,14 @@ import {
   fetchGames,
   fetchUniversities,
   fetchTeams,
+  fetchPlayers,
 } from '@/store/adminThunk';
 
 interface AdminState {
   universities: University[];
   teams: Team[];
   fixtures: Fixture[];
+  players: any[];
   stats: { users: number; liveGames: number; merchSales: number; pendingReviews: number };
   loading: {
     dashboard: boolean;
@@ -21,6 +23,7 @@ interface AdminState {
     merch: boolean;
     reviews: boolean;
     games: boolean;
+    players: boolean;
   };
 }
 
@@ -28,6 +31,7 @@ const initialState: AdminState = {
   universities: [],
   teams: [],
   fixtures: [],
+  players: [],
   stats: { users: 0, liveGames: 0, merchSales: 0, pendingReviews: 0 },
   loading: {
     dashboard: false,
@@ -35,6 +39,7 @@ const initialState: AdminState = {
     merch: false,
     reviews: false,
     games: false,
+    players: false,
   },
 };
 
@@ -121,6 +126,19 @@ const adminSlice = createSlice({
     builder
       .addCase(fetchTeams.fulfilled, (state, action) => {
         state.teams = action.payload;
+      });
+
+    // Players
+    builder
+      .addCase(fetchPlayers.pending, (state) => {
+        state.loading.players = true;
+      })
+      .addCase(fetchPlayers.fulfilled, (state, action) => {
+        state.players = action.payload;
+        state.loading.players = false;
+      })
+      .addCase(fetchPlayers.rejected, (state) => {
+        state.loading.players = false;
       });
   },
 });

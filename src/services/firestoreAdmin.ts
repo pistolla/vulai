@@ -1,6 +1,6 @@
 import { db } from './firebase';
 import {
-  collection, getDocs, addDoc, updateDoc, deleteDoc, doc,
+  collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc,
   query, where, serverTimestamp, Timestamp
 } from 'firebase/firestore';
 import { University, Team, Fixture } from '@/models';
@@ -118,6 +118,88 @@ export const updateTeam = async (id: string, data: Partial<Team & { logoURL?: st
 
 export const deleteTeam = async (id: string) =>
   deleteDoc(doc(db, 'teams', id));
+
+export const addPlayerToTeam = async (teamId: string, player: any) => {
+  const teamRef = doc(db, 'teams', teamId);
+  const teamSnap = await getDoc(teamRef);
+  if (!teamSnap.exists()) throw new Error('Team not found');
+  const teamData = teamSnap.data();
+  const players = teamData.players || [];
+  players.push({ ...player, id: Date.now().toString() }); // Simple ID generation
+  await updateDoc(teamRef, { players });
+};
+
+export const updatePlayerInTeam = async (teamId: string, playerId: string, playerData: any) => {
+  const teamRef = doc(db, 'teams', teamId);
+  const teamSnap = await getDoc(teamRef);
+  if (!teamSnap.exists()) throw new Error('Team not found');
+  const teamData = teamSnap.data();
+  const players = teamData.players || [];
+  const playerIndex = players.findIndex((p: any) => p.id === playerId);
+  if (playerIndex === -1) throw new Error('Player not found');
+  players[playerIndex] = { ...players[playerIndex], ...playerData };
+  await updateDoc(teamRef, { players });
+};
+
+export const deletePlayerFromTeam = async (teamId: string, playerId: string) => {
+  const teamRef = doc(db, 'teams', teamId);
+  const teamSnap = await getDoc(teamRef);
+  if (!teamSnap.exists()) throw new Error('Team not found');
+  const teamData = teamSnap.data();
+  const players = teamData.players || [];
+  const filteredPlayers = players.filter((p: any) => p.id !== playerId);
+  await updateDoc(teamRef, { players: filteredPlayers });
+};
+
+/* ---------- players ---------- */
+export const loadPlayers = async (): Promise<any[]> => {
+  const snap = await getDocs(collection(db, 'players'));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+};
+
+export const addPlayer = async (player: any) => {
+  await addDoc(collection(db, 'players'), { ...player, createdAt: serverTimestamp() });
+};
+
+export const updatePlayer = async (id: string, playerData: any) => {
+  await updateDoc(doc(db, 'players', id), playerData);
+};
+
+export const deletePlayer = async (id: string) => {
+  await deleteDoc(doc(db, 'players', id));
+};
+
+export const addPlayerHighlight = async (playerId: string, highlight: any) => {
+  const playerRef = doc(db, 'players', playerId);
+  const playerSnap = await getDoc(playerRef);
+  if (!playerSnap.exists()) throw new Error('Player not found');
+  const playerData = playerSnap.data();
+  const highlights = playerData.highlights || [];
+  highlights.push({ ...highlight, id: Date.now().toString() });
+  await updateDoc(playerRef, { highlights });
+};
+
+export const updatePlayerHighlight = async (playerId: string, highlightId: string, highlightData: any) => {
+  const playerRef = doc(db, 'players', playerId);
+  const playerSnap = await getDoc(playerRef);
+  if (!playerSnap.exists()) throw new Error('Player not found');
+  const playerData = playerSnap.data();
+  const highlights = playerData.highlights || [];
+  const highlightIndex = highlights.findIndex((h: any) => h.id === highlightId);
+  if (highlightIndex === -1) throw new Error('Highlight not found');
+  highlights[highlightIndex] = { ...highlights[highlightIndex], ...highlightData };
+  await updateDoc(playerRef, { highlights });
+};
+
+export const deletePlayerHighlight = async (playerId: string, highlightId: string) => {
+  const playerRef = doc(db, 'players', playerId);
+  const playerSnap = await getDoc(playerRef);
+  if (!playerSnap.exists()) throw new Error('Player not found');
+  const playerData = playerSnap.data();
+  const highlights = playerData.highlights || [];
+  const filteredHighlights = highlights.filter((h: any) => h.id !== highlightId);
+  await updateDoc(playerRef, { highlights: filteredHighlights });
+};
 
 /* ---------- games ---------- */
 export const loadGames = async () => {

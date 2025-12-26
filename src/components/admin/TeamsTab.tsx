@@ -122,7 +122,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel }: any) {
   );
 }
 
-export default function TeamsTab({ adminData, create, update, deleteU }: any) {
+export default function TeamsTab({ adminData, create, update, deleteU, addPlayer, updatePlayer, deletePlayer }: any) {
   const [teams, setTeams] = useState<any[]>([]);
   const [universities, setUniversities] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -130,8 +130,10 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPlayersModal, setShowPlayersModal] = useState(false);
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
+  const [showEditPlayerModal, setShowEditPlayerModal] = useState(false);
   const [editingTeam, setEditingTeam] = useState<any>(null);
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
+  const [editingPlayer, setEditingPlayer] = useState<any>(null);
   const [newTeam, setNewTeam] = useState({
     name: '',
     sport: 'football',
@@ -147,7 +149,8 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
     year: '',
     number: '',
     height: '',
-    weight: ''
+    weight: '',
+    avatar: ''
   });
 
   const resetNewTeam = () => {
@@ -159,6 +162,18 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
       founded: '',
       league: '',
       logoURL: ''
+    });
+  };
+
+  const resetNewPlayer = () => {
+    setNewPlayer({
+      name: '',
+      position: '',
+      year: '',
+      number: '',
+      height: '',
+      weight: '',
+      avatar: ''
     });
   };
 
@@ -239,19 +254,33 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
 
   const handleAddPlayer = async () => {
     try {
-      // This would need to be implemented in the API service
-      alert('Add player functionality would be implemented here');
-      setNewPlayer({ name: '', position: '', year: '', number: '', height: '', weight: '' });
+      await addPlayer(selectedTeam.id, newPlayer);
+      resetNewPlayer();
+      setShowAddPlayerModal(false);
+      // Refresh teams data
+      window.location.reload(); // Simple refresh, could be improved
     } catch (error) {
       alert('Failed to add player: ' + (error as Error).message);
     }
   };
 
-  const handleDeletePlayer = async (teamId: string, playerName: string) => {
+  const handleEditPlayer = async () => {
+    try {
+      await updatePlayer(selectedTeam.id, editingPlayer.id, editingPlayer);
+      setEditingPlayer(null);
+      setShowEditPlayerModal(false);
+      window.location.reload();
+    } catch (error) {
+      alert('Failed to update player: ' + (error as Error).message);
+    }
+  };
+
+  const handleDeletePlayer = async (teamId: string, playerId: string) => {
     if (confirm('Are you sure you want to delete this player?')) {
       try {
-        // This would need to be implemented in the API service
-        alert('Delete player functionality would be implemented here');
+        await deletePlayer(teamId, playerId);
+        // Refresh
+        window.location.reload();
       } catch (error) {
         alert('Failed to delete player: ' + (error as Error).message);
       }
@@ -274,78 +303,34 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
           </div>
 
           <div className="mb-4">
-            <h4 className="font-medium mb-2">Add New Player</h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <input
-                type="text"
-                placeholder="Player Name"
-                value={newPlayer.name}
-                onChange={(e) => setNewPlayer({...newPlayer, name: e.target.value})}
-                className="px-3 py-2 border rounded"
-              />
-              <input
-                type="text"
-                placeholder="Position"
-                value={newPlayer.position}
-                onChange={(e) => setNewPlayer({...newPlayer, position: e.target.value})}
-                className="px-3 py-2 border rounded"
-              />
-              <input
-                type="text"
-                placeholder="Year"
-                value={newPlayer.year}
-                onChange={(e) => setNewPlayer({...newPlayer, year: e.target.value})}
-                className="px-3 py-2 border rounded"
-              />
-              <input
-                type="text"
-                placeholder="Number"
-                value={newPlayer.number}
-                onChange={(e) => setNewPlayer({...newPlayer, number: e.target.value})}
-                className="px-3 py-2 border rounded"
-              />
-              <input
-                type="text"
-                placeholder="Height"
-                value={newPlayer.height}
-                onChange={(e) => setNewPlayer({...newPlayer, height: e.target.value})}
-                className="px-3 py-2 border rounded"
-              />
-              <input
-                type="text"
-                placeholder="Weight"
-                value={newPlayer.weight}
-                onChange={(e) => setNewPlayer({...newPlayer, weight: e.target.value})}
-                className="px-3 py-2 border rounded"
-              />
-            </div>
-            <button onClick={handleAddPlayer} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Add Player</button>
+            <button onClick={() => setShowAddPlayerModal(true)} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Add New Player</button>
           </div>
 
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Position</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Year</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Number</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Height</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Weight</th>
-                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Name</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Position</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Year</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Number</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Height</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Weight</th>
+                  <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {selectedTeam.players && selectedTeam.players.map((player: any, index: number) => (
-                  <tr key={index}>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{player.name}</td>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{player.position || '-'}</td>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{player.year || '-'}</td>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{player.number || '-'}</td>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{player.height || '-'}</td>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{player.weight || '-'}</td>
+                 <tr key={index}>
+                   <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">{player.name}</td>
+                   <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{player.position || '-'}</td>
+                   <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{player.year || '-'}</td>
+                   <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{player.number || '-'}</td>
+                   <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{player.height || '-'}</td>
+                   <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{player.weight || '-'}</td>
                     <td className="px-4 py-2 whitespace-nowrap text-right text-sm font-medium">
-                      <button onClick={() => handleDeletePlayer(selectedTeam.id, player.name)} className="text-red-600 hover:text-red-900">Delete</button>
+                      <button onClick={() => { setEditingPlayer(player); setShowEditPlayerModal(true); }} className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 mr-2">Edit</button>
+                      <button onClick={() => handleDeletePlayer(selectedTeam.id, player.id)} className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">Delete</button>
                     </td>
                   </tr>
                 ))}
@@ -429,6 +414,188 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
             onSubmit={handleEditTeam}
             submitLabel="Update Team"
           />
+      </Modal>
+    )}
+
+    {/* Add Player Modal */}
+    {showAddPlayerModal && (
+      <Modal title="Add New Player" onClose={() => { setShowAddPlayerModal(false); resetNewPlayer(); }}>
+        <form onSubmit={(e) => { e.preventDefault(); handleAddPlayer(); }} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+              <input
+                type="text"
+                required
+                value={newPlayer.name}
+                onChange={(e) => setNewPlayer({...newPlayer, name: e.target.value})}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Position</label>
+              <input
+                type="text"
+                required
+                value={newPlayer.position}
+                onChange={(e) => setNewPlayer({...newPlayer, position: e.target.value})}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Year</label>
+              <select
+                value={newPlayer.year}
+                onChange={(e) => setNewPlayer({...newPlayer, year: e.target.value})}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              >
+                <option value="">Select Year</option>
+                <option value="Freshman">Freshman</option>
+                <option value="Sophomore">Sophomore</option>
+                <option value="Junior">Junior</option>
+                <option value="Senior">Senior</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Number</label>
+              <input
+                type="text"
+                value={newPlayer.number}
+                onChange={(e) => setNewPlayer({...newPlayer, number: e.target.value})}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Height</label>
+              <input
+                type="text"
+                value={newPlayer.height}
+                onChange={(e) => setNewPlayer({...newPlayer, height: e.target.value})}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Weight</label>
+              <input
+                type="text"
+                value={newPlayer.weight}
+                onChange={(e) => setNewPlayer({...newPlayer, weight: e.target.value})}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Team</label>
+              <select
+                value={selectedTeam?.name || ''}
+                disabled
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-100 dark:bg-gray-600"
+              >
+                <option value={selectedTeam?.name || ''}>{selectedTeam?.name || 'Select Team'}</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">University</label>
+              <select
+                value={universities.find(u => u.id === selectedTeam?.universityId)?.name || ''}
+                disabled
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-100 dark:bg-gray-600"
+              >
+                <option value={universities.find(u => u.id === selectedTeam?.universityId)?.name || ''}>{universities.find(u => u.id === selectedTeam?.universityId)?.name || 'Select University'}</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Avatar</label>
+              <input
+                type="text"
+                value={newPlayer.avatar}
+                onChange={(e) => setNewPlayer({...newPlayer, avatar: e.target.value})}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
+            >
+              Add Player
+            </button>
+          </div>
+        </form>
+      </Modal>
+    )}
+
+    {/* Edit Player Modal */}
+    {showEditPlayerModal && editingPlayer && (
+      <Modal title="Edit Player" onClose={() => { setShowEditPlayerModal(false); setEditingPlayer(null); }}>
+        <form onSubmit={(e) => { e.preventDefault(); handleEditPlayer(); }} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+              <input
+                type="text"
+                required
+                value={editingPlayer.name}
+                onChange={(e) => setEditingPlayer({...editingPlayer, name: e.target.value})}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Position</label>
+              <input
+                type="text"
+                required
+                value={editingPlayer.position}
+                onChange={(e) => setEditingPlayer({...editingPlayer, position: e.target.value})}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Year</label>
+              <input
+                type="text"
+                value={editingPlayer.year}
+                onChange={(e) => setEditingPlayer({...editingPlayer, year: e.target.value})}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Number</label>
+              <input
+                type="text"
+                value={editingPlayer.number}
+                onChange={(e) => setEditingPlayer({...editingPlayer, number: e.target.value})}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Height</label>
+              <input
+                type="text"
+                value={editingPlayer.height}
+                onChange={(e) => setEditingPlayer({...editingPlayer, height: e.target.value})}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Weight</label>
+              <input
+                type="text"
+                value={editingPlayer.weight}
+                onChange={(e) => setEditingPlayer({...editingPlayer, weight: e.target.value})}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
+            >
+              Update Player
+            </button>
+          </div>
+        </form>
       </Modal>
     )}
   </>
