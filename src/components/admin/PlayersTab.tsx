@@ -232,12 +232,12 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Player</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Position</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Team</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">University</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Year</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider">Player</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider">Position</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider">Team</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider">University</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider">Year</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-white uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -250,30 +250,30 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900 dark:text-white">{player.name}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-300">#{player.number}</div>
+                        <div className="text-sm text-gray-500 dark:text-white">#{player.number}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{player.position}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{player.team}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{player.university}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{player.year}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-white">{player.position}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-white">{player.team}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-white">{player.university}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-white">{player.year}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                     <button
                       onClick={() => openHighlightsModal(player)}
-                      className="text-purple-600 dark:text-purple-400 hover:text-purple-900 dark:hover:text-purple-300"
+                      className="text-purple-600 dark:text-white hover:text-purple-900 dark:hover:text-purple-300"
                     >
                       Highlights
                     </button>
                     <button
                       onClick={() => openEditModal(player)}
-                      className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
+                      className="text-blue-600 dark:text-white hover:text-blue-900 dark:hover:text-blue-300"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDeletePlayer(player.id)}
-                      className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
+                      className="text-red-600 dark:text-white hover:text-red-900 dark:hover:text-red-300"
                     >
                       Delete
                     </button>
@@ -329,31 +329,31 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel }: any) {
     <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Name</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
           <input
             type="text"
             required
             value={formData.name}
             onChange={(e) => setFormData({...formData, name: e.target.value})}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Position</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Position</label>
           <input
             type="text"
             required
             value={formData.position}
             onChange={(e) => setFormData({...formData, position: e.target.value})}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Year</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Year</label>
           <select
             value={formData.year}
             onChange={(e) => setFormData({...formData, year: e.target.value})}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           >
             <option value="">Select Year</option>
             <option value="Freshman">Freshman</option>
@@ -363,57 +363,57 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel }: any) {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Number</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Number</label>
           <input
             type="text"
             value={formData.number}
             onChange={(e) => setFormData({...formData, number: e.target.value})}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Height</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Height</label>
           <input
             type="text"
             value={formData.height}
             onChange={(e) => setFormData({...formData, height: e.target.value})}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Weight</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Weight</label>
           <input
             type="text"
             value={formData.weight}
             onChange={(e) => setFormData({...formData, weight: e.target.value})}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Team</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Team</label>
           <input
             type="text"
             value={formData.team}
             onChange={(e) => setFormData({...formData, team: e.target.value})}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">University</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">University</label>
           <input
             type="text"
             value={formData.university}
             onChange={(e) => setFormData({...formData, university: e.target.value})}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Avatar</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Avatar</label>
           <input
             type="text"
             value={formData.avatar}
             onChange={(e) => setFormData({...formData, avatar: e.target.value})}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
       </div>
@@ -435,87 +435,87 @@ function HighlightsForm({ highlightsData, setHighlightsData, onSubmit }: any) {
     <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Season</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Season</label>
           <input
             type="text"
             required
             placeholder="e.g., 2023-2024"
             value={highlightsData.season}
             onChange={(e) => setHighlightsData({...highlightsData, season: e.target.value})}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Age</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Age</label>
           <input
             type="number"
             required
             value={highlightsData.age}
             onChange={(e) => setHighlightsData({...highlightsData, age: e.target.value})}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Achievements (comma-separated)</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Achievements (comma-separated)</label>
         <input
           type="text"
           placeholder="e.g., Top Scorer, Player of the Month"
           value={highlightsData.achievements}
           onChange={(e) => setHighlightsData({...highlightsData, achievements: e.target.value})}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
         />
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Goals</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Goals</label>
           <input
             type="number"
             value={highlightsData.goals}
             onChange={(e) => setHighlightsData({...highlightsData, goals: e.target.value})}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Assists</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Assists</label>
           <input
             type="number"
             value={highlightsData.assists}
             onChange={(e) => setHighlightsData({...highlightsData, assists: e.target.value})}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Matches</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Matches</label>
           <input
             type="number"
             value={highlightsData.matches}
             onChange={(e) => setHighlightsData({...highlightsData, matches: e.target.value})}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Rating</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Rating</label>
           <input
             type="number"
             step="0.1"
             value={highlightsData.rating}
             onChange={(e) => setHighlightsData({...highlightsData, rating: e.target.value})}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Key Highlights (one per line)</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Key Highlights (one per line)</label>
         <textarea
           rows={4}
           placeholder="Enter key highlights, one per line"
           value={highlightsData.highlights}
           onChange={(e) => setHighlightsData({...highlightsData, highlights: e.target.value})}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
         />
       </div>
 
@@ -536,10 +536,10 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 modal-backdrop">
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-          <div className="flex justify-between items-center p-6 border-b">
-            <h3 className="text-lg font-bold text-gray-900">{title}</h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">{title}</h3>
+            <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
