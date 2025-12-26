@@ -99,12 +99,24 @@ export class ApiService {
       case "/api/home": {
         const snap = await getDoc(doc(db, "home", "main"));
         result = snap.exists() ? snap.data() : null;
+        // Ensure sports is an array
+        if (result && !Array.isArray(result.sports)) {
+          result.sports = [];
+        }
         break;
       }
 
       case "/api/sports": {
         const snap = await getDocs(collection(db, "sports"));
-        result = { sports: snap.docs.map(d => d.data()), trainingSchedule: [] };
+        if (snap.docs.length === 0) {
+          result = { sports: [], trainingSchedule: [] };
+        } else if (snap.docs.length === 1 && snap.docs[0].data().sports) {
+          // If single document has sports field
+          result = snap.docs[0].data();
+        } else {
+          // Multiple documents, each is a sport
+          result = { sports: snap.docs.map(d => d.data()), trainingSchedule: [] };
+        }
         break;
       }
 
