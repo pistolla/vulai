@@ -300,7 +300,7 @@ export default function AdminDashboardPage() {
         </main>
       </div>
 
-      {modals.addUser && <AddUserModal close={() => close('addUser')} showNotification={showNotification} universities={universities} />}
+      {modals.addUser && <AddUserModal close={() => close('addUser')} showNotification={showNotification} universities={universities} dispatch={dispatch} />}
       {modals.gameDetails && <GameDetailsModal data={modals.gameDetails} close={() => close('gameDetails')} />}
     </AdminGuard>
   );
@@ -310,10 +310,11 @@ function FiAlertCircle() {
   return <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 }
 
-function AddUserModal({ close, showNotification, universities }: any) {
+function AddUserModal({ close, showNotification, universities, dispatch }: any) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    password: '',
     role: 'fan',
     university: ''
   });
@@ -321,12 +322,12 @@ function AddUserModal({ close, showNotification, universities }: any) {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     try {
-      await apiService.createUser({
+      const { register } = await import('@/services/firebase');
+      await register(formData.email, formData.password, formData.role as any, {
         displayName: formData.name,
-        email: formData.email,
-        role: formData.role,
         universityId: formData.university
       });
+      dispatch(fetchUsers());
       showNotification('User created successfully!', 'success');
       close();
     } catch (error) {
@@ -364,6 +365,17 @@ function AddUserModal({ close, showNotification, universities }: any) {
               placeholder="name@university.edu"
             />
           </div>
+          <div>
+            <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Password</label>
+            <input
+              type="password"
+              required
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold"
+              placeholder="Enter a temporary password"
+            />
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Role</label>
@@ -375,7 +387,7 @@ function AddUserModal({ close, showNotification, universities }: any) {
               >
                 <option value="fan">Fan</option>
                 <option value="correspondent">Correspondent</option>
-                <option value="moderator">Moderator</option>
+                <option value="admin">Admin</option>
               </select>
             </div>
             <div>
