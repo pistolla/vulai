@@ -231,7 +231,7 @@ export default function MerchTab({ items, create, remove, adminData }: any) {
     <>
       <div id="content-merchandise" className="slide-in-left">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
-          <div><h2 className="text-2xl font-bold text-gray-900">Merchandise Management</h2><p className="text-gray-600">Create team themes, designs, and manage merchandise.</p></div>
+          <div><h2 className="text-2xl font-bold text-gray-900 dark:text-white">Merchandise Management</h2><p className="text-gray-600 dark:text-gray-400">Create team themes, designs, and manage merchandise.</p></div>
           <button onClick={() => setShowAddModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"><svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>Add Merchandise</button>
         </div>
 
@@ -246,15 +246,15 @@ export default function MerchTab({ items, create, remove, adminData }: any) {
             <ShimmerCard />
           </>
         ) : hasItems ? displayItems.map((m: any) => (
-          <div key={m.id} className="bg-white rounded-xl shadow-lg p-6 flex flex-col items-center text-center">
+          <div key={m.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 flex flex-col items-center text-center">
             <img src={m.image} alt={m.name} className="rounded-lg mb-4" />
-            <h3 className="font-bold text-lg text-gray-900">{m.name}</h3><p className="text-sm text-gray-600">{m.description}</p>
-            <div className="flex items-center space-x-2 mt-2"><span className="text-2xl font-bold text-green-600">KSh {m.price}</span></div>
+            <h3 className="font-bold text-lg text-gray-900 dark:text-white">{m.name}</h3><p className="text-sm text-gray-600 dark:text-gray-400">{m.description}</p>
+            <div className="flex items-center space-x-2 mt-2"><span className="text-2xl font-bold text-green-600 dark:text-green-400">KSh {m.price}</span></div>
             <div className="flex space-x-2 mt-4"><button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">Edit</button><button onClick={() => remove(m.id)} className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm">Delete</button></div>
           </div>
         )) : (
           <div className="col-span-full text-center py-12">
-            <p className="text-gray-500">No merchandise found</p>
+            <p className="text-gray-500 dark:text-gray-400">No merchandise found</p>
           </div>
         )}
       </div>

@@ -232,7 +232,7 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
   return (
     <div id="content-games" className="slide-in-left">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
-        <div><h2 className="text-2xl font-bold text-gray-900">Game Schedule</h2><p className="text-gray-600">Update upcoming and live game information.</p></div>
+        <div><h2 className="text-2xl font-bold text-gray-900 dark:text-white">Game Schedule</h2><p className="text-gray-600 dark:text-gray-400">Update upcoming and live game information.</p></div>
         <button onClick={() => setShowAddModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center"><svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>Add New Game</button>
       </div>
 
@@ -249,8 +249,8 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
         </Modal>
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Live Games</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Live Games</h3>
           {isLoading ? (
             <>
               <ShimmerGameCard />
@@ -258,11 +258,11 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
               <ShimmerGameCard />
             </>
           ) : hasLiveGames ? live.map((g: any) => (
-            <div key={g.id} className="p-4 rounded-lg bg-red-50 border-l-4 border-red-500 mb-4">
+            <div key={g.id} className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 mb-4">
               <div className="flex items-center justify-between mb-2">
-                <p className="font-semibold text-red-700">{g.homeTeamName} vs {g.awayTeamName}</p>
+                <p className="font-semibold text-red-700 dark:text-red-300">{g.homeTeamName} vs {g.awayTeamName}</p>
                 <div className="flex items-center space-x-2">
-                  <span className="text-red-500 font-bold text-lg">{g.score?.home ?? 0} - {g.score?.away ?? 0}</span>
+                  <span className="text-red-500 dark:text-red-400 font-bold text-lg">{g.score?.home ?? 0} - {g.score?.away ?? 0}</span>
                   <label className="flex items-center cursor-pointer">
                     <input
                       type="checkbox"
@@ -274,21 +274,21 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
                       <div className="block bg-gray-600 w-10 h-6 rounded-full"></div>
                       <div className="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition transform translate-x-4"></div>
                     </div>
-                    <span className="ml-2 text-sm text-gray-600">Live</span>
+                    <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">Live</span>
                   </label>
                 </div>
               </div>
-              <p className="text-sm text-gray-600">Football • {g.minute}'</p>
-              <div className="flex justify-end space-x-2 mt-2"><button onClick={() => { const h = prompt('Home score'); const a = prompt('Away score'); if (h !== null && a !== null) updateScore(g.id, +h, +a); }} className="bg-red-600 text-white px-3 py-1 rounded-lg text-xs hover:bg-red-700">Update Score</button><button onClick={() => endG(g.id)} className="bg-gray-200 text-gray-800 px-3 py-1 rounded-lg text-xs hover:bg-gray-300">End Game</button></div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Football • {g.minute}'</p>
+              <div className="flex justify-end space-x-2 mt-2"><button onClick={() => { const h = prompt('Home score'); const a = prompt('Away score'); if (h !== null && a !== null) updateScore(g.id, +h, +a); }} className="bg-red-600 text-white px-3 py-1 rounded-lg text-xs hover:bg-red-700">Update Score</button><button onClick={() => endG(g.id)} className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-300 px-3 py-1 rounded-lg text-xs hover:bg-gray-300 dark:hover:bg-gray-600">End Game</button></div>
             </div>
           )) : (
             <div className="text-center py-4">
-              <p className="text-gray-500">No live games</p>
+              <p className="text-gray-500 dark:text-gray-400">No live games</p>
             </div>
           )}
         </div>
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Upcoming Games</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Upcoming Games</h3>
           {isLoading ? (
             <>
               <ShimmerGameCard />
@@ -296,9 +296,9 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
               <ShimmerGameCard />
             </>
           ) : hasUpcomingGames ? upcoming.map((g: any) => (
-            <div key={g.id} className="p-4 rounded-lg bg-yellow-50 border-l-4 border-yellow-500 mb-4">
+            <div key={g.id} className="p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 mb-4">
               <div className="flex items-center justify-between mb-2">
-                <p className="font-semibold text-yellow-700">{g.homeTeamName} vs {g.awayTeamName}</p>
+                <p className="font-semibold text-yellow-700 dark:text-yellow-300">{g.homeTeamName} vs {g.awayTeamName}</p>
                 <label className="flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -310,15 +310,15 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
                     <div className="block bg-gray-300 w-10 h-6 rounded-full"></div>
                     <div className="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition"></div>
                   </div>
-                  <span className="ml-2 text-sm text-gray-600">Not Live</span>
+                  <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">Not Live</span>
                 </label>
               </div>
-              <p className="text-sm text-gray-600">{g.sport} • Starts in {Math.round((new Date(g.scheduledAt).getTime() - Date.now()) / 60000)} min</p>
-              <div className="flex justify-end space-x-2 mt-2"><button onClick={() => startG(g.id)} className="bg-green-600 text-white px-3 py-1 rounded-lg text-xs hover:bg-green-700">Start Game</button><button className="bg-gray-200 text-gray-800 px-3 py-1 rounded-lg text-xs hover:bg-gray-300">Edit</button></div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{g.sport} • Starts in {Math.round((new Date(g.scheduledAt).getTime() - Date.now()) / 60000)} min</p>
+              <div className="flex justify-end space-x-2 mt-2"><button onClick={() => startG(g.id)} className="bg-green-600 text-white px-3 py-1 rounded-lg text-xs hover:bg-green-700">Start Game</button><button className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-300 px-3 py-1 rounded-lg text-xs hover:bg-gray-300 dark:hover:bg-gray-600">Edit</button></div>
             </div>
           )) : (
             <div className="text-center py-4">
-              <p className="text-gray-500">No upcoming games</p>
+              <p className="text-gray-500 dark:text-gray-400">No upcoming games</p>
             </div>
           )}
         </div>

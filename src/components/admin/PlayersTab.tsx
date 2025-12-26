@@ -212,8 +212,8 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
     <div id="content-players" className="slide-in-left">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Players Management</h2>
-          <p className="text-gray-600">Manage player information and career highlights.</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Players Management</h2>
+          <p className="text-gray-600 dark:text-gray-400">Manage player information and career highlights.</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
@@ -227,20 +227,20 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
       </div>
 
       {/* Responsive Table */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Player</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">University</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Player</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Position</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Team</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">University</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Year</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {players.map((player) => (
                 <tr key={player.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -249,31 +249,31 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
                         <span className="text-white font-bold text-sm">{player.avatar}</span>
                       </div>
                       <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{player.name}</div>
-                        <div className="text-sm text-gray-500">#{player.number}</div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">{player.name}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-300">#{player.number}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{player.position}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{player.team}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{player.university}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{player.year}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{player.position}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{player.team}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{player.university}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{player.year}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                     <button
                       onClick={() => openHighlightsModal(player)}
-                      className="text-purple-600 hover:text-purple-900"
+                      className="text-purple-600 dark:text-purple-400 hover:text-purple-900 dark:hover:text-purple-300"
                     >
                       Highlights
                     </button>
                     <button
                       onClick={() => openEditModal(player)}
-                      className="text-blue-600 hover:text-blue-900"
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDeletePlayer(player.id)}
-                      className="text-red-600 hover:text-red-900"
+                      className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
                     >
                       Delete
                     </button>
