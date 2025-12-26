@@ -1,0 +1,69 @@
+{
+  "players": [
+    {
+      "id": "player1",
+      "name": "John Doe",
+      "position": "Forward",
+      "teamId": "ku_parklands",
+      "height": 180,
+      "weight": 75,
+      "bodyFat": 12,
+      "status": "active",
+      "injuryNote": "",
+      "joinedAt": "2023-01-01",
+      "kitNumber": 10,
+      "avatar": "/images/player1.jpg",
+      "bio": "Talented forward with great speed and finishing.",
+      "socialLinks": {
+        "instagram": "@johndoe",
+        "twitter": "@johndoe"
+      },
+      "social": {
+        "level": 42,
+        "xp": 1240,
+        "nextLevelXp": 2000,
+        "followers": "2.4k",
+        "badges": [
+          { "id": "badge1", "name": "Top Scorer", "icon": "🏆" },
+          { "id": "badge2", "name": "MVP", "icon": "⭐" }
+        ]
+      },
+      "stats": {
+        "gamesPlayed": 12,
+        "points": 156
+      }
+    },
+    {
+      "id": "player2",
+      "name": "Jane Smith",
+      "position": "Midfielder",
+      "teamId": "uon_red_brigades",
+      "height": 170,
+      "weight": 65,
+      "bodyFat": 15,
+      "status": "active",
+      "injuryNote": "",
+      "joinedAt": "2022-08-15",
+      "kitNumber": 8,
+      "avatar": "/images/player2.jpg",
+      "bio": "Dynamic midfielder known for her passing range.",
+      "socialLinks": {
+        "instagram": "@janesmith",
+        "twitter": "@janesmith"
+      },
+      "social": {
+        "level": 38,
+        "xp": 950,
+        "nextLevelXp": 1500,
+        "followers": "1.8k",
+        "badges": [
+          { "id": "badge3", "name": "Playmaker", "icon": "🎯" }
+        ]
+      },
+      "stats": {
+        "gamesPlayed": 10,
+        "points": 89
+      }
+    }
+  ]
+}
