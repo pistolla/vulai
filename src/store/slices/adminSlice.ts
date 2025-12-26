@@ -6,6 +6,7 @@ import {
   fetchMerch,
   fetchReviews,
   fetchGames,
+  fetchUniversities,
 } from '@/store/adminThunk';
 
 interface AdminState {
@@ -107,6 +108,12 @@ const adminSlice = createSlice({
       })
       .addCase(fetchGames.rejected, (state) => {
         state.loading.games = false;
+      });
+
+    // Universities
+    builder
+      .addCase(fetchUniversities.fulfilled, (state, action) => {
+        state.universities = action.payload;
       });
   },
 });

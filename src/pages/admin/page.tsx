@@ -46,7 +46,7 @@ export default function AdminDashboardPage() {
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   /* ---------- Redux state ---------- */
-  const { stats } = useAppSelector(s => s.admin);
+  const { stats, universities } = useAppSelector(s => s.admin);
   const users = useAppSelector(s => s.users.rows);
   const merch = useAppSelector(s => s.merch.items);
   const reviews = useAppSelector(s => s.review.rows);
@@ -88,6 +88,7 @@ export default function AdminDashboardPage() {
   const approveUser = async (uid: any) => {
     try {
       await dispatch(approveUserT(uid)).unwrap();
+      dispatch(fetchUsers());
       showNotification('User approved successfully', 'success');
     } catch {
       showNotification('Failed to approve user', 'error');
@@ -97,6 +98,7 @@ export default function AdminDashboardPage() {
   const deleteUser = async (uid: any) => {
     try {
       await dispatch(deleteUserT(uid)).unwrap();
+      dispatch(fetchUsers());
       showNotification('User deleted successfully', 'success');
     } catch {
       showNotification('Failed to delete user', 'error');
@@ -298,7 +300,7 @@ export default function AdminDashboardPage() {
         </main>
       </div>
 
-      {modals.addUser && <AddUserModal close={() => close('addUser')} showNotification={showNotification} />}
+      {modals.addUser && <AddUserModal close={() => close('addUser')} showNotification={showNotification} universities={universities} />}
       {modals.gameDetails && <GameDetailsModal data={modals.gameDetails} close={() => close('gameDetails')} />}
     </AdminGuard>
   );
@@ -308,7 +310,7 @@ function FiAlertCircle() {
   return <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
 }
 
-function AddUserModal({ close, showNotification }: any) {
+function AddUserModal({ close, showNotification, universities }: any) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -377,14 +379,17 @@ function AddUserModal({ close, showNotification }: any) {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">University ID</label>
-              <input
-                type="text"
+              <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">University</label>
+              <select
                 value={formData.university}
                 onChange={(e) => setFormData({ ...formData, university: e.target.value })}
-                className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold"
-                placeholder="UNILL-001"
-              />
+                className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold appearance-none"
+              >
+                <option value="">Select University</option>
+                {universities.map((uni: any) => (
+                  <option key={uni.id} value={uni.id}>{uni.name}</option>
+                ))}
+              </select>
             </div>
           </div>
           <div className="flex space-x-4 pt-4">
