@@ -24,11 +24,22 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
 
 // Team Form Component
 function TeamForm({ formData, setFormData, onSubmit, submitLabel }: any) {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setFormData({...formData, logoURL: reader.result as string});
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Team Name</label>
+          <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Team Name</label>
           <input
             type="text"
             required
@@ -39,7 +50,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel }: any) {
           />
         </div>
         <div>
-          <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Sport</label>
+          <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Sport</label>
           <select
             value={formData.sport}
             onChange={(e) => setFormData({...formData, sport: e.target.value})}
@@ -53,7 +64,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel }: any) {
           </select>
         </div>
         <div>
-          <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">University</label>
+          <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">University</label>
           <input
             type="text"
             value={formData.university}
@@ -63,7 +74,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel }: any) {
           />
         </div>
         <div>
-          <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Coach</label>
+          <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Coach</label>
           <input
             type="text"
             value={formData.coach}
@@ -73,7 +84,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel }: any) {
           />
         </div>
         <div>
-          <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Founded Year</label>
+          <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Founded Year</label>
           <input
             type="number"
             value={formData.founded}
@@ -83,7 +94,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel }: any) {
           />
         </div>
         <div>
-          <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">League</label>
+          <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">League</label>
           <input
             type="text"
             value={formData.league}
@@ -92,9 +103,19 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel }: any) {
             placeholder="e.g. Premier League"
           />
         </div>
+        <div className="col-span-2">
+          <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Logo</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="w-full text-gray-900 dark:text-white"
+          />
+          {formData.logoURL && <img src={formData.logoURL} alt="Logo preview" className="mt-2 w-16 h-16 object-cover rounded" />}
+        </div>
       </div>
       <div className="flex space-x-4 pt-4">
-        <button type="button" className="flex-1 py-4 text-sm font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">Cancel</button>
+        <button type="button" className="flex-1 py-4 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Cancel</button>
         <button type="submit" className="flex-[2] py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black shadow-lg shadow-blue-500/30 transition-all active:scale-95">{submitLabel}</button>
       </div>
     </form>
@@ -117,7 +138,8 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
     university: '',
     coach: '',
     founded: '',
-    league: ''
+    league: '',
+    logoURL: ''
   });
   const [newPlayer, setNewPlayer] = useState({
     name: '',
@@ -135,7 +157,8 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
       university: '',
       coach: '',
       founded: '',
-      league: ''
+      league: '',
+      logoURL: ''
     });
   };
 
@@ -188,6 +211,7 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
       coach: newTeam.coach,
       foundedYear: newTeam.founded ? parseInt(newTeam.founded) : undefined,
       league: newTeam.league,
+      logoURL: newTeam.logoURL,
     });
     resetNewTeam();
     setShowAddModal(false);
@@ -201,6 +225,7 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
       coach: editingTeam.coach,
       foundedYear: editingTeam.founded,
       league: editingTeam.league,
+      logoURL: editingTeam.logoURL,
     });
     setEditingTeam(null);
     setShowEditModal(false);

@@ -95,10 +95,10 @@ export const loadUniversities = async (): Promise<University[]> => {
   return snap.docs.map(d => ({ id: d.id, ...d.data() } as University));
 };
 
-export const addUniversity = async (uni: Omit<University, 'id'>) =>
+export const addUniversity = async (uni: Omit<University, 'id'> & { logoURL?: string }) =>
   addDoc(collection(db, 'universities'), { ...uni, createdAt: serverTimestamp() });
 
-export const updateUniversity = async (id: string, data: Partial<University>) =>
+export const updateUniversity = async (id: string, data: Partial<University & { logoURL?: string }>) =>
   updateDoc(doc(db, 'universities', id), data);
 
 export const deleteUniversity = async (id: string) =>
@@ -110,10 +110,10 @@ export const loadTeams = async (): Promise<Team[]> => {
   return snap.docs.map(d => ({ id: d.id, ...d.data() } as Team));
 };
 
-export const addTeam = async (team: Omit<Team, 'id'>) =>
+export const addTeam = async (team: Omit<Team, 'id'> & { logoURL?: string }) =>
   addDoc(collection(db, 'teams'), { ...team, createdAt: serverTimestamp() });
 
-export const updateTeam = async (id: string, data: Partial<Team>) =>
+export const updateTeam = async (id: string, data: Partial<Team & { logoURL?: string }>) =>
   updateDoc(doc(db, 'teams', id), data);
 
 export const deleteTeam = async (id: string) =>

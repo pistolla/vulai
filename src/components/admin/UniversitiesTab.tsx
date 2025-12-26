@@ -26,11 +26,22 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
 
 // University Form Component
 function UniversityForm({ formData, setFormData, onSubmit, submitLabel }: any) {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setFormData({...formData, logoURL: reader.result as string});
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">University Name</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">University Name</label>
           <input
             type="text"
             required
@@ -40,7 +51,7 @@ function UniversityForm({ formData, setFormData, onSubmit, submitLabel }: any) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Location</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
           <input
             type="text"
             required
@@ -50,7 +61,7 @@ function UniversityForm({ formData, setFormData, onSubmit, submitLabel }: any) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Established Year</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Established Year</label>
           <input
             type="number"
             value={formData.established}
@@ -59,7 +70,7 @@ function UniversityForm({ formData, setFormData, onSubmit, submitLabel }: any) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Website URL</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Website URL</label>
           <input
             type="url"
             value={formData.website}
@@ -68,7 +79,17 @@ function UniversityForm({ formData, setFormData, onSubmit, submitLabel }: any) {
           />
         </div>
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Description</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Logo</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="mt-1 block w-full text-gray-900 dark:text-white"
+          />
+          {formData.logoURL && <img src={formData.logoURL} alt="Logo preview" className="mt-2 w-16 h-16 object-cover rounded" />}
+        </div>
+        <div className="col-span-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
           <textarea
             rows={3}
             value={formData.description}
@@ -100,7 +121,8 @@ export default function UniversitiesTab({ adminData, create, update, deleteU }: 
     location: '',
     established: '',
     website: '',
-    description: ''
+    description: '',
+    logoURL: ''
   });
 
   const resetNewUniversity = () => {
@@ -109,7 +131,8 @@ export default function UniversitiesTab({ adminData, create, update, deleteU }: 
       location: '',
       established: '',
       website: '',
-      description: ''
+      description: '',
+      logoURL: ''
     });
   };
 
@@ -152,6 +175,7 @@ export default function UniversitiesTab({ adminData, create, update, deleteU }: 
       established: newUniversity.established ? parseInt(newUniversity.established) : undefined,
       website: newUniversity.website,
       description: newUniversity.description,
+      logoURL: newUniversity.logoURL,
     });
     resetNewUniversity();
     setShowAddModal(false);
@@ -164,6 +188,7 @@ export default function UniversitiesTab({ adminData, create, update, deleteU }: 
       established: editingUniversity.established,
       website: editingUniversity.website,
       description: editingUniversity.description,
+      logoURL: editingUniversity.logoURL,
     });
     setEditingUniversity(null);
     setShowEditModal(false);
