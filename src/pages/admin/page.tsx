@@ -339,11 +339,11 @@ function AddUserModal({ close, showNotification, universities }: any) {
       <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-2xl w-full max-w-md p-8 border border-gray-100 dark:border-gray-800 animate-in zoom-in-95 duration-300">
         <div className="flex justify-between items-center mb-8">
           <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Add New User</h3>
-          <button onClick={close} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500"><FiX className="w-6 h-6" /></button>
+          <button onClick={close} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400"><FiX className="w-6 h-6" /></button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Full Name</label>
+            <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Full Name</label>
             <input
               type="text"
               required
@@ -354,7 +354,7 @@ function AddUserModal({ close, showNotification, universities }: any) {
             />
           </div>
           <div>
-            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Email Address</label>
+            <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Email Address</label>
             <input
               type="email"
               required
@@ -366,7 +366,7 @@ function AddUserModal({ close, showNotification, universities }: any) {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Role</label>
+              <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Role</label>
               <select
                 required
                 value={formData.role}
@@ -379,7 +379,7 @@ function AddUserModal({ close, showNotification, universities }: any) {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">University</label>
+              <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">University</label>
               <select
                 value={formData.university}
                 onChange={(e) => setFormData({ ...formData, university: e.target.value })}
@@ -393,7 +393,7 @@ function AddUserModal({ close, showNotification, universities }: any) {
             </div>
           </div>
           <div className="flex space-x-4 pt-4">
-            <button type="button" onClick={close} className="flex-1 py-4 text-sm font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors">Cancel</button>
+            <button type="button" onClick={close} className="flex-1 py-4 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Cancel</button>
             <button type="submit" className="flex-[2] py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black shadow-lg shadow-blue-500/30 transition-all active:scale-95">Create User</button>
           </div>
         </form>
