@@ -353,9 +353,13 @@ const TeamsPage: React.FC = () => {
                 onClick={() => handleTeamSelect(team)}
               >
                 <div className="text-center mb-6">
-                  <div className="w-24 h-24 bg-gradient-to-br from-unill-yellow-400 to-unill-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <span className="text-4xl font-black text-white">{team.name.charAt(0)}</span>
-                  </div>
+                  {team.logoURL ? (
+                    <img src={team.logoURL} alt={`${team.name} logo`} className="w-24 h-24 object-cover rounded-full mx-auto mb-4" />
+                  ) : (
+                    <div className="w-24 h-24 bg-gradient-to-br from-unill-yellow-400 to-unill-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                      <span className="text-4xl font-black text-white">{team.name.charAt(0)}</span>
+                    </div>
+                  )}
                   <h3 className="text-2xl font-bold bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent mb-2">
                     {team.name}
                   </h3>

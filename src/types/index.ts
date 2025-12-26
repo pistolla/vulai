@@ -69,7 +69,8 @@ export interface Team {
   league?: string;
   record?: string;
   championships?: number;
-  theme?: TeamTheme
+  theme?: TeamTheme;
+  logoURL?: string;
 }
 
 export interface Match {
