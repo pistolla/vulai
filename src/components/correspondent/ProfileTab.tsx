@@ -37,7 +37,7 @@ export const ProfileTab: React.FC = () => {
               type="text"
               value={profile.firstName}
               onChange={e => onProfileChange('firstName', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
@@ -49,7 +49,7 @@ export const ProfileTab: React.FC = () => {
               type="text"
               value={profile.lastName}
               onChange={e => onProfileChange('lastName', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
@@ -62,7 +62,7 @@ export const ProfileTab: React.FC = () => {
             type="email"
             value={profile.email}
             onChange={e => onProfileChange('email', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
         </div>
@@ -74,7 +74,7 @@ export const ProfileTab: React.FC = () => {
             type="text"
             value={profile.university}
             onChange={e => onProfileChange('university', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
         </div>
@@ -86,7 +86,7 @@ export const ProfileTab: React.FC = () => {
             type="tel"
             value={profile.phoneNumber}
             onChange={e => onProfileChange('phoneNumber', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
         <div className="flex items-center">
@@ -95,7 +95,7 @@ export const ProfileTab: React.FC = () => {
             id="twoFactor"
             checked={profile.twoFactorEnabled}
             onChange={e => onProfileChange('twoFactorEnabled', e.target.checked.toString())}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
           />
           <label htmlFor="twoFactor" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
             Enable Two-Factor Authentication

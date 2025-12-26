@@ -92,13 +92,13 @@ const HomePage: React.FC = () => {
     alert('Coming soon! This feature is under development.');
   };
 
-  const filteredSports = data?.sports.filter(sport => {
+  const filteredSports = (data?.sports || []).filter(sport => {
     const matchesFilter = currentFilter === 'all' || sport.category === currentFilter;
     const matchesSearch = searchQuery === '' ||
       sport.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       sport.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesFilter && matchesSearch;
-  }) || [];
+  });
 
   const showSportDetails = (sport: Sport) => {
     alert(`${sport.name} details coming soon!`);

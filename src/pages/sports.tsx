@@ -35,7 +35,9 @@ const SportsPage: React.FC = () => {
 
         if (isMounted) {
           setData(sportsData);
-          setSelectedSport(sportsData.sports[0]);
+          if (sportsData.sports && sportsData.sports.length > 0) {
+            setSelectedSport(sportsData.sports[0]);
+          }
           setLoading(false); // Allow UI to render with sports data
         }
 
@@ -115,7 +117,7 @@ const SportsPage: React.FC = () => {
   }, [data, selectedSport]);
 
   const initCharts = () => {
-    if (typeof window === 'undefined' || !(window as any).echarts || !data || !selectedSport) return;
+    if (typeof window === 'undefined' || !(window as any).echarts || !data || !selectedSport || !Array.isArray(data.sports)) return;
 
     try {
       const echarts = (window as any).echarts;
