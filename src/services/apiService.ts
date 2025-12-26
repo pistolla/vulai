@@ -99,9 +99,11 @@ export class ApiService {
       case "/api/home": {
         const snap = await getDoc(doc(db, "home", "main"));
         result = snap.exists() ? snap.data() : null;
-        // Ensure sports is an array
-        if (result && !Array.isArray(result.sports)) {
-          result.sports = [];
+        // Ensure arrays are arrays
+        if (result) {
+          if (!Array.isArray(result.sports)) result.sports = [];
+          if (!Array.isArray(result.matches)) result.matches = [];
+          if (!result.stats) result.stats = { sportsPrograms: 0, studentAthletes: 0, championships: 0, facilities: 0 };
         }
         break;
       }

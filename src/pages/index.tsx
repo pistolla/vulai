@@ -188,11 +188,11 @@ const HomePage: React.FC = () => {
           </p>
           )}
           {/* Live Matches Slider for Logged-in Users */}
-          {user && data?.matches && data.matches.filter(m => m.status === 'live').length > 0 && (
+          {user && (data?.matches || []).filter(m => m.status === 'live').length > 0 && (
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-white mb-4">🔴 LIVE NOW</h2>
               <div className="flex gap-4 overflow-x-auto scroll-snap-x mandatory pb-4 max-w-4xl items-center justify-center">
-                {data.matches.filter(m => m.status === 'live').map((match) => (
+                {(data?.matches || []).filter(m => m.status === 'live').map((match) => (
                   <LiveMatchCard key={match.id} match={match} />
                 ))}
               </div>
@@ -228,7 +228,7 @@ const HomePage: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {data?.matches.map((match) => (
+            {(data?.matches || []).map((match) => (
               <div
                 key={match.id}
                 className={`bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20 ${
