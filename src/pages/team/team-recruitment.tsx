@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import UserHeader from '../../components/UserHeader';
 import { apiService } from '../../services/apiService';
+import { useAppSelector } from '../../hooks/redux';
 
 interface ApplicationForm {
   firstName: string;
@@ -15,9 +17,12 @@ interface ApplicationForm {
   emergencyContact: string;
   medicalConditions: string;
   agreeToTerms: boolean;
+  team: string;
 }
 
 export default function TeamRecruitmentPage() {
+  const router = useRouter();
+  const user = useAppSelector(s => s.auth.user);
   const [formData, setFormData] = useState<ApplicationForm>({
     firstName: '',
     lastName: '',
@@ -30,11 +35,18 @@ export default function TeamRecruitmentPage() {
     motivation: '',
     emergencyContact: '',
     medicalConditions: '',
-    agreeToTerms: false
+    agreeToTerms: false,
+    team: ''
   });
 
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    if (router.query.team) {
+      setFormData(prev => ({ ...prev, team: router.query.team as string }));
+    }
+  }, [router.query.team]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -54,9 +66,18 @@ export default function TeamRecruitmentPage() {
       return;
     }
 
+    if (!user) {
+      alert('You must be logged in to submit an application');
+      return;
+    }
+
     setLoading(true);
     try {
-      await apiService.submitTeamApplication(formData);
+      const applicationData = {
+        ...formData,
+        userId: user.uid
+      };
+      await apiService.submitTeamApplication(applicationData);
       setSubmitted(true);
       alert('Application submitted successfully! We will contact you soon.');
     } catch (error) {

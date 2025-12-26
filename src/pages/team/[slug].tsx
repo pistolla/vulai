@@ -322,6 +322,54 @@ export default function TeamPage() {
               accentColor={themeColors.accent}
             />
           </div>
+
+          {/* Recruitment Section */}
+          <section className="py-16 bg-gray-900/20 backdrop-blur-sm dark:bg-gray-900/20 mt-16">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-12 border border-gray-200 dark:border-gray-700">
+                <h2 className="text-4xl font-bold mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
+                  Join Our Team
+                </h2>
+                <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
+                  Interested in becoming part of Unill's athletic legacy? We're always looking for talented student-athletes
+                  who share our passion for excellence and sportsmanship.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-gradient-to-br from-unill-yellow-400 to-unill-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-2xl">🎯</span>
+                    </div>
+                    <h4 className="font-semibold mb-2 text-gray-900 dark:text-white">Elite Training</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Professional coaching and facilities</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-gradient-to-br from-unill-purple-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-2xl">🎓</span>
+                    </div>
+                    <h4 className="font-semibold mb-2 text-gray-900 dark:text-white">Academic Support</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Balance sports and studies</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-2xl">🏆</span>
+                    </div>
+                    <h4 className="font-semibold mb-2 text-gray-900 dark:text-white">Competition</h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Compete at the highest level</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <a
+                    href={`/team-recruitment?team=${encodeURIComponent(teamData?.name || '')}`}
+                    className="bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-unill-yellow-500 hover:to-unill-purple-600 transition-all transform hover:scale-105 inline-block"
+                  >
+                    Apply Now
+                  </a>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
       </div>
     </Layout>
