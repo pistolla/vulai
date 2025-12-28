@@ -1,5 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { University, Team } from '@/models';
+import { University, Team, Sport } from '@/models';
 import {
   loadAdminDashboard, loadUsers, approveUser, deleteUserDoc,
   loadMerch, addMerch, updateMerch, deleteMerch,
@@ -11,6 +11,7 @@ import {
   loadPlayers, addPlayer, updatePlayer, deletePlayer,
   addPlayerHighlight, updatePlayerHighlight, deletePlayerHighlight,
   loadPlayerAvatars, addPlayerAvatar, updatePlayerAvatar, deletePlayerAvatar,
+  loadSports, addSport, updateSport, deleteSport,
 } from '@/services/firestoreAdmin';
 
 /* ---------- dashboard ---------- */
@@ -67,3 +68,9 @@ export const fetchPlayerAvatars = createAsyncThunk('playerAvatars/fetch', loadPl
 export const createPlayerAvatarT = createAsyncThunk('playerAvatars/create', addPlayerAvatar);
 export const savePlayerAvatarT = createAsyncThunk('playerAvatars/save', ({ id, data }: { id: string; data: Partial<any> }) => updatePlayerAvatar(id, data));
 export const removePlayerAvatarT = createAsyncThunk('playerAvatars/delete', deletePlayerAvatar);
+
+/* ---------- sports ---------- */
+export const fetchSports = createAsyncThunk('sports/fetch', loadSports);
+export const createSportT = createAsyncThunk('sports/create', addSport);
+export const saveSportT = createAsyncThunk('sports/save', ({ id, data }: { id: string; data: Partial<Sport> }) => updateSport(id, data));
+export const removeSportT = createAsyncThunk('sports/delete', deleteSport);

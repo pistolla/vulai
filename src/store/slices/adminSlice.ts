@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { University, Team, Fixture, PlayerAvatar } from '@/models';
+import { University, Team, Fixture, PlayerAvatar, Sport } from '@/models';
 import {
   fetchDashboard,
   fetchUsers,
@@ -10,6 +10,7 @@ import {
   fetchTeams,
   fetchPlayers,
   fetchPlayerAvatars,
+  fetchSports,
 } from '@/store/adminThunk';
 
 interface AdminState {
@@ -18,6 +19,7 @@ interface AdminState {
   fixtures: Fixture[];
   players: any[];
   playerAvatars: PlayerAvatar[];
+  sports: Sport[];
   stats: { users: number; liveGames: number; merchSales: number; pendingReviews: number };
   loading: {
     dashboard: boolean;
@@ -35,6 +37,7 @@ const initialState: AdminState = {
   fixtures: [],
   players: [],
   playerAvatars: [],
+  sports: [],
   stats: { users: 0, liveGames: 0, merchSales: 0, pendingReviews: 0 },
   loading: {
     dashboard: false,
@@ -148,6 +151,12 @@ const adminSlice = createSlice({
     builder
       .addCase(fetchPlayerAvatars.fulfilled, (state, action) => {
         state.playerAvatars = action.payload;
+      });
+
+    // Sports
+    builder
+      .addCase(fetchSports.fulfilled, (state, action) => {
+        state.sports = action.payload;
       });
   },
 });

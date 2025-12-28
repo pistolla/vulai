@@ -181,3 +181,20 @@ export interface PlayerAvatar {
   threeDAssets: string; // JSON or URL to 3D assets
   movementDetails: string; // JSON for Three.js movement data
 }
+
+export interface Sport {
+  id: string;
+  name: string;
+  category: 'team' | 'individual';
+  description: string;
+  image: string;
+  base64Image?: string;
+  players: number;
+  season: string;
+  positions: string[];
+  stats?: {
+    wins: number;
+    losses: number;
+    championships: number;
+  };
+}

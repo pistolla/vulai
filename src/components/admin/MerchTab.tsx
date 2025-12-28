@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useAppSelector } from '@/hooks/redux';
-import { apiService } from '@/services/apiService';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchMerch, fetchUniversities, fetchTeams, createMerchT, saveMerchT, removeMerchT } from '@/store/adminThunk';
+import { RootState } from '@/store';
 
 // Modal Component
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
@@ -83,6 +84,33 @@ function MerchandiseForm({ formData, setFormData, universities, teams, selectedU
           />
         </div>
         <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Additional Images (comma-separated URLs or base64)</label>
+          <textarea
+            rows={3}
+            value={formData.images.join(', ')}
+            onChange={(e) => setFormData({...formData, images: e.target.value.split(',').map(s => s.trim())})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Category</label>
+          <input
+            type="text"
+            value={formData.category}
+            onChange={(e) => setFormData({...formData, category: e.target.value})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Catalog</label>
+          <input
+            type="text"
+            value={formData.catalog}
+            onChange={(e) => setFormData({...formData, catalog: e.target.value})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
+        <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">University</label>
           <select
             value={selectedUniversity}
@@ -137,77 +165,67 @@ function ShimmerCard() {
   );
 }
 
-export default function MerchTab({ items, create, remove, adminData }: any) {
-  const { loading: reduxLoading } = useAppSelector(s => s.admin);
+export default function MerchTab({ adminData }: any) {
+  const dispatch = useDispatch();
+  const { merchItems, universities, teams, loading } = useSelector((state: RootState) => ({
+    merchItems: state.merch.items,
+    universities: state.admin.universities,
+    teams: state.admin.teams,
+    loading: state.merch.loading,
+  }));
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingItem, setEditingItem] = useState<any>(null);
   const [selectedUniversity, setSelectedUniversity] = useState('');
   const [selectedTeam, setSelectedTeam] = useState('');
-  const [newItem, setNewItem] = useState({ name: '', description: '', price: '', image: '', university: '', team: '' });
-
-  const [universities, setUniversities] = useState<any[]>([]);
-  const [teams, setTeams] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [newItem, setNewItem] = useState({
+    name: '',
+    description: '',
+    price: '',
+    image: '',
+    images: [] as string[],
+    category: '',
+    catalog: '',
+    university: '',
+    team: ''
+  });
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        // Load universities from Firebase API first
-        const universitiesData = await apiService.getUniversities();
-        if (universitiesData && universitiesData.length > 0) {
-          setUniversities(universitiesData);
-        } else {
-          throw new Error('Empty Firebase universities data');
-        }
+    dispatch(fetchMerch() as any);
+    dispatch(fetchUniversities() as any);
+    dispatch(fetchTeams() as any);
+  }, [dispatch]);
 
-        // Load teams for dropdowns
-        const teamsData = await apiService.getTeams();
-        setTeams(teamsData);
-      } catch (error) {
-        console.error('Failed to load data from Firebase:', error);
-        // Fallback to local JSON files
-        try {
-          const universitiesResponse = await fetch('/data/universities.json');
-          const teamsResponse = await fetch('/data/teams.json');
-          if (universitiesResponse.ok) {
-            const universitiesData = await universitiesResponse.json();
-            setUniversities(universitiesData.universities || []);
-          }
-          if (teamsResponse.ok) {
-            const teamsData = await teamsResponse.json();
-            setTeams(teamsData.teams || []);
-          }
-        } catch (localError) {
-          console.error('Failed to load local data:', localError);
-          setUniversities([]);
-          setTeams([]);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
-
-  const filteredTeams = teams.filter(team => !selectedUniversity || team.university === selectedUniversity);
+  const filteredTeams = teams.filter(team => !selectedUniversity || team.universityId === selectedUniversity);
 
   const handleAddMerch = async () => {
-    await create({
+    await dispatch(createMerchT({
       name: newItem.name,
       description: newItem.description,
       price: parseFloat(newItem.price),
       image: newItem.image || '/images/default-merch.jpg',
+      images: newItem.images,
+      category: newItem.category,
+      catalog: newItem.catalog,
       university: newItem.university,
       team: newItem.team
-    });
-    setNewItem({ name: '', description: '', price: '', image: '', university: '', team: '' });
-    setSelectedUniversity('');
-    setSelectedTeam('');
+    }) as any);
+    resetNewItem();
     setShowAddModal(false);
   };
 
   const resetNewItem = () => {
-    setNewItem({ name: '', description: '', price: '', image: '', university: '', team: '' });
+    setNewItem({
+      name: '',
+      description: '',
+      price: '',
+      image: '',
+      images: [],
+      category: '',
+      catalog: '',
+      university: '',
+      team: ''
+    });
     setSelectedUniversity('');
     setSelectedTeam('');
   };
@@ -223,9 +241,16 @@ export default function MerchTab({ items, create, remove, adminData }: any) {
     setNewItem({...newItem, team: teamId});
   };
 
-  const displayItems = items.length > 0 ? items : (adminData?.merchandise || []);
+  const handleEditMerch = async () => {
+    if (!editingItem) return;
+    await dispatch(saveMerchT({ id: editingItem.id, data: editingItem }) as any);
+    setEditingItem(null);
+    setShowEditModal(false);
+  };
+
+  const displayItems = merchItems;
   const hasItems = displayItems.length > 0;
-  const isLoading = reduxLoading.merch;
+  const isLoading = loading;
 
   return (
     <>
@@ -250,7 +275,7 @@ export default function MerchTab({ items, create, remove, adminData }: any) {
             <img src={m.image} alt={m.name} className="rounded-lg mb-4" />
             <h3 className="font-bold text-lg text-gray-900 dark:text-white">{m.name}</h3><p className="text-sm text-gray-600 dark:text-gray-400">{m.description}</p>
             <div className="flex items-center space-x-2 mt-2"><span className="text-2xl font-bold text-green-600 dark:text-green-400">KSh {m.price}</span></div>
-            <div className="flex space-x-2 mt-4"><button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">Edit</button><button onClick={() => remove(m.id)} className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm">Delete</button></div>
+            <div className="flex space-x-2 mt-4"><button onClick={() => { setEditingItem(m); setShowEditModal(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">Edit</button><button onClick={() => dispatch(removeMerchT(m.id) as any)} className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm">Delete</button></div>
           </div>
         )) : (
           <div className="col-span-full text-center py-12">
@@ -274,6 +299,24 @@ export default function MerchTab({ items, create, remove, adminData }: any) {
             setSelectedTeam={setSelectedTeam}
             onSubmit={handleAddMerch}
             submitLabel="Add Merchandise"
+          />
+      </Modal>
+    )}
+
+    {/* Edit Merchandise Modal */}
+    {showEditModal && editingItem && (
+      <Modal title="Edit Merchandise" onClose={() => { setShowEditModal(false); setEditingItem(null); }}>
+          <MerchandiseForm
+            formData={editingItem}
+            setFormData={setEditingItem}
+            universities={universities}
+            teams={teams}
+            selectedUniversity={editingItem.university || ''}
+            setSelectedUniversity={() => {}}
+            selectedTeam={editingItem.team || ''}
+            setSelectedTeam={() => {}}
+            onSubmit={handleEditMerch}
+            submitLabel="Update Merchandise"
           />
       </Modal>
     )}

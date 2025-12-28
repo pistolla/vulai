@@ -3,7 +3,7 @@ import {
   collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc,
   query, where, serverTimestamp, Timestamp
 } from 'firebase/firestore';
-import { University, Team, Fixture, PlayerAvatar } from '@/models';
+import { University, Team, Fixture, PlayerAvatar, Sport } from '@/models';
 import { AdminUserRow } from '@/store/slices/usersSlice';
 import { MerchItem } from '@/store/slices/merchSlice';
 import { ReviewRow } from '@/store/slices/reviewSlice';
@@ -215,6 +215,21 @@ export const updatePlayerAvatar = async (id: string, data: Partial<PlayerAvatar>
 
 export const deletePlayerAvatar = async (id: string) =>
   deleteDoc(doc(db, 'playerAvatars', id));
+
+/* ---------- sports ---------- */
+export const loadSports = async (): Promise<Sport[]> => {
+  const snap = await getDocs(collection(db, 'sports'));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() } as Sport));
+};
+
+export const addSport = async (sport: Omit<Sport, 'id'>) =>
+  addDoc(collection(db, 'sports'), { ...sport, createdAt: serverTimestamp() });
+
+export const updateSport = async (id: string, data: Partial<Sport>) =>
+  updateDoc(doc(db, 'sports', id), data);
+
+export const deleteSport = async (id: string) =>
+  deleteDoc(doc(db, 'sports', id));
 
 /* ---------- games ---------- */
 export const loadGames = async () => {

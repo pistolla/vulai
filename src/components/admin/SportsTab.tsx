@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { apiService } from '@/services/apiService';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchSports, createSportT, saveSportT, removeSportT } from '@/store/adminThunk';
+import { RootState } from '@/store';
 
 // Modal Component
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
@@ -59,6 +61,16 @@ function SportForm({ formData, setFormData, onSubmit, submitLabel }: any) {
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         </div>
+        <div className="col-span-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Base64 Image</label>
+          <textarea
+            rows={4}
+            placeholder="Paste base64 encoded image"
+            value={formData.base64Image}
+            onChange={(e) => setFormData({...formData, base64Image: e.target.value})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Players per Team</label>
           <input
@@ -104,16 +116,20 @@ function SportForm({ formData, setFormData, onSubmit, submitLabel }: any) {
 }
 
 export default function SportsTab({ adminData }: any) {
-  const [sports, setSports] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const { sports, loading } = useSelector((state: RootState) => ({
+    sports: state.admin.sports,
+    loading: false, // Since we don't have loading state for sports yet
+  }));
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingSport, setEditingSport] = useState<any>(null);
   const [newSport, setNewSport] = useState({
     name: '',
-    category: 'team',
+    category: 'team' as 'team' | 'individual',
     description: '',
     image: '',
+    base64Image: '',
     players: 11,
     season: 'Fall',
     positions: [] as string[]
@@ -125,6 +141,7 @@ export default function SportsTab({ adminData }: any) {
       category: 'team',
       description: '',
       image: '',
+      base64Image: '',
       players: 11,
       season: 'Fall',
       positions: []
@@ -132,41 +149,12 @@ export default function SportsTab({ adminData }: any) {
   };
 
   useEffect(() => {
-    const loadSports = async () => {
-      try {
-        // Try to load from Firebase API first
-        const sportsData = await apiService.getSports();
-        if (sportsData && sportsData.length > 0) {
-          setSports(sportsData);
-        } else {
-          throw new Error('Empty Firebase sports data');
-        }
-      } catch (error) {
-        console.error('Failed to load sports from Firebase:', error);
-        // Fallback to local JSON file
-        try {
-          const response = await fetch('/data/sports.json');
-          if (!response.ok) {
-            throw new Error('Failed to load sports data');
-          }
-          const data = await response.json();
-          setSports(data.sports || []);
-        } catch (localError) {
-          console.error('Failed to load local sports data:', localError);
-          setSports([]);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadSports();
-  }, []);
+    dispatch(fetchSports() as any);
+  }, [dispatch]);
 
   const handleAddSport = async () => {
     try {
-      // This would need to be implemented in the API service
-      alert('Add sport functionality would be implemented here');
+      await dispatch(createSportT(newSport) as any);
       resetNewSport();
       setShowAddModal(false);
     } catch (error) {
@@ -175,10 +163,11 @@ export default function SportsTab({ adminData }: any) {
   };
 
   const handleEditSport = async () => {
+    if (!editingSport) return;
     try {
-      // This would need to be implemented in the API service
-      alert('Edit sport functionality would be implemented here');
+      await dispatch(saveSportT({ id: editingSport.id, data: editingSport }) as any);
       setEditingSport(null);
+      setShowEditModal(false);
     } catch (error) {
       alert('Failed to edit sport: ' + (error as Error).message);
     }
@@ -187,8 +176,7 @@ export default function SportsTab({ adminData }: any) {
   const handleDeleteSport = async (id: string) => {
     if (confirm('Are you sure you want to delete this sport?')) {
       try {
-        // This would need to be implemented in the API service
-        alert('Delete sport functionality would be implemented here');
+        await dispatch(removeSportT(id) as any);
       } catch (error) {
         alert('Failed to delete sport: ' + (error as Error).message);
       }
