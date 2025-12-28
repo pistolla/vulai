@@ -150,6 +150,8 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
     number: '',
     height: '',
     weight: '',
+    team: '',
+    university: '',
     avatar: ''
   });
 
@@ -173,6 +175,8 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
       number: '',
       height: '',
       weight: '',
+      team: '',
+      university: '',
       avatar: ''
     });
   };
@@ -486,21 +490,27 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Team</label>
               <select
-                value={selectedTeam?.name || ''}
-                disabled
-                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-100 dark:bg-gray-600"
+                value={newPlayer.team || selectedTeam?.name || ''}
+                onChange={(e) => setNewPlayer({...newPlayer, team: e.target.value})}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
               >
-                <option value={selectedTeam?.name || ''}>{selectedTeam?.name || 'Select Team'}</option>
+                <option value="">Select Team</option>
+                {teams.map((team: any) => (
+                  <option key={team.id} value={team.name}>{team.name}</option>
+                ))}
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">University</label>
               <select
-                value={universities.find(u => u.id === selectedTeam?.universityId)?.name || ''}
-                disabled
-                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-gray-100 dark:bg-gray-600"
+                value={newPlayer.university || universities.find(u => u.id === selectedTeam?.universityId)?.name || ''}
+                onChange={(e) => setNewPlayer({...newPlayer, university: e.target.value})}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
               >
-                <option value={universities.find(u => u.id === selectedTeam?.universityId)?.name || ''}>{universities.find(u => u.id === selectedTeam?.universityId)?.name || 'Select University'}</option>
+                <option value="">Select University</option>
+                {universities.map((university: any) => (
+                  <option key={university.id} value={university.name}>{university.name}</option>
+                ))}
               </select>
             </div>
             <div>
@@ -552,12 +562,17 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Year</label>
-              <input
-                type="text"
+              <select
                 value={editingPlayer.year}
                 onChange={(e) => setEditingPlayer({...editingPlayer, year: e.target.value})}
                 className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              />
+              >
+                <option value="">Select Year</option>
+                <option value="Freshman">Freshman</option>
+                <option value="Sophomore">Sophomore</option>
+                <option value="Junior">Junior</option>
+                <option value="Senior">Senior</option>
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Number</label>
@@ -583,6 +598,41 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
                 type="text"
                 value={editingPlayer.weight}
                 onChange={(e) => setEditingPlayer({...editingPlayer, weight: e.target.value})}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Team</label>
+              <select
+                value={editingPlayer.team || selectedTeam?.name || ''}
+                onChange={(e) => setEditingPlayer({...editingPlayer, team: e.target.value})}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value="">Select Team</option>
+                {teams.map((team: any) => (
+                  <option key={team.id} value={team.name}>{team.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">University</label>
+              <select
+                value={editingPlayer.university || universities.find(u => u.id === selectedTeam?.universityId)?.name || ''}
+                onChange={(e) => setEditingPlayer({...editingPlayer, university: e.target.value})}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value="">Select University</option>
+                {universities.map((university: any) => (
+                  <option key={university.id} value={university.name}>{university.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Avatar</label>
+              <input
+                type="text"
+                value={editingPlayer.avatar}
+                onChange={(e) => setEditingPlayer({...editingPlayer, avatar: e.target.value})}
                 className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
             </div>

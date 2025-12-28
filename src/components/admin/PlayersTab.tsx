@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchPlayers, createPlayerT, savePlayerT, removePlayerT, addPlayerHighlightT } from '@/store/adminThunk';
+import { fetchPlayers, fetchUniversities, fetchTeams, createPlayerT, savePlayerT, removePlayerT, addPlayerHighlightT } from '@/store/adminThunk';
 import { RootState } from '@/store';
 
 interface Player {
@@ -34,8 +34,10 @@ interface PlayersTabProps {
 
 export default function PlayersTab({ adminData }: PlayersTabProps) {
   const dispatch = useDispatch();
-  const { players, loading } = useSelector((state: RootState) => ({
+  const { players, universities, teams, loading } = useSelector((state: RootState) => ({
     players: state.admin.players,
+    universities: state.admin.universities,
+    teams: state.admin.teams,
     loading: state.admin.loading.players,
   }));
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -66,6 +68,8 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
 
   useEffect(() => {
     dispatch(fetchPlayers() as any);
+    dispatch(fetchUniversities() as any);
+    dispatch(fetchTeams() as any);
   }, [dispatch]);
 
   const handleCreatePlayer = async () => {
@@ -268,6 +272,8 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
             setFormData={setFormData}
             onSubmit={handleCreatePlayer}
             submitLabel="Add Player"
+            universities={universities}
+            teams={teams}
           />
         </Modal>
       )}
@@ -280,6 +286,8 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
             setFormData={setFormData}
             onSubmit={handleEditPlayer}
             submitLabel="Update Player"
+            universities={universities}
+            teams={teams}
           />
         </Modal>
       )}
@@ -299,7 +307,7 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
 }
 
 // Player Form Component
-function PlayerForm({ formData, setFormData, onSubmit, submitLabel }: any) {
+function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities, teams }: any) {
   return (
     <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -366,21 +374,29 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel }: any) {
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Team</label>
-          <input
-            type="text"
+          <select
             value={formData.team}
             onChange={(e) => setFormData({...formData, team: e.target.value})}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
+          >
+            <option value="">Select Team</option>
+            {teams.map((team: any) => (
+              <option key={team.id} value={team.name}>{team.name}</option>
+            ))}
+          </select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">University</label>
-          <input
-            type="text"
+          <select
             value={formData.university}
             onChange={(e) => setFormData({...formData, university: e.target.value})}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
+          >
+            <option value="">Select University</option>
+            {universities.map((university: any) => (
+              <option key={university.id} value={university.name}>{university.name}</option>
+            ))}
+          </select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Avatar</label>
