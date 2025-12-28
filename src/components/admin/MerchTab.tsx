@@ -87,8 +87,8 @@ function MerchandiseForm({ formData, setFormData, universities, teams, selectedU
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Additional Images (comma-separated URLs or base64)</label>
           <textarea
             rows={3}
-            value={formData.images.join(', ')}
-            onChange={(e) => setFormData({...formData, images: e.target.value.split(',').map(s => s.trim())})}
+            value={formData.images ? formData.images.join(', ') : ''}
+            onChange={(e) => setFormData({...formData, images: e.target.value.split(',').map(s => s.trim()).filter(s => s)})}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         </div>
@@ -307,7 +307,7 @@ export default function MerchTab({ adminData }: any) {
     {showEditModal && editingItem && (
       <Modal title="Edit Merchandise" onClose={() => { setShowEditModal(false); setEditingItem(null); }}>
           <MerchandiseForm
-            formData={editingItem}
+            formData={{...editingItem, images: editingItem.images || []}}
             setFormData={setEditingItem}
             universities={universities}
             teams={teams}
