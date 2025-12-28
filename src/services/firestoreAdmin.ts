@@ -3,7 +3,7 @@ import {
   collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc,
   query, where, serverTimestamp, Timestamp
 } from 'firebase/firestore';
-import { University, Team, Fixture } from '@/models';
+import { University, Team, Fixture, PlayerAvatar } from '@/models';
 import { AdminUserRow } from '@/store/slices/usersSlice';
 import { MerchItem } from '@/store/slices/merchSlice';
 import { ReviewRow } from '@/store/slices/reviewSlice';
@@ -200,6 +200,21 @@ export const deletePlayerHighlight = async (playerId: string, highlightId: strin
   const filteredHighlights = highlights.filter((h: any) => h.id !== highlightId);
   await updateDoc(playerRef, { highlights: filteredHighlights });
 };
+
+/* ---------- player avatars ---------- */
+export const loadPlayerAvatars = async (): Promise<PlayerAvatar[]> => {
+  const snap = await getDocs(collection(db, 'playerAvatars'));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() } as PlayerAvatar));
+};
+
+export const addPlayerAvatar = async (avatar: Omit<PlayerAvatar, 'id'>) =>
+  addDoc(collection(db, 'playerAvatars'), { ...avatar, createdAt: serverTimestamp() });
+
+export const updatePlayerAvatar = async (id: string, data: Partial<PlayerAvatar>) =>
+  updateDoc(doc(db, 'playerAvatars', id), data);
+
+export const deletePlayerAvatar = async (id: string) =>
+  deleteDoc(doc(db, 'playerAvatars', id));
 
 /* ---------- games ---------- */
 export const loadGames = async () => {

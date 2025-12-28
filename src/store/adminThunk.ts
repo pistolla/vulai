@@ -10,6 +10,7 @@ import {
   addPlayerToTeam, updatePlayerInTeam, deletePlayerFromTeam,
   loadPlayers, addPlayer, updatePlayer, deletePlayer,
   addPlayerHighlight, updatePlayerHighlight, deletePlayerHighlight,
+  loadPlayerAvatars, addPlayerAvatar, updatePlayerAvatar, deletePlayerAvatar,
 } from '@/services/firestoreAdmin';
 
 /* ---------- dashboard ---------- */
@@ -60,3 +61,9 @@ export const removePlayerT = createAsyncThunk('players/delete', deletePlayer);
 export const addPlayerHighlightT = createAsyncThunk('players/addHighlight', ({ playerId, highlight }: { playerId: string; highlight: any }) => addPlayerHighlight(playerId, highlight));
 export const savePlayerHighlightT = createAsyncThunk('players/saveHighlight', ({ playerId, highlightId, highlightData }: { playerId: string; highlightId: string; highlightData: any }) => updatePlayerHighlight(playerId, highlightId, highlightData));
 export const removePlayerHighlightT = createAsyncThunk('players/removeHighlight', ({ playerId, highlightId }: { playerId: string; highlightId: string }) => deletePlayerHighlight(playerId, highlightId));
+
+/* ---------- player avatars ---------- */
+export const fetchPlayerAvatars = createAsyncThunk('playerAvatars/fetch', loadPlayerAvatars);
+export const createPlayerAvatarT = createAsyncThunk('playerAvatars/create', addPlayerAvatar);
+export const savePlayerAvatarT = createAsyncThunk('playerAvatars/save', ({ id, data }: { id: string; data: Partial<any> }) => updatePlayerAvatar(id, data));
+export const removePlayerAvatarT = createAsyncThunk('playerAvatars/delete', deletePlayerAvatar);

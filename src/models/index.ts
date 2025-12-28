@@ -172,3 +172,12 @@ export interface League {
   updatedAt?: any;
   groups?: Group[]; // array, optional for creation
 }
+
+export interface PlayerAvatar {
+  id: string;
+  playerId: string;
+  base64Image: string;
+  fullSizeImage: string;
+  threeDAssets: string; // JSON or URL to 3D assets
+  movementDetails: string; // JSON for Three.js movement data
+}

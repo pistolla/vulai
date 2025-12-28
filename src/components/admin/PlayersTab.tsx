@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchPlayers, fetchUniversities, fetchTeams, createPlayerT, savePlayerT, removePlayerT, addPlayerHighlightT } from '@/store/adminThunk';
+import { fetchPlayers, fetchUniversities, fetchTeams, createPlayerT, savePlayerT, removePlayerT, addPlayerHighlightT, fetchPlayerAvatars, createPlayerAvatarT, savePlayerAvatarT, removePlayerAvatarT } from '@/store/adminThunk';
 import { RootState } from '@/store';
 
 interface Player {
@@ -34,15 +34,17 @@ interface PlayersTabProps {
 
 export default function PlayersTab({ adminData }: PlayersTabProps) {
   const dispatch = useDispatch();
-  const { players, universities, teams, loading } = useSelector((state: RootState) => ({
+  const { players, universities, teams, playerAvatars, loading } = useSelector((state: RootState) => ({
     players: state.admin.players,
     universities: state.admin.universities,
     teams: state.admin.teams,
+    playerAvatars: state.admin.playerAvatars,
     loading: state.admin.loading.players,
   }));
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showHighlightsModal, setShowHighlightsModal] = useState(false);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -65,11 +67,20 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
     rating: '',
     highlights: ''
   });
+  const [avatarData, setAvatarData] = useState({
+    id: '',
+    playerId: '',
+    base64Image: '',
+    fullSizeImage: '',
+    threeDAssets: '',
+    movementDetails: ''
+  });
 
   useEffect(() => {
     dispatch(fetchPlayers() as any);
     dispatch(fetchUniversities() as any);
     dispatch(fetchTeams() as any);
+    dispatch(fetchPlayerAvatars() as any);
   }, [dispatch]);
 
   const handleCreatePlayer = async () => {
@@ -128,6 +139,37 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
     }
   };
 
+  const handleCreateAvatar = async () => {
+    try {
+      await dispatch(createPlayerAvatarT(avatarData) as any);
+      setShowAvatarModal(false);
+      resetAvatarForm();
+    } catch (error) {
+      alert('Failed to create avatar: ' + (error as Error).message);
+    }
+  };
+
+  const handleUpdateAvatar = async () => {
+    if (!avatarData.id) return;
+    try {
+      await dispatch(savePlayerAvatarT({ id: avatarData.id, data: avatarData }) as any);
+      setShowAvatarModal(false);
+      resetAvatarForm();
+    } catch (error) {
+      alert('Failed to update avatar: ' + (error as Error).message);
+    }
+  };
+
+  const handleDeleteAvatar = async (id: string) => {
+    if (confirm('Are you sure you want to delete this avatar?')) {
+      try {
+        await dispatch(removePlayerAvatarT(id) as any);
+      } catch (error) {
+        alert('Failed to delete avatar: ' + (error as Error).message);
+      }
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -155,6 +197,17 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
     });
   };
 
+  const resetAvatarForm = () => {
+    setAvatarData({
+      id: '',
+      playerId: '',
+      base64Image: '',
+      fullSizeImage: '',
+      threeDAssets: '',
+      movementDetails: ''
+    });
+  };
+
   const openEditModal = (player: Player) => {
     setSelectedPlayer(player);
     setFormData({
@@ -174,6 +227,23 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
   const openHighlightsModal = (player: Player) => {
     setSelectedPlayer(player);
     setShowHighlightsModal(true);
+  };
+
+  const openAvatarModal = (player: Player, avatar?: any) => {
+    setSelectedPlayer(player);
+    if (avatar) {
+      setAvatarData(avatar);
+    } else {
+      setAvatarData({
+        id: '',
+        playerId: player.id,
+        base64Image: '',
+        fullSizeImage: '',
+        threeDAssets: '',
+        movementDetails: ''
+      });
+    }
+    setShowAvatarModal(true);
   };
 
   if (loading) {
@@ -239,6 +309,12 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-white">{player.year}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                     <button
+                      onClick={() => openAvatarModal(player, playerAvatars.find(a => a.playerId === player.id))}
+                      className="text-green-600 dark:text-white hover:text-green-900 dark:hover:text-green-300"
+                    >
+                      Avatar
+                    </button>
+                    <button
                       onClick={() => openHighlightsModal(player)}
                       className="text-purple-600 dark:text-white hover:text-purple-900 dark:hover:text-purple-300"
                     >
@@ -299,6 +375,19 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
             highlightsData={highlightsData}
             setHighlightsData={setHighlightsData}
             onSubmit={handleUpdateHighlights}
+          />
+        </Modal>
+      )}
+
+      {/* Avatar Modal */}
+      {showAvatarModal && selectedPlayer && (
+        <Modal title={`${avatarData.id ? 'Edit' : 'Create'} Avatar - ${selectedPlayer.name}`} onClose={() => { setShowAvatarModal(false); setSelectedPlayer(null); resetAvatarForm(); }}>
+          <AvatarForm
+            avatarData={avatarData}
+            setAvatarData={setAvatarData}
+            onSubmit={avatarData.id ? handleUpdateAvatar : handleCreateAvatar}
+            onDelete={avatarData.id ? () => handleDeleteAvatar(avatarData.id) : undefined}
+            submitLabel={avatarData.id ? 'Update Avatar' : 'Create Avatar'}
           />
         </Modal>
       )}
@@ -516,6 +605,75 @@ function HighlightsForm({ highlightsData, setHighlightsData, onSubmit }: any) {
           className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700"
         >
           Update Highlights
+        </button>
+      </div>
+    </form>
+  );
+}
+
+// Avatar Form Component
+function AvatarForm({ avatarData, setAvatarData, onSubmit, onDelete, submitLabel }: any) {
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Base64 Image</label>
+        <textarea
+          rows={4}
+          placeholder="Paste base64 encoded image"
+          value={avatarData.base64Image}
+          onChange={(e) => setAvatarData({...avatarData, base64Image: e.target.value})}
+          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Full Size Image URL</label>
+        <input
+          type="text"
+          placeholder="URL to full size image"
+          value={avatarData.fullSizeImage}
+          onChange={(e) => setAvatarData({...avatarData, fullSizeImage: e.target.value})}
+          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">3D Assets (JSON)</label>
+        <textarea
+          rows={4}
+          placeholder="JSON data for 3D assets"
+          value={avatarData.threeDAssets}
+          onChange={(e) => setAvatarData({...avatarData, threeDAssets: e.target.value})}
+          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Movement Details (JSON)</label>
+        <textarea
+          rows={4}
+          placeholder="JSON data for Three.js movement details"
+          value={avatarData.movementDetails}
+          onChange={(e) => setAvatarData({...avatarData, movementDetails: e.target.value})}
+          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        />
+      </div>
+
+      <div className="flex justify-between space-x-3 pt-4">
+        {onDelete && (
+          <button
+            type="button"
+            onClick={onDelete}
+            className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
+          >
+            Delete Avatar
+          </button>
+        )}
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 ml-auto"
+        >
+          {submitLabel}
         </button>
       </div>
     </form>
