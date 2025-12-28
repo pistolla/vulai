@@ -65,7 +65,7 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
   });
 
   useEffect(() => {
-    dispatch(fetchPlayers());
+    dispatch(fetchPlayers() as any);
   }, [dispatch]);
 
   const handleCreatePlayer = async () => {
