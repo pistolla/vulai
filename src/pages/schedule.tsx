@@ -14,6 +14,7 @@ const SchedulePage: React.FC = () => {
   const [data, setData] = useState<ScheduleData | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentFilter, setCurrentFilter] = useState<string>('all');
+  const [selectedLeague, setSelectedLeague] = useState<string>('');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [matches, setMatches] = useState<Match[]>([]);
   const [mounted, setMounted] = useState(false);
@@ -361,40 +362,60 @@ const SchedulePage: React.FC = () => {
       <section className={`py-8 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap gap-4 justify-center">
-            <button 
-              className={`filter-btn active px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all ${
+            <button
+              className={`filter-btn active px-6 py-3 rounded-lg transition-all ${
+                theme === 'dark'
+                  ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
+                  : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
+              } ${
                 currentFilter === 'all' ? 'active' : ''
               }`}
               onClick={() => setCurrentFilter('all')}
             >
               All Sports
             </button>
-            <button 
-              className={`filter-btn px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all ${
+            <button
+              className={`filter-btn px-6 py-3 rounded-lg transition-all ${
+                theme === 'dark'
+                  ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
+                  : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
+              } ${
                 currentFilter === 'football' ? 'active' : ''
               }`}
               onClick={() => setCurrentFilter('football')}
             >
               Football
             </button>
-            <button 
-              className={`filter-btn px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all ${
+            <button
+              className={`filter-btn px-6 py-3 rounded-lg transition-all ${
+                theme === 'dark'
+                  ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
+                  : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
+              } ${
                 currentFilter === 'basketball' ? 'active' : ''
               }`}
               onClick={() => setCurrentFilter('basketball')}
             >
               Basketball
             </button>
-            <button 
-              className={`filter-btn px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all ${
+            <button
+              className={`filter-btn px-6 py-3 rounded-lg transition-all ${
+                theme === 'dark'
+                  ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
+                  : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
+              } ${
                 currentFilter === 'volleyball' ? 'active' : ''
               }`}
               onClick={() => setCurrentFilter('volleyball')}
             >
               Volleyball
             </button>
-            <button 
-              className={`filter-btn px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all ${
+            <button
+              className={`filter-btn px-6 py-3 rounded-lg transition-all ${
+                theme === 'dark'
+                  ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
+                  : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
+              } ${
                 currentFilter === 'live' ? 'active' : ''
               }`}
               onClick={() => setCurrentFilter('live')}
@@ -402,6 +423,37 @@ const SchedulePage: React.FC = () => {
               Live Now
             </button>
           </div>
+
+          {/* Leagues Dropdown */}
+          {currentFilter !== 'all' && currentFilter !== 'live' && leagues && leagues.length > 0 && (
+            <div className="mt-4 flex justify-center">
+              <select
+                value={selectedLeague}
+                onChange={(e) => {
+                  const leagueId = e.target.value;
+                  setSelectedLeague(leagueId);
+                  if (leagueId) {
+                    window.location.href = `/league/${leagueId}`;
+                  }
+                }}
+                className={`px-6 py-3 rounded-lg transition-all ${
+                  theme === 'dark'
+                    ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
+                    : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                <option value="">Select League</option>
+                {leagues
+                  .filter(league => league.sportType === 'team') // Assuming team sports for now
+                  .map(league => (
+                    <option key={league.id} value={league.id}>
+                      {league.name}
+                    </option>
+                  ))
+                }
+              </select>
+            </div>
+          )}
         </div>
       </section>
       
