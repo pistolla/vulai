@@ -162,14 +162,14 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
     };
 
     return (
-      <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl">
+      <div className="bg-gray-50 dark:bg-gray-700 p-3 sm:p-4 rounded-xl">
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="w-full flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
         >
-          <h4 className="font-bold text-gray-900 dark:text-white">Matches ({matches.length})</h4>
+          <h4 className="font-bold text-gray-900 dark:text-white text-sm sm:text-base">Matches ({matches.length})</h4>
           <svg
-            className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-500 dark:text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -180,10 +180,10 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
 
         {isOpen && (
           <div className="mt-4 space-y-4 animate-in slide-in-from-top duration-300">
-            <form onSubmit={submit} className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-600">
-              <h5 className="font-bold text-gray-900 dark:text-white mb-3">Create New Match</h5>
+            <form onSubmit={submit} className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-xl border border-gray-100 dark:border-gray-600">
+              <h5 className="font-bold text-gray-900 dark:text-white mb-3 text-lg">Create New Match</h5>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest mb-1">Match Number</label>
                   <input
@@ -191,18 +191,18 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
                     onChange={(e) => setMatchNumber(Number(e.target.value))}
                     type="number"
                     placeholder="1"
-                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white text-sm"
                     disabled={isLoading}
                     min="1"
                   />
                 </div>
-                <div>
+                <div className="sm:col-span-2 lg:col-span-1">
                   <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest mb-1">Date & Time</label>
                   <input
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
                     type="datetime-local"
-                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white text-sm"
                     disabled={isLoading}
                   />
                 </div>
@@ -212,139 +212,191 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
                     value={venue}
                     onChange={(e) => setVenue(e.target.value)}
                     placeholder="Stadium name"
-                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
                     disabled={isLoading}
                   />
                 </div>
               </div>
 
               <div className="mb-4">
-                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest mb-1">Blog Content</label>
-                <ReactQuill
-                  value={blogContent}
-                  onChange={setBlogContent}
-                  theme="snow"
-                  className="bg-white dark:bg-gray-800"
-                  readOnly={isLoading}
-                />
-              </div>
-
-              <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg mb-4">
-                <h6 className="font-bold text-gray-900 dark:text-white mb-2">Add Players</h6>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                  <select
-                    value={selectedPlayerId}
-                    onChange={(e) => setSelectedPlayerId(e.target.value)}
-                    className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
-                    disabled={isLoading}
-                  >
-                    <option value="">Select Player</option>
-                    {allPlayers.map(player => (
-                      <option key={player.id} value={player.id}>
-                        {player.name} ({teams.find(t => t.id === player.teamId)?.name || player.teamId})
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    value={playerPosition}
-                    onChange={(e) => setPlayerPosition(e.target.value)}
-                    placeholder="Position (e.g., Forward)"
-                    className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                    disabled={isLoading}
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest mb-2">Blog Content</label>
+                <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
+                  <ReactQuill
+                    value={blogContent}
+                    onChange={setBlogContent}
+                    theme="snow"
+                    className="min-h-[120px] sm:min-h-[150px]"
+                    readOnly={isLoading}
                   />
-                  <input
-                    value={playerEntranceTime}
-                    onChange={(e) => setPlayerEntranceTime(e.target.value)}
-                    type="datetime-local"
-                    placeholder="Entrance Time"
-                    className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
-                    disabled={isLoading}
-                  />
-                  <input
-                    value={playerJerseyNumber || ''}
-                    onChange={(e) => setPlayerJerseyNumber(e.target.value ? Number(e.target.value) : '')}
-                    type="number"
-                    placeholder="Jersey #"
-                    className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                    disabled={isLoading}
-                    min="1"
-                  />
-                  <button
-                    type="button"
-                    onClick={addPlayer}
-                    className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-bold shadow-sm hover:shadow-md transition-all active:scale-95 disabled:opacity-70"
-                    disabled={isLoading || !selectedPlayerId || !playerPosition.trim()}
-                  >
-                    Add Player
-                  </button>
                 </div>
               </div>
 
               <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg mb-4">
-                <h6 className="font-bold text-gray-900 dark:text-white mb-2">Add Participants</h6>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {pRefType === 'team' ? (
+                <h6 className="font-bold text-gray-900 dark:text-white mb-3">Add Players</h6>
+                <div className="space-y-3">
+                  {/* Player Selection Row */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <select
-                      value={pRefId}
-                      onChange={(e) => setPRefId(e.target.value)}
-                      className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+                      value={selectedPlayerId}
+                      onChange={(e) => setSelectedPlayerId(e.target.value)}
+                      className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white text-sm"
                       disabled={isLoading}
                     >
-                      <option value="">Select Team</option>
-                      {teams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
+                      <option value="">Select Player</option>
+                      {allPlayers.map(player => (
+                        <option key={player.id} value={player.id}>
+                          {player.name} ({teams.find(t => t.id === player.teamId)?.name || player.teamId})
+                        </option>
+                      ))}
                     </select>
-                  ) : (
                     <input
-                      value={pRefId}
-                      onChange={(e) => setPRefId(e.target.value)}
-                      placeholder="Participant ID"
-                      className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                      value={playerPosition}
+                      onChange={(e) => setPlayerPosition(e.target.value)}
+                      placeholder="Position (e.g., Forward)"
+                      className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
                       disabled={isLoading}
                     />
-                  )}
-                  <input
-                    value={pName}
-                    onChange={(e) => setPName(e.target.value)}
-                    placeholder="Display name"
-                    className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                    disabled={isLoading}
-                  />
-                  <select
-                    value={pRefType}
-                    onChange={(e) => setPRefType(e.target.value as 'team' | 'individual')}
-                    className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
-                    disabled={isLoading}
-                  >
-                    <option value="team">Team</option>
-                    <option value="individual">Individual</option>
-                  </select>
-                  <button
-                    type="button"
-                    onClick={addParticipant}
-                    className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-bold shadow-sm hover:shadow-md transition-all active:scale-95 disabled:opacity-70"
-                    disabled={isLoading || !pRefId.trim()}
-                  >
-                    Add
-                  </button>
+                  </div>
+
+                  {/* Additional Details Row */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <input
+                      value={playerEntranceTime}
+                      onChange={(e) => setPlayerEntranceTime(e.target.value)}
+                      type="datetime-local"
+                      placeholder="Entrance Time"
+                      className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white text-sm"
+                      disabled={isLoading}
+                    />
+                    <input
+                      value={playerJerseyNumber || ''}
+                      onChange={(e) => setPlayerJerseyNumber(e.target.value ? Number(e.target.value) : '')}
+                      type="number"
+                      placeholder="Jersey #"
+                      className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
+                      disabled={isLoading}
+                      min="1"
+                    />
+                    <button
+                      type="button"
+                      onClick={addPlayer}
+                      className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-bold shadow-sm hover:shadow-md transition-all active:scale-95 disabled:opacity-70 text-sm sm:text-base"
+                      disabled={isLoading || !selectedPlayerId || !playerPosition.trim()}
+                    >
+                      Add Player
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg mb-4">
+                <h6 className="font-bold text-gray-900 dark:text-white mb-3">Add Participants</h6>
+                <div className="space-y-3">
+                  {/* First Row: Type and Reference */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <select
+                      value={pRefType}
+                      onChange={(e) => setPRefType(e.target.value as 'team' | 'individual')}
+                      className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white text-sm"
+                      disabled={isLoading}
+                    >
+                      <option value="team">Team</option>
+                      <option value="individual">Individual</option>
+                    </select>
+                    {pRefType === 'team' ? (
+                      <select
+                        value={pRefId}
+                        onChange={(e) => setPRefId(e.target.value)}
+                        className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white text-sm"
+                        disabled={isLoading}
+                      >
+                        <option value="">Select Team</option>
+                        {teams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
+                      </select>
+                    ) : (
+                      <input
+                        value={pRefId}
+                        onChange={(e) => setPRefId(e.target.value)}
+                        placeholder="Participant ID"
+                        className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
+                        disabled={isLoading}
+                      />
+                    )}
+                  </div>
+
+                  {/* Second Row: Name and Add Button */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <input
+                      value={pName}
+                      onChange={(e) => setPName(e.target.value)}
+                      placeholder="Display name (optional)"
+                      className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm sm:col-span-2"
+                      disabled={isLoading}
+                    />
+                    <button
+                      type="button"
+                      onClick={addParticipant}
+                      className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-bold shadow-sm hover:shadow-md transition-all active:scale-95 disabled:opacity-70 text-sm sm:text-base"
+                      disabled={isLoading || !pRefId.trim()}
+                    >
+                      Add Participant
+                    </button>
+                  </div>
                 </div>
               </div>
 
               {participants && participants.length > 0 && (
                 <div className="mb-4">
-                  <h6 className="font-bold text-gray-900 dark:text-white mb-2">Participants ({participants.length})</h6>
-                  <div className="space-y-2">
+                  <h6 className="font-bold text-gray-900 dark:text-white mb-3">Participants ({participants.length})</h6>
+                  <div className="space-y-3">
                     {participants.map((p, idx) => (
-                      <div key={idx} className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg flex justify-between items-center">
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-900 dark:text-white truncate">{p.name ?? p.refId}</div>
-                          <div className="text-sm text-gray-600 dark:text-gray-300 truncate">{p.refType} • {p.refId}</div>
+                      <div key={idx} className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">{p.name ?? p.refId}</div>
+                            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">{p.refType} • {p.refId}</div>
+                          </div>
+                          <div className="flex items-center justify-between sm:justify-end gap-2">
+                            <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">Score: {p.score}</span>
+                            <button
+                              type="button"
+                              onClick={() => setParticipants(prev => prev.filter((_, i) => i !== idx))}
+                              className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-xs sm:text-sm px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                              disabled={isLoading}
+                            >
+                              Remove
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 ml-2">
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Score: {p.score}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {players.length > 0 && (
+                <div className="mb-4">
+                  <h6 className="font-bold text-gray-900 dark:text-white mb-3">Players ({players.length})</h6>
+                  <div className="space-y-3">
+                    {players.map((p, idx) => (
+                      <div key={idx} className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">{p.name}</div>
+                            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                              {p.teamName} • {p.position}
+                              {p.jerseyNumber && ` • #${p.jerseyNumber}`}
+                            </div>
+                            {p.entranceTime && (
+                              <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                Enters: {new Date(p.entranceTime).toLocaleString()}
+                              </div>
+                            )}
+                          </div>
                           <button
                             type="button"
-                            onClick={() => setParticipants(prev => prev.filter((_, i) => i !== idx))}
-                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                            onClick={() => setPlayers(prev => prev.filter((_, i) => i !== idx))}
+                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-xs sm:text-sm px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors self-start sm:self-center"
                             disabled={isLoading}
                           >
                             Remove
@@ -356,38 +408,10 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
                 </div>
               )}
 
-              {players.length > 0 && (
-                <div className="mb-4">
-                  <h6 className="font-bold text-gray-900 dark:text-white mb-2">Players ({players.length})</h6>
-                  <div className="space-y-2">
-                    {players.map((p, idx) => (
-                      <div key={idx} className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg flex justify-between items-center">
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-gray-900 dark:text-white truncate">{p.name}</div>
-                          <div className="text-sm text-gray-600 dark:text-gray-300 truncate">
-                            {p.teamName} • {p.position}
-                            {p.jerseyNumber && ` • #${p.jerseyNumber}`}
-                            {p.entranceTime && ` • Enters: ${new Date(p.entranceTime).toLocaleString()}`}
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setPlayers(prev => prev.filter((_, i) => i !== idx))}
-                          className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors ml-2"
-                          disabled={isLoading}
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               <button
                 type="submit"
                 disabled={isLoading || !participants || participants.length < 2}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-bold shadow-lg shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-70"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-bold shadow-lg shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-70 text-sm sm:text-base"
               >
                 {isLoading ? 'Creating Match...' : 'Create Match'}
               </button>
