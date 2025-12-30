@@ -3,24 +3,26 @@ import Layout from '../components/Layout';
 import { apiService, TeamsData } from '../services/apiService';
 import { Team, Player } from '../types';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
-import { University } from '../models';
+import { University, League } from '../models';
 import { useTheme } from '../components/ThemeProvider';
 import { useRouter } from 'next/router';
+import { fetchLeagues } from '../store/correspondentThunk';
 
 const TeamsPage: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { theme, mounted: themeMounted } = useTheme();
-  const router = useRouter();
-  const user = useAppSelector(s => s.auth.user);
-  const [ universities, setUniversities ] = useState<University[] | null>(null);
-  const [data, setData] = useState<TeamsData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
-  const [positionFilter, setPositionFilter] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [teamSearchQuery, setTeamSearchQuery] = useState<string>('');
-  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
-  const [selectedUniversity, setSelectedUniversity] = useState<string>('all');
+   const { theme, mounted: themeMounted } = useTheme();
+   const router = useRouter();
+   const user = useAppSelector(s => s.auth.user);
+   const { leagues } = useAppSelector((state) => state.leagues);
+   const [ universities, setUniversities ] = useState<University[] | null>(null);
+   const [data, setData] = useState<TeamsData | null>(null);
+   const [loading, setLoading] = useState(true);
+   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+   const [positionFilter, setPositionFilter] = useState<string>('all');
+   const [searchQuery, setSearchQuery] = useState<string>('');
+   const [teamSearchQuery, setTeamSearchQuery] = useState<string>('');
+   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+   const [selectedUniversity, setSelectedUniversity] = useState<string>('all');
 
   useEffect(() => {
     let isMounted = true;
@@ -45,16 +47,24 @@ const TeamsPage: React.FC = () => {
         }
 
         // Load university data
-        try {
-          const universityData: any = await apiService.getUniversityData();
-          console.log(universityData);
-          if (isMounted) {
-            setUniversities(universityData);
-          }
-        } catch (universityError) {
-          console.error('Failed to load university data:', universityError);
-          // Don't fail the whole page if universities fail
-        }
+         try {
+           const universityData: any = await apiService.getUniversityData();
+           console.log(universityData);
+           if (isMounted) {
+             setUniversities(universityData);
+           }
+         } catch (universityError) {
+           console.error('Failed to load university data:', universityError);
+           // Don't fail the whole page if universities fail
+         }
+
+         // Load leagues data
+         try {
+           await dispatch(fetchLeagues()).unwrap();
+         } catch (leaguesError) {
+           console.error('Failed to load leagues data:', leaguesError);
+           // Don't fail the whole page if leagues fail
+         }
 
         if (isMounted) {
           setLoading(false);
@@ -101,6 +111,23 @@ const TeamsPage: React.FC = () => {
     setSelectedTeam(team);
     setPositionFilter('all');
     setSearchQuery('');
+  };
+
+  const findLeagueByName = (leagueName: string): League | undefined => {
+    return leagues?.find(league => league.name.toLowerCase() === leagueName.toLowerCase());
+  };
+
+  const handleViewLeagueHistory = (team: Team) => {
+    if (!team.league) {
+      alert('No league information available for this team.');
+      return;
+    }
+    const league = findLeagueByName(team.league);
+    if (league) {
+      router.push(`/league-explorer?leagueId=${league.id}`);
+    } else {
+      alert('League not found. Please ensure leagues are loaded.');
+    }
   };
 
   if (loading || !data) {
@@ -390,18 +417,28 @@ const TeamsPage: React.FC = () => {
                     <span className="text-gray-700">League:</span>
                     <span className="font-semibold">{team.league}</span>
                   </div>
-                  <button
-                    onClick={() => {
-                      if (user) {
-                        router.push(`/team/fan/${team.id}`);
-                      } else {
-                        router.push(`/team/${team.id}`);
-                      }
-                    }}
-                    className="w-full mt-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 text-white px-4 py-2 rounded-lg font-semibold hover:from-unill-yellow-500 hover:to-unill-purple-600 transition-all"
-                  >
-                    View Team
-                  </button>
+                  <div className="flex gap-2 mt-4">
+                    <button
+                      onClick={() => {
+                        if (user) {
+                          router.push(`/team/fan/${team.id}`);
+                        } else {
+                          router.push(`/team/${team.id}`);
+                        }
+                      }}
+                      className="flex-1 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 text-white px-4 py-2 rounded-lg font-semibold hover:from-unill-yellow-500 hover:to-unill-purple-600 transition-all"
+                    >
+                      View Team
+                    </button>
+                    {team.league && (
+                      <button
+                        onClick={() => handleViewLeagueHistory(team)}
+                        className="flex-1 border border-white/20 text-white px-4 py-2 rounded-lg font-semibold hover:bg-white/10 transition-all"
+                      >
+                        League History
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

@@ -134,6 +134,16 @@ export interface Participant {
   stats?: Record<string, any>;
 }
 
+export interface MatchPlayer {
+  id: string;
+  name: string;
+  teamId: string;
+  teamName: string;
+  position: string;
+  entranceTime?: string; // ISO datetime when they entered the match
+  jerseyNumber?: number;
+}
+
 export interface Match {
   id?: string;
   matchNumber: number;
@@ -141,6 +151,7 @@ export interface Match {
   venue?: string;
   status: MatchStatus;
   participants: Participant[];
+  players?: MatchPlayer[]; // Players participating in the match
   winnerId?: string | null;
   blogContent?: string;
   createdAt?: any;

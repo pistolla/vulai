@@ -148,6 +148,12 @@ export class ApiService {
         break;
       }
 
+      case "/api/players": {
+        const snap = await getDocs(collection(db, "players"));
+        result = { players: snap.docs.map(d => d.data()) };
+        break;
+      }
+
       case "/api/admin": {
         const snap = await getDoc(doc(db, "admin", "dashboard"));
         result = snap.exists() ? snap.data() : null;
@@ -212,6 +218,11 @@ export class ApiService {
   async getSports(): Promise<any[]> {
     const data = await this.fetchWithFallback<any>("/api/sports", "/data/sports.json");
     return data.sports || [];
+  }
+
+  async getPlayers(): Promise<any[]> {
+    const data = await this.fetchWithFallback<any>("/api/players", "/data/players.json");
+    return data.players || [];
   }
 
   // 🔹 Admin CRUD operations

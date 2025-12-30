@@ -727,6 +727,17 @@ const SchedulePage: React.FC = () => {
                       <span className="bg-green-500 text-white px-2 py-1 rounded text-xs">Active</span>
                     </div>
                   </div>
+                  <div className="flex gap-2 mt-4">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.location.href = `/league-explorer?leagueId=${league.id}`;
+                      }}
+                      className="flex-1 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 text-white px-3 py-2 rounded text-sm font-semibold hover:from-unill-yellow-500 hover:to-unill-purple-600 transition-all"
+                    >
+                      View History
+                    </button>
+                  </div>
                 </div>
               ))
             ) : (

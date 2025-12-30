@@ -49,13 +49,13 @@ class FirebaseLeagueService {
   }
 
   async listLeagues(): Promise<League[]> {
-    console.log("📥 Fetching leagues (simplified for performance)...");
+    console.log("📥 Fetching leagues...");
 
     try {
-      // For now, return empty array to prevent blocking
-      // TODO: Implement efficient league loading
-      console.log("⚠️ Returning empty leagues array for performance");
-      return [];
+      const snap = await getDocs(collection(db, 'leagues'));
+      const leagues = snap.docs.map((d) => ({ id: d.id, ...d.data() } as League));
+      console.log(`✅ Fetched ${leagues.length} leagues`);
+      return leagues;
     } catch (e: any) {
       console.error("❌ Fetching leagues failed:", e.message || e);
       return [];
