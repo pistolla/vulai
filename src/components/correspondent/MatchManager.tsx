@@ -28,6 +28,7 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
     const [venue, setVenue] = useState('');
     const [blogContent, setBlogContent] = useState('');
     const [participants, setParticipants] = useState<Participant[]>([]);
+    const [players, setPlayers] = useState<MatchPlayer[]>([]);
     const [pRefId, setPRefId] = useState('');
     const [pName, setPName] = useState('');
     const [pRefType, setPRefType] = useState<'team' | 'individual'>(league.sportType === 'team' ? 'team' : 'individual');
@@ -35,7 +36,6 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
     const [isOpen, setIsOpen] = useState(false);
     const [teams, setTeams] = useState<any[]>([]);
     const [allPlayers, setAllPlayers] = useState<any[]>([]);
-    const [players, setPlayers] = useState<MatchPlayer[]>([]);
     const [selectedPlayerId, setSelectedPlayerId] = useState('');
     const [playerPosition, setPlayerPosition] = useState('');
     const [playerEntranceTime, setPlayerEntranceTime] = useState('');
@@ -128,7 +128,7 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
 
     const submit = async (e?: React.FormEvent) => {
       e?.preventDefault();
-      if (participants.length < 2) return alert('Add at least two participants');
+      if (!participants || participants.length < 2) return alert('Add at least two participants');
 
       try {
         setIsLoading(true);
@@ -329,7 +329,7 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
                 </div>
               </div>
 
-              {participants.length > 0 && (
+              {participants && participants.length > 0 && (
                 <div className="mb-4">
                   <h6 className="font-bold text-gray-900 dark:text-white mb-2">Participants ({participants.length})</h6>
                   <div className="space-y-2">
@@ -386,7 +386,7 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
 
               <button
                 type="submit"
-                disabled={isLoading || participants.length < 2}
+                disabled={isLoading || !participants || participants.length < 2}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-bold shadow-lg shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-70"
               >
                 {isLoading ? 'Creating Match...' : 'Create Match'}

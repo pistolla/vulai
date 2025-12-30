@@ -16,9 +16,11 @@ export const MatchCard: React.FC<{ league: League; group: Group; stage: Stage; m
     useEffect(() => setLocal(match), [match]);
 
     const updateScore = (idx: number, val: number) => {
-      const p = [...local.participants];
-      p[idx].score = val;
-      setLocal({ ...local, participants: p });
+      const p = [...(local.participants || [])];
+      if (p[idx]) {
+        p[idx].score = val;
+        setLocal({ ...local, participants: p });
+      }
     };
 
     const saveScores = async () => {
@@ -60,7 +62,7 @@ export const MatchCard: React.FC<{ league: League; group: Group; stage: Stage; m
         </div>
 
         <div className="space-y-3">
-          {local.participants.map((p, idx) => (
+          {(local.participants || []).map((p, idx) => (
             <div key={p.refId + idx} className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg flex flex-col sm:flex-row sm:items-center gap-3">
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-gray-900 dark:text-white truncate">{p.name ?? p.refId}</div>

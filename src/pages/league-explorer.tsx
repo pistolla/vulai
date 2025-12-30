@@ -85,7 +85,7 @@ const LeagueExplorerPage: React.FC = () => {
   };
 
   const getScoreDisplay = (match: Match) => {
-    if (match.status === 'completed' && match.participants.length >= 2) {
+    if (match.status === 'completed' && match.participants && match.participants.length >= 2) {
       const home = match.participants[0];
       const away = match.participants[1];
       return `${home.score} - ${away.score}`;
@@ -196,7 +196,7 @@ const LeagueExplorerPage: React.FC = () => {
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-4">
                                 <div className="text-left">
-                                  <div className="font-semibold">{match.participants[0]?.name || 'Team A'}</div>
+                                  <div className="font-semibold">{match.participants?.[0]?.name || 'Team A'}</div>
                                 </div>
                                 <div className="text-center px-4">
                                   <div className={`text-lg font-bold ${getMatchStatusColor(match.status)}`}>
@@ -204,7 +204,7 @@ const LeagueExplorerPage: React.FC = () => {
                                   </div>
                                 </div>
                                 <div className="text-right">
-                                  <div className="font-semibold">{match.participants[1]?.name || 'Team B'}</div>
+                                  <div className="font-semibold">{match.participants?.[1]?.name || 'Team B'}</div>
                                 </div>
                               </div>
                             </div>
@@ -219,7 +219,7 @@ const LeagueExplorerPage: React.FC = () => {
                           </div>
                           {match.status === 'completed' && match.winnerId && (
                             <div className="text-xs text-gray-400 mt-1">
-                              Winner: {match.participants.find(p => p.refId === match.winnerId)?.name}
+                              Winner: {match.participants?.find(p => p.refId === match.winnerId)?.name}
                             </div>
                           )}
                         </div>
