@@ -9,7 +9,13 @@ import { toISO } from "@/utils/csvHelpers";
 import { useState, useEffect } from "react";
 import { MatchCard } from "./MatchCard";
 import { useTheme } from "@/components/ThemeProvider";
-import ReactQuill from 'react-quill';
+import dynamic from 'next/dynamic';
+
+// Dynamically import ReactQuill to avoid SSR issues
+const ReactQuill = dynamic(() => import('react-quill'), {
+  ssr: false,
+  loading: () => <div className="h-32 bg-gray-100 dark:bg-gray-700 rounded-lg animate-pulse"></div>
+});
 import 'react-quill/dist/quill.snow.css';
 
 // --- MatchManager ---
