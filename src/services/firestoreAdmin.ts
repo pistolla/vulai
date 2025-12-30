@@ -241,6 +241,16 @@ export const loadGames = async () => {
   };
 };
 
+export const loadLiveGames = async (): Promise<Fixture[]> => {
+  const liveSnap = await getDocs(collection(doc(db, 'admin'), 'liveGames'));
+  return liveSnap.docs.map(d => ({ id: d.id, ...d.data() } as Fixture));
+};
+
+export const loadUpcomingGames = async (): Promise<Fixture[]> => {
+  const upcomingSnap = await getDocs(collection(doc(db, 'admin'), 'upcomingGames'));
+  return upcomingSnap.docs.map(d => ({ id: d.id, ...d.data() } as Fixture));
+};
+
 export const updateFixtureScore = async (id: string, home: number, away: number) =>
   updateDoc(doc(db, 'fixtures', id), { score: { home, away } });
 

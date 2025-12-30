@@ -57,6 +57,11 @@ export interface Player {
     instagram: string;
     twitter: string;
   };
+  bodyFat?: number;
+  status?: string;
+  injuryNote?: string;
+  joinedAt?: string;
+  kitNumber?: number;
 }
 
 export interface Team {

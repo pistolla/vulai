@@ -103,6 +103,36 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel }: any) {
             placeholder="e.g. Premier League"
           />
         </div>
+        <div>
+          <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Record</label>
+          <input
+            type="text"
+            value={formData.record}
+            onChange={(e) => setFormData({...formData, record: e.target.value})}
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold"
+            placeholder="e.g. 11-0-1"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Championships</label>
+          <input
+            type="text"
+            value={formData.championships}
+            onChange={(e) => setFormData({...formData, championships: e.target.value})}
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold"
+            placeholder="e.g. Multiple KUSA/National University Games overall titles"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Season</label>
+          <input
+            type="text"
+            value={formData.season}
+            onChange={(e) => setFormData({...formData, season: e.target.value})}
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold"
+            placeholder="e.g. 2024/25"
+          />
+        </div>
         <div className="col-span-2">
           <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Logo</label>
           <input
@@ -141,7 +171,11 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
     coach: '',
     founded: '',
     league: '',
-    logoURL: ''
+    logoURL: '',
+    record: '',
+    championships: '',
+    season: '',
+    stats: {}
   });
   const [newPlayer, setNewPlayer] = useState({
     name: '',
@@ -163,7 +197,11 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
       coach: '',
       founded: '',
       league: '',
-      logoURL: ''
+      logoURL: '',
+      record: '',
+      championships: '',
+      season: '',
+      stats: {}
     });
   };
 
@@ -231,6 +269,10 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
       foundedYear: newTeam.founded ? parseInt(newTeam.founded) : undefined,
       league: newTeam.league,
       logoURL: newTeam.logoURL,
+      record: newTeam.record,
+      championships: newTeam.championships,
+      season: newTeam.season,
+      stats: newTeam.stats,
     });
     resetNewTeam();
     setShowAddModal(false);
@@ -245,6 +287,10 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
       foundedYear: editingTeam.founded,
       league: editingTeam.league,
       logoURL: editingTeam.logoURL,
+      record: editingTeam.record,
+      championships: editingTeam.championships,
+      season: editingTeam.season,
+      stats: editingTeam.stats,
     });
     setEditingTeam(null);
     setShowEditModal(false);

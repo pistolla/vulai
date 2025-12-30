@@ -1,31 +1,29 @@
 import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { useAppDispatch } from '@/hooks/redux';
 import { fetchPlayers, fetchUniversities, fetchTeams, createPlayerT, savePlayerT, removePlayerT, addPlayerHighlightT, fetchPlayerAvatars, createPlayerAvatarT, savePlayerAvatarT, removePlayerAvatarT } from '@/store/adminThunk';
 import { RootState } from '@/store';
+import { Player, PlayerSocial } from '@/types';
 
-interface Player {
-  id: string;
+interface PlayerFormData {
   name: string;
   position: string;
   year: string;
   number: string;
   height: string;
   weight: string;
-  team: string;
-  university: string;
+  universityId: string;
+  sportId: string;
   avatar: string;
-  highlights?: {
-    season: string;
-    age: number;
-    achievements: string[];
-    stats: {
-      goals?: number;
-      assists?: number;
-      matches?: number;
-      rating?: number;
-    };
-    highlights: string[];
-  }[];
+  bodyFat: number;
+  status: string;
+  injuryNote: string;
+  joinedAt: string;
+  kitNumber: number;
+  bio: string;
+  socialLinks: { instagram: string; twitter: string };
+  social: PlayerSocial;
+  stats: { gamesPlayed: number; points: number };
 }
 
 interface PlayersTabProps {
@@ -33,7 +31,7 @@ interface PlayersTabProps {
 }
 
 export default function PlayersTab({ adminData }: PlayersTabProps) {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { players, universities, teams, playerAvatars, loading } = useSelector((state: RootState) => ({
     players: state.admin.players,
     universities: state.admin.universities,
@@ -46,16 +44,25 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
   const [showHighlightsModal, setShowHighlightsModal] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<PlayerFormData>({
     name: '',
     position: '',
     year: '',
     number: '',
     height: '',
     weight: '',
-    team: '',
-    university: '',
-    avatar: ''
+    universityId: '',
+    sportId: '',
+    avatar: '',
+    bodyFat: 0,
+    status: 'active',
+    injuryNote: '',
+    joinedAt: '',
+    kitNumber: 0,
+    bio: '',
+    socialLinks: { instagram: '', twitter: '' },
+    social: { level: 0, xp: 0, nextLevelXp: 0, followers: 0, following: 0, badges: [] },
+    stats: { gamesPlayed: 0, points: 0 }
   });
   const [highlightsData, setHighlightsData] = useState({
     season: '',
@@ -77,15 +84,15 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
   });
 
   useEffect(() => {
-    dispatch(fetchPlayers() as any);
-    dispatch(fetchUniversities() as any);
-    dispatch(fetchTeams() as any);
-    dispatch(fetchPlayerAvatars() as any);
+    dispatch(fetchPlayers());
+    dispatch(fetchUniversities());
+    dispatch(fetchTeams());
+    dispatch(fetchPlayerAvatars());
   }, [dispatch]);
 
   const handleCreatePlayer = async () => {
     try {
-      await dispatch(createPlayerT(formData) as any);
+      await dispatch(createPlayerT(formData));
       setShowCreateModal(false);
       resetForm();
     } catch (error) {
@@ -96,7 +103,7 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
   const handleEditPlayer = async () => {
     if (!selectedPlayer) return;
     try {
-      await dispatch(savePlayerT({ id: selectedPlayer.id, data: formData }) as any);
+      await dispatch(savePlayerT({ id: selectedPlayer.id, data: formData }));
       setShowEditModal(false);
       setSelectedPlayer(null);
       resetForm();
@@ -108,7 +115,7 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
   const handleDeletePlayer = async (id: string) => {
     if (confirm('Are you sure you want to delete this player?')) {
       try {
-        await dispatch(removePlayerT(id) as any);
+        await dispatch(removePlayerT(id));
       } catch (error) {
         alert('Failed to delete player: ' + (error as Error).message);
       }
@@ -130,7 +137,7 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
         },
         highlights: highlightsData.highlights.split('\n').filter(h => h.trim()),
       };
-      await dispatch(addPlayerHighlightT({ playerId: selectedPlayer.id, highlight }) as any);
+      await dispatch(addPlayerHighlightT({ playerId: selectedPlayer.id, highlight }));
       setShowHighlightsModal(false);
       setSelectedPlayer(null);
       resetHighlightsForm();
@@ -141,7 +148,7 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
 
   const handleCreateAvatar = async () => {
     try {
-      await dispatch(createPlayerAvatarT(avatarData) as any);
+      await dispatch(createPlayerAvatarT(avatarData));
       setShowAvatarModal(false);
       resetAvatarForm();
     } catch (error) {
@@ -152,7 +159,7 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
   const handleUpdateAvatar = async () => {
     if (!avatarData.id) return;
     try {
-      await dispatch(savePlayerAvatarT({ id: avatarData.id, data: avatarData }) as any);
+      await dispatch(savePlayerAvatarT({ id: avatarData.id, data: avatarData }));
       setShowAvatarModal(false);
       resetAvatarForm();
     } catch (error) {
@@ -163,7 +170,7 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
   const handleDeleteAvatar = async (id: string) => {
     if (confirm('Are you sure you want to delete this avatar?')) {
       try {
-        await dispatch(removePlayerAvatarT(id) as any);
+        await dispatch(removePlayerAvatarT(id));
       } catch (error) {
         alert('Failed to delete avatar: ' + (error as Error).message);
       }
@@ -178,9 +185,18 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
       number: '',
       height: '',
       weight: '',
-      team: '',
-      university: '',
-      avatar: ''
+      universityId: '',
+      sportId: '',
+      avatar: '',
+      bodyFat: 0,
+      status: 'active',
+      injuryNote: '',
+      joinedAt: '',
+      kitNumber: 0,
+      bio: '',
+      socialLinks: { instagram: '', twitter: '' },
+      social: { level: 0, xp: 0, nextLevelXp: 0, followers: 0, following: 0, badges: [] },
+      stats: { gamesPlayed: 0, points: 0 }
     });
   };
 
@@ -214,12 +230,21 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
       name: player.name,
       position: player.position,
       year: player.year,
-      number: player.number,
+      number: player.number.toString(),
       height: player.height,
       weight: player.weight,
-      team: player.team,
-      university: player.university,
-      avatar: player.avatar
+      universityId: player.universityId,
+      sportId: player.sportId,
+      avatar: player.avatar,
+      bodyFat: player.bodyFat || 0,
+      status: player.status || 'active',
+      injuryNote: player.injuryNote || '',
+      joinedAt: player.joinedAt || '',
+      kitNumber: player.kitNumber || 0,
+      bio: player.bio || '',
+      socialLinks: player.socialLinks || { instagram: '', twitter: '' },
+      social: player.social || { level: 0, xp: 0, nextLevelXp: 0, followers: 0, following: 0, badges: [] },
+      stats: player.stats || { gamesPlayed: 0, points: 0 }
     });
     setShowEditModal(true);
   };
@@ -462,37 +487,176 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Team</label>
-          <select
-            value={formData.team}
-            onChange={(e) => setFormData({...formData, team: e.target.value})}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          >
-            <option value="">Select Team</option>
-            {teams.map((team: any) => (
-              <option key={team.id} value={team.name}>{team.name}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">University</label>
-          <select
-            value={formData.university}
-            onChange={(e) => setFormData({...formData, university: e.target.value})}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          >
-            <option value="">Select University</option>
-            {universities.map((university: any) => (
-              <option key={university.id} value={university.name}>{university.name}</option>
-            ))}
-          </select>
-        </div>
+           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Sport</label>
+           <select
+             value={formData.sportId}
+             onChange={(e) => setFormData({...formData, sportId: e.target.value})}
+             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+           >
+             <option value="">Select Sport</option>
+             {/* Assuming sports are available, but for now placeholder */}
+             <option value="football">Football</option>
+             <option value="basketball">Basketball</option>
+           </select>
+         </div>
+         <div>
+           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">University</label>
+           <select
+             value={formData.universityId}
+             onChange={(e) => setFormData({...formData, universityId: e.target.value})}
+             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+           >
+             <option value="">Select University</option>
+             {universities.map((university: any) => (
+               <option key={university.id} value={university.id}>{university.name}</option>
+             ))}
+           </select>
+         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Avatar</label>
           <input
             type="text"
             value={formData.avatar}
             onChange={(e) => setFormData({...formData, avatar: e.target.value})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Body Fat (%)</label>
+          <input
+            type="number"
+            step="0.1"
+            value={formData.bodyFat || ''}
+            onChange={(e) => setFormData({...formData, bodyFat: +e.target.value})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+          <select
+            value={formData.status || 'active'}
+            onChange={(e) => setFormData({...formData, status: e.target.value})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          >
+            <option value="active">Active</option>
+            <option value="injured">Injured</option>
+            <option value="suspended">Suspended</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Injury Note</label>
+          <input
+            type="text"
+            value={formData.injuryNote || ''}
+            onChange={(e) => setFormData({...formData, injuryNote: e.target.value})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Joined At</label>
+          <input
+            type="date"
+            value={formData.joinedAt || ''}
+            onChange={(e) => setFormData({...formData, joinedAt: e.target.value})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Kit Number</label>
+          <input
+            type="number"
+            value={formData.kitNumber || ''}
+            onChange={(e) => setFormData({...formData, kitNumber: +e.target.value})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+        <div className="col-span-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Bio</label>
+          <textarea
+            rows={3}
+            value={formData.bio || ''}
+            onChange={(e) => setFormData({...formData, bio: e.target.value})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Instagram</label>
+          <input
+            type="text"
+            value={formData.socialLinks?.instagram || ''}
+            onChange={(e) => setFormData({...formData, socialLinks: {...formData.socialLinks, instagram: e.target.value}})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Twitter</label>
+          <input
+            type="text"
+            value={formData.socialLinks?.twitter || ''}
+            onChange={(e) => setFormData({...formData, socialLinks: {...formData.socialLinks, twitter: e.target.value}})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Social Level</label>
+          <input
+            type="number"
+            value={formData.social?.level || ''}
+            onChange={(e) => setFormData({...formData, social: {...formData.social, level: +e.target.value}})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">XP</label>
+          <input
+            type="number"
+            value={formData.social?.xp || ''}
+            onChange={(e) => setFormData({...formData, social: {...formData.social, xp: +e.target.value}})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Next Level XP</label>
+          <input
+            type="number"
+            value={formData.social?.nextLevelXp || ''}
+            onChange={(e) => setFormData({...formData, social: {...formData.social, nextLevelXp: +e.target.value}})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Followers</label>
+          <input
+            type="text"
+            value={formData.social?.followers || ''}
+            onChange={(e) => setFormData({...formData, social: {...formData.social, followers: e.target.value}})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+        <div className="col-span-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Badges (comma-separated)</label>
+          <textarea
+            rows={2}
+            value={formData.social?.badges ? formData.social.badges.map((b: { name: string }) => b.name).join(', ') : ''}
+            onChange={(e) => setFormData({...formData, social: {...formData.social, badges: e.target.value.split(',').map(s => ({ id: s.trim(), name: s.trim(), icon: '🏆' }))}})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Games Played</label>
+          <input
+            type="number"
+            value={formData.stats?.gamesPlayed || ''}
+            onChange={(e) => setFormData({...formData, stats: {...formData.stats, gamesPlayed: +e.target.value}})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Points</label>
+          <input
+            type="number"
+            value={formData.stats?.points || ''}
+            onChange={(e) => setFormData({...formData, stats: {...formData.stats, points: +e.target.value}})}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>

@@ -6,6 +6,8 @@ import { useAppSelector } from '../hooks/redux';
 import { useTheme } from '../components/ThemeProvider';
 import banner from '../images/banner.gif';
 import MerchandiseCard from '../components/MerchandiseCard';
+import { loadLiveGames, loadUpcomingGames } from '../services/firestoreAdmin';
+import { Fixture } from '../models';
 
 const HomePage: React.FC = () => {
   const user = useAppSelector(s => s.auth.user);
@@ -15,13 +17,15 @@ const HomePage: React.FC = () => {
   const [currentFilter, setCurrentFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [merchandise, setMerchandise] = useState<any[]>([]);
+  const [liveMatches, setLiveMatches] = useState<Fixture[]>([]);
+  const [upcomingMatches, setUpcomingMatches] = useState<Fixture[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
       try {
         const homeData = await apiService.getHomeData();
         setData(homeData);
-        
+
         // Load merchandise data (mock data for now)
         setMerchandise([
           {
@@ -79,6 +83,20 @@ const HomePage: React.FC = () => {
             likes: 34
           }
         ]);
+
+        // Load live and upcoming matches if user is logged in
+        if (user) {
+          try {
+            const [live, upcoming] = await Promise.all([
+              loadLiveGames(),
+              loadUpcomingGames()
+            ]);
+            setLiveMatches(live);
+            setUpcomingMatches(upcoming);
+          } catch (matchError) {
+            console.error('Failed to load matches:', matchError);
+          }
+        }
       } catch (error) {
         console.error('Failed to load home data:', error);
       } finally {
@@ -86,7 +104,7 @@ const HomePage: React.FC = () => {
       }
     };
     loadData();
-  }, []);
+  }, [user]);
 
   const showComingSoon = () => {
     alert('Coming soon! This feature is under development.');
@@ -122,42 +140,42 @@ const HomePage: React.FC = () => {
   };
 
   /* ---------------------------------
-    Live Match Card Component
-  ---------------------------------- */
-  function LiveMatchCard({ match }: { match: any }) {
-    return (
-      <div className="flex-shrink-0 w-80 bg-white/10 backdrop-blur-md rounded-lg p-4 border border-white/20 animate-pulse-live">
-        <div className="flex items-center justify-between mb-3">
-          <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">LIVE</span>
-          <span className="text-sm text-gray-700 capitalize">{match.sport}</span>
-        </div>
-        <div className="text-center">
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-center">
-              <h4 className="font-bold text-sm">{match.homeTeam}</h4>
-              <p className="text-2xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
-                {match.score?.home ?? 0}
-              </p>
-            </div>
-            <div className="text-gray-400 text-lg">VS</div>
-            <div className="text-center">
-              <h4 className="font-bold text-sm">{match.awayTeam}</h4>
-              <p className="text-2xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
-                {match.score?.away ?? 0}
-              </p>
-            </div>
-          </div>
-          <p className="text-xs text-gray-700 mb-3">{match.venue} • {match.time}</p>
-          <button
-            onClick={() => window.location.href = `/live-match/${match.id}`}
-            className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded text-sm font-semibold hover:from-red-600 hover:to-red-700 transition-all"
-          >
-            Watch Live
-          </button>
-        </div>
-      </div>
-    );
-  }
+     Live Match Card Component
+   ---------------------------------- */
+   function LiveMatchCard({ match }: { match: Fixture }) {
+     return (
+       <div className="flex-shrink-0 w-80 bg-white/10 backdrop-blur-md rounded-lg p-4 border border-white/20 animate-pulse-live">
+         <div className="flex items-center justify-between mb-3">
+           <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">LIVE</span>
+           <span className="text-sm text-gray-700 capitalize">{match.sport}</span>
+         </div>
+         <div className="text-center">
+           <div className="flex items-center justify-between mb-3">
+             <div className="text-center">
+               <h4 className="font-bold text-sm">{match.homeTeamName}</h4>
+               <p className="text-2xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
+                 {match.score?.home ?? 0}
+               </p>
+             </div>
+             <div className="text-gray-400 text-lg">VS</div>
+             <div className="text-center">
+               <h4 className="font-bold text-sm">{match.awayTeamName}</h4>
+               <p className="text-2xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
+                 {match.score?.away ?? 0}
+               </p>
+             </div>
+           </div>
+           <p className="text-xs text-gray-700 mb-3">{match.venue} • {new Date(match.scheduledAt).toLocaleTimeString()}</p>
+           <button
+             onClick={() => window.location.href = `/live-match/${match.id}`}
+             className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded text-sm font-semibold hover:from-red-600 hover:to-red-700 transition-all"
+           >
+             Watch Live
+           </button>
+         </div>
+       </div>
+     );
+   }
 
   if (loading) {
     return (
@@ -188,16 +206,16 @@ const HomePage: React.FC = () => {
           </p>
           )}
           {/* Live Matches Slider for Logged-in Users */}
-          {user && (data?.matches || []).filter(m => m.status === 'live').length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-white mb-4">🔴 LIVE NOW</h2>
-              <div className="flex gap-4 overflow-x-auto scroll-snap-x mandatory pb-4 max-w-4xl items-center justify-center">
-                {(data?.matches || []).filter(m => m.status === 'live').map((match) => (
-                  <LiveMatchCard key={match.id} match={match} />
-                ))}
-              </div>
-            </div>
-          )}
+           {user && liveMatches.length > 0 && (
+             <div className="mb-8">
+               <h2 className="text-2xl font-bold text-white mb-4">🔴 LIVE NOW</h2>
+               <div className="flex gap-4 overflow-x-auto scroll-snap-x mandatory pb-4 max-w-4xl items-center justify-center">
+                 {liveMatches.map((match) => (
+                   <LiveMatchCard key={match.id} match={match} />
+                 ))}
+               </div>
+             </div>
+           )}
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <a href="/sports" className="bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-unill-yellow-500 hover:to-unill-purple-600 transition-all transform hover:scale-105 animate-pulse-glow">
@@ -228,55 +246,55 @@ const HomePage: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(data?.matches || []).map((match) => (
-              <div
-                key={match.id}
-                className={`bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20 ${
-                  match.status === 'live' ? 'animate-pulse-live' : ''
-                }`}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                    match.status === 'live' ? 'bg-red-500 text-white' :
-                    match.status === 'upcoming' ? 'bg-blue-500 text-white' :
-                    'bg-green-500 text-white'
-                  }`}>
-                    {match.status.toUpperCase()}
-                  </span>
-                  <span className="text-sm text-gray-700 capitalize">{match.sport}</span>
-                </div>
-                <div className="text-center">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="text-center">
-                      <h4 className="font-bold text-lg">{match.homeTeam}</h4>
-                      {match.score ? (
-                        <p className="text-3xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
-                          {match.score.home}
-                        </p>
-                      ) : (
-                        <div className="w-12 h-12 bg-gradient-to-br from-unill-yellow-400 to-unill-purple-500 rounded-full mx-auto"></div>
-                      )}
-                    </div>
-                    <div className="text-gray-400 text-xl">VS</div>
-                    <div className="text-center">
-                      <h4 className="font-bold text-lg">{match.awayTeam}</h4>
-                      {match.score ? (
-                        <p className="text-3xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
-                          {match.score.away}
-                        </p>
-                      ) : (
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full mx-auto"></div>
-                      )}
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-700">
-                    {match.venue} • {match.time}
-                    {match.status === 'completed' && ' • Final'}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+             {(user ? [...liveMatches, ...upcomingMatches] : (data?.matches || [])).map((match) => (
+               <div
+                 key={match.id}
+                 className={`bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20 ${
+                   match.status === 'live' ? 'animate-pulse-live' : ''
+                 }`}
+               >
+                 <div className="flex items-center justify-between mb-4">
+                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                     match.status === 'live' ? 'bg-red-500 text-white' :
+                     match.status === 'scheduled' ? 'bg-blue-500 text-white' :
+                     'bg-green-500 text-white'
+                   }`}>
+                     {match.status === 'scheduled' ? 'UPCOMING' : match.status.toUpperCase()}
+                   </span>
+                   <span className="text-sm text-gray-700 capitalize">{match.sport}</span>
+                 </div>
+                 <div className="text-center">
+                   <div className="flex items-center justify-between mb-4">
+                     <div className="text-center">
+                       <h4 className="font-bold text-lg">{('homeTeamName' in match) ? match.homeTeamName : match.homeTeam}</h4>
+                       {match.score ? (
+                         <p className="text-3xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
+                           {match.score.home}
+                         </p>
+                       ) : (
+                         <div className="w-12 h-12 bg-gradient-to-br from-unill-yellow-400 to-unill-purple-500 rounded-full mx-auto"></div>
+                       )}
+                     </div>
+                     <div className="text-gray-400 text-xl">VS</div>
+                     <div className="text-center">
+                       <h4 className="font-bold text-lg">{('awayTeamName' in match) ? match.awayTeamName : match.awayTeam}</h4>
+                       {match.score ? (
+                         <p className="text-3xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
+                           {match.score.away}
+                         </p>
+                       ) : (
+                         <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full mx-auto"></div>
+                       )}
+                     </div>
+                   </div>
+                   <p className="text-sm text-gray-700">
+                     {match.venue} • {('scheduledAt' in match) ? new Date(match.scheduledAt).toLocaleTimeString() : match.time}
+                     {match.status === 'completed' && ' • Final'}
+                   </p>
+                 </div>
+               </div>
+             ))}
+           </div>
         </div>
       </section>
       

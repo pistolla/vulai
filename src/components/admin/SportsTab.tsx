@@ -102,6 +102,42 @@ function SportForm({ formData, setFormData, onSubmit, submitLabel }: any) {
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         </div>
+        <div className="col-span-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Positions (comma-separated)</label>
+          <textarea
+            rows={2}
+            value={formData.positions ? formData.positions.join(', ') : ''}
+            onChange={(e) => setFormData({...formData, positions: e.target.value.split(',').map(s => s.trim()).filter(s => s)})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Wins</label>
+          <input
+            type="number"
+            value={formData.stats?.wins || ''}
+            onChange={(e) => setFormData({...formData, stats: {...formData.stats, wins: +e.target.value}})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Losses</label>
+          <input
+            type="number"
+            value={formData.stats?.losses || ''}
+            onChange={(e) => setFormData({...formData, stats: {...formData.stats, losses: +e.target.value}})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Championships</label>
+          <input
+            type="number"
+            value={formData.stats?.championships || ''}
+            onChange={(e) => setFormData({...formData, stats: {...formData.stats, championships: +e.target.value}})}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
       </div>
       <div className="flex justify-end space-x-3 pt-4">
         <button
@@ -132,7 +168,8 @@ export default function SportsTab({ adminData }: any) {
     base64Image: '',
     players: 11,
     season: 'Fall',
-    positions: [] as string[]
+    positions: [] as string[],
+    stats: { wins: 0, losses: 0, championships: 0 }
   });
 
   const resetNewSport = () => {
@@ -144,7 +181,8 @@ export default function SportsTab({ adminData }: any) {
       base64Image: '',
       players: 11,
       season: 'Fall',
-      positions: []
+      positions: [],
+      stats: { wins: 0, losses: 0, championships: 0 }
     });
   };
 

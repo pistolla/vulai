@@ -18,6 +18,8 @@
     "echarts": "^5.4.3",
     "feather-icons": "^4.29.2",
     "firebase": "^12.3.0",
+    "jspdf": "^3.0.4",
+    "jspdf-autotable": "^5.0.2",
     "next": "14.0.4",
     "p5": "^1.7.0",
     "papaparse": "^5.5.3",
