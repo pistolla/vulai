@@ -142,6 +142,7 @@ export interface Match {
   status: MatchStatus;
   participants: Participant[];
   winnerId?: string | null;
+  blogContent?: string;
   createdAt?: any;
   updatedAt?: any;
 }

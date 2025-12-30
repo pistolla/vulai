@@ -9,6 +9,8 @@ import { toISO } from "@/utils/csvHelpers";
 import { useState, useEffect } from "react";
 import { MatchCard } from "./MatchCard";
 import { useTheme } from "@/components/ThemeProvider";
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 // --- MatchManager ---
 export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage }> = ({ league, group, stage }) => {
@@ -18,6 +20,7 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
     const [matchNumber, setMatchNumber] = useState(1);
     const [date, setDate] = useState(toISO());
     const [venue, setVenue] = useState('');
+    const [blogContent, setBlogContent] = useState('');
     const [participants, setParticipants] = useState<Participant[]>([]);
     const [pRefId, setPRefId] = useState('');
     const [pName, setPName] = useState('');
@@ -74,7 +77,7 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
 
       try {
         setIsLoading(true);
-        const match: Omit<Match, 'id'> = { matchNumber, date, venue, status: 'pending', participants };
+        const match: Omit<Match, 'id'> = { matchNumber, date, venue, status: 'pending', participants, blogContent: blogContent || undefined };
         await dispatch(createMatch({ leagueId: league.id!, groupId: group.id!, stageId: stage.id!, match }));
 
         // refresh matches
@@ -85,6 +88,7 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
         // Reset form
         setMatchNumber(matchNumber + 1);
         setVenue('');
+        setBlogContent('');
       } catch (error) {
         console.error('Failed to create match:', error);
         alert('Failed to create match. Please try again.');
@@ -148,6 +152,20 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
                     disabled={isLoading}
                   />
                 </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest mb-1">Blog Content</label>
+                <ReactQuill
+                  value={blogContent}
+                  onChange={setBlogContent}
+                  theme="snow"
+                  className="bg-white dark:bg-gray-800"
+                  readOnly={isLoading}
+                />
+              </div>
+
+              <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg mb-4">
               </div>
 
               <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg mb-4">

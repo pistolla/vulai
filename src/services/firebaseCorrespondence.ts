@@ -117,6 +117,30 @@ class FirebaseLeagueService {
     return snap.exists() ? ({ id: snap.id, ...snap.data() } as Match) : null;
   }
 
+  async findMatchById(matchId: string): Promise<Match | null> {
+    // Since matches are nested, we need to search across all leagues/groups/stages
+    // This is not efficient but works for the demo
+    try {
+      const leaguesSnap = await getDocs(collection(db, 'leagues'));
+      for (const leagueDoc of leaguesSnap.docs) {
+        const groupsSnap = await getDocs(collection(db, `leagues/${leagueDoc.id}/groups`));
+        for (const groupDoc of groupsSnap.docs) {
+          const stagesSnap = await getDocs(collection(db, `leagues/${leagueDoc.id}/groups/${groupDoc.id}/stages`));
+          for (const stageDoc of stagesSnap.docs) {
+            const matchSnap = await getDoc(doc(db, `leagues/${leagueDoc.id}/groups/${groupDoc.id}/stages/${stageDoc.id}/matches/${matchId}`));
+            if (matchSnap.exists()) {
+              return { id: matchSnap.id, ...matchSnap.data() } as Match;
+            }
+          }
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error('Failed to find match by id:', error);
+      return null;
+    }
+  }
+
   // ---------------- MATCH LOGIC ---------------- //
 
   /**
