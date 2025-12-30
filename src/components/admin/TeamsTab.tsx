@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { apiService } from '@/services/apiService';
+import Pagination from './Pagination';
+import ExportButtons from './ExportButtons';
 
 // Modal Component
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
@@ -164,6 +166,8 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
   const [editingTeam, setEditingTeam] = useState<any>(null);
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
   const [editingPlayer, setEditingPlayer] = useState<any>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const [newTeam, setNewTeam] = useState({
     name: '',
     sport: 'football',
@@ -337,6 +341,23 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
     }
   };
 
+  const totalPages = Math.ceil(teams.length / itemsPerPage);
+  const paginatedTeams = teams.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Export data
+  const exportData = teams.map((team: any) => ({
+    name: team.name,
+    sport: team.sport,
+    university: universities.find(u => u.id === team.university)?.name || team.university,
+    coach: team.coach,
+    players: team.players?.length || 0
+  }));
+  const exportHeaders = ['name', 'sport', 'university', 'coach', 'players'];
+
   return (
     <>
       <div id="content-teams" className="slide-in-left">
@@ -391,6 +412,7 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
       )}
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+        {teams.length > 0 && <ExportButtons data={exportData} headers={exportHeaders} filename="teams" />}
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
@@ -403,20 +425,21 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
             <p className="text-gray-600 dark:text-gray-400">No teams found.</p>
           </div>
         ) : (
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-700">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Logo</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Sport</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">University</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Coach</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Players</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {teams.map((team) => (
+          <>
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Logo</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Sport</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">University</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Coach</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Players</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {paginatedTeams.map((team: any) => (
                 <tr key={team.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {team.logoURL ? (
@@ -439,6 +462,8 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
               ))}
             </tbody>
           </table>
+          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+        </>
         )}
       </div>
     </div>

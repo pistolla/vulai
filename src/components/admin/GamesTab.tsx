@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAppSelector } from '@/hooks/redux';
 import { apiService } from '@/services/apiService';
+import ExportButtons from './ExportButtons';
 
 // Modal Component
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
@@ -229,6 +230,18 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
   const hasUpcomingGames = upcoming.length > 0;
   const isLoading = reduxLoading.games;
 
+  // Export data
+  const allGames = [...live, ...upcoming];
+  const exportData = allGames.map((game: any) => ({
+    homeTeam: game.homeTeamName,
+    awayTeam: game.awayTeamName,
+    sport: game.sport,
+    status: game.status || 'upcoming',
+    score: game.score ? `${game.score.home} - ${game.score.away}` : 'N/A',
+    venue: game.venue || 'TBD'
+  }));
+  const exportHeaders = ['homeTeam', 'awayTeam', 'sport', 'status', 'score', 'venue'];
+
   return (
     <div id="content-games" className="slide-in-left">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
@@ -248,6 +261,7 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
           />
         </Modal>
       )}
+      {allGames.length > 0 && <ExportButtons data={exportData} headers={exportHeaders} filename="games" />}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
           <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Live Games</h3>

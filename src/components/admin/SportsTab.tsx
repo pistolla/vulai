@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchSports, createSportT, saveSportT, removeSportT } from '@/store/adminThunk';
 import { RootState } from '@/store';
+import Pagination from './Pagination';
+import ExportButtons from './ExportButtons';
 
 // Modal Component
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
@@ -160,6 +162,8 @@ export default function SportsTab({ adminData }: any) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingSport, setEditingSport] = useState<any>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const [newSport, setNewSport] = useState({
     name: '',
     category: 'team' as 'team' | 'individual',
@@ -221,6 +225,23 @@ export default function SportsTab({ adminData }: any) {
     }
   };
 
+  const totalPages = Math.ceil(sports.length / itemsPerPage);
+  const paginatedSports = sports.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Export data
+  const exportData = sports.map((sport: any) => ({
+    name: sport.name,
+    category: sport.category,
+    players: sport.players,
+    season: sport.season,
+    championships: sport.stats?.championships || 0
+  }));
+  const exportHeaders = ['name', 'category', 'players', 'season', 'championships'];
+
   return (
     <div id="content-sports" className="slide-in-left">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0 mb-6">
@@ -253,6 +274,7 @@ export default function SportsTab({ adminData }: any) {
       )}
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+        {sports.length > 0 && <ExportButtons data={exportData} headers={exportHeaders} filename="sports" />}
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
@@ -265,19 +287,20 @@ export default function SportsTab({ adminData }: any) {
             <p className="text-gray-600 dark:text-gray-400">No sports found.</p>
           </div>
         ) : (
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-700">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Players</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Season</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Championships</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {sports.map((sport) => (
+          <>
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Category</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Players</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Season</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Championships</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {paginatedSports.map((sport: any) => (
                 <tr key={sport.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
@@ -294,9 +317,11 @@ export default function SportsTab({ adminData }: any) {
                     <button onClick={() => handleDeleteSport(sport.id)} className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">Delete</button>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+          </>
         )}
       </div>
     </div>
