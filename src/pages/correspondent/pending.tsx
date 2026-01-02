@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, FormEvent } from 'react';
 import { useAppSelector } from '@/hooks/redux';
 import { useRouter } from 'next/router';
