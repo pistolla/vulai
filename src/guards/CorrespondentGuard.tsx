@@ -1,3 +1,5 @@
+"use client";
+
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -14,8 +16,11 @@ export default function CorrespondentGuard({ children }: Props) {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const [isChecking, setIsChecking] = useState(true);
+  const [hasChecked, setHasChecked] = useState(false);
 
   useEffect(() => {
+    if (hasChecked) return;
+
     const checkAuth = async () => {
       try {
         // Check if Firebase auth is still valid
@@ -48,15 +53,18 @@ export default function CorrespondentGuard({ children }: Props) {
 
           if (userStatus !== 'active') {
             router.replace('/correspondent/pending');
+            setHasChecked(true);
             return;
           }
         } else {
           // User not in Firestore, assume pending
           router.replace('/correspondent/pending');
+          setHasChecked(true);
           return;
         }
 
         setIsChecking(false);
+        setHasChecked(true);
       } catch (error) {
         console.error('Auth check failed:', error);
         router.replace('/login');
@@ -64,7 +72,7 @@ export default function CorrespondentGuard({ children }: Props) {
     };
 
     checkAuth();
-  }, [user, status, router, dispatch]);
+  }, [user, status, router, dispatch, hasChecked]);
 
   // Show loading while checking authentication
   if (isChecking || status === 'loading') {
