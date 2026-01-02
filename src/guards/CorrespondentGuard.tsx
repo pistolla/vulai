@@ -1,7 +1,9 @@
-import { useAppSelector } from '@/hooks/redux';
+import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { auth } from '@/services/firebase';
+import { auth, db } from '@/services/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { setUser } from '@/store/slices/authSlice';
 
 interface Props {
   children: React.ReactNode;
@@ -9,6 +11,7 @@ interface Props {
 
 export default function CorrespondentGuard({ children }: Props) {
   const { user, status } = useAppSelector(s => s.auth);
+  const dispatch = useAppDispatch();
   const router = useRouter();
   const [isChecking, setIsChecking] = useState(true);
 
@@ -35,6 +38,24 @@ export default function CorrespondentGuard({ children }: Props) {
           return;
         }
 
+        // Fetch user status from Firestore
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const userStatus = userData.status || 'pending';
+          // Update user in Redux with status
+          dispatch(setUser({ ...user, status: userStatus }));
+
+          if (userStatus !== 'active') {
+            router.replace('/correspondent/pending');
+            return;
+          }
+        } else {
+          // User not in Firestore, assume pending
+          router.replace('/correspondent/pending');
+          return;
+        }
+
         setIsChecking(false);
       } catch (error) {
         console.error('Auth check failed:', error);
@@ -43,7 +64,7 @@ export default function CorrespondentGuard({ children }: Props) {
     };
 
     checkAuth();
-  }, [user, status, router]);
+  }, [user, status, router, dispatch]);
 
   // Show loading while checking authentication
   if (isChecking || status === 'loading') {

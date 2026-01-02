@@ -35,10 +35,13 @@ const saveUserToStorage = (user: AuthUser | null) => {
         uid: user.uid,
         email: user.email,
         role: user.role,
+        status: user.status,
         universityId: user.universityId,
         teamId: user.teamId,
         displayName: user.displayName,
         photoURL: user.photoURL,
+        phoneNumber: user.phoneNumber,
+        twoFactorEnabled: user.twoFactorEnabled,
       };
       localStorage.setItem('auth_user', JSON.stringify(userToSave));
     } else {

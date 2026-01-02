@@ -4,6 +4,7 @@ export interface AuthUser {
   uid: string;
   email: string;
   role: UserRole;
+  status?: 'pending' | 'active';
   universityId?: string;   // fan & correspondent
   teamId?: string;         // sport-team
   displayName?: string;
