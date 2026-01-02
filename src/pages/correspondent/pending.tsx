@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { useAppSelector } from '@/hooks/redux';
 import { useRouter } from 'next/router';
 import UserHeader from '@/components/UserHeader';
@@ -99,10 +99,11 @@ export default function PendingApprovalPage() {
     }
   };
 
-  if (!user) {
-    router.replace('/login');
-    return null;
-  }
+  useEffect(() => {
+    if (!user) {
+      router.replace('/login');
+    }
+  }, [user, router]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-500">
