@@ -1,5 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { University, Team, Sport } from '@/models';
+import { University, Team, Sport, ImportedData } from '@/models';
 import {
   loadAdminDashboard, loadUsers, approveUser, deleteUserDoc,
   loadMerch, addMerch, updateMerch, deleteMerch,
@@ -12,6 +12,7 @@ import {
   addPlayerHighlight, updatePlayerHighlight, deletePlayerHighlight,
   loadPlayerAvatars, addPlayerAvatar, updatePlayerAvatar, deletePlayerAvatar,
   loadSports, addSport, updateSport, deleteSport,
+  loadImportedData, processImportedData, saveProcessedDocument,
 } from '@/services/firestoreAdmin';
 
 /* ---------- dashboard ---------- */
@@ -74,3 +75,8 @@ export const fetchSports = createAsyncThunk('sports/fetch', loadSports);
 export const createSportT = createAsyncThunk('sports/create', addSport);
 export const saveSportT = createAsyncThunk('sports/save', ({ id, data }: { id: string; data: Partial<Sport> }) => updateSport(id, data));
 export const removeSportT = createAsyncThunk('sports/delete', deleteSport);
+
+/* ---------- imported data ---------- */
+export const fetchImportedData = createAsyncThunk('importedData/fetch', loadImportedData);
+export const processImportedDataT = createAsyncThunk('importedData/process', processImportedData);
+export const saveProcessedDocumentT = createAsyncThunk('processedDocuments/save', saveProcessedDocument);

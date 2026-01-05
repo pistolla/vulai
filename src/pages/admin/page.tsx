@@ -15,6 +15,7 @@ import SportsTab from '../../components/admin/SportsTab';
 import MerchTab from '../../components/admin/MerchTab';
 import ReviewTab from '../../components/admin/ReviewTab';
 import GamesTab from '../../components/admin/GamesTab';
+import { ImportedDataTab } from '../../components/admin/ImportedDataTab';
 import {
   fetchDashboard,
   fetchUsers,
@@ -41,6 +42,7 @@ import {
   addPlayerToTeamT,
   updatePlayerInTeamT,
   deletePlayerFromTeamT,
+  fetchImportedData,
 } from '@/store/adminThunk';
 
 export default function AdminDashboardPage() {
@@ -56,7 +58,7 @@ export default function AdminDashboardPage() {
   const { live, upcoming } = useAppSelector(s => s.games);
 
   /* ---------- Local UI state ---------- */
-  type TabId = 'dashboard' | 'users' | 'universities' | 'teams' | 'players' | 'sports' | 'merchandise' | 'review' | 'games';
+  type TabId = 'dashboard' | 'users' | 'universities' | 'teams' | 'players' | 'sports' | 'merchandise' | 'review' | 'games' | 'importedData';
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [modals, setModals] = useState({
     addUser: false,
@@ -85,6 +87,7 @@ export default function AdminDashboardPage() {
     dispatch(fetchGames());
     dispatch(fetchUniversities());
     dispatch(fetchTeams());
+    dispatch(fetchImportedData());
   }, []);
 
   /* ---------- Async CRUD handlers ---------- */
@@ -265,6 +268,7 @@ export default function AdminDashboardPage() {
     { id: 'merchandise', label: 'Merchandise', icon: FiBox },
     { id: 'review', label: 'Reviews', icon: FiCheckCircle },
     { id: 'games', label: 'Live Games', icon: FiCalendar },
+    { id: 'importedData', label: 'Data Imports', icon: FiBox },
   ];
 
   const renderContent = () => {
@@ -278,6 +282,7 @@ export default function AdminDashboardPage() {
       case 'merchandise': return <MerchTab items={merch} create={createMerch} remove={removeMerch} adminData={adminData} />;
       case 'review': return <ReviewTab rows={reviews} approve={approveReview} reject={rejectReview} adminData={adminData} />;
       case 'games': return <GamesTab live={live} upcoming={upcoming} updateScore={updateScore} startG={startGame} endG={endGame} />;
+      case 'importedData': return <ImportedDataTab />;
       default: return null;
     }
   };

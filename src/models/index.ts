@@ -210,3 +210,18 @@ export interface Sport {
     championships: number;
   };
 }
+
+/* ----- imported data ----- */
+export interface ImportedData {
+  id: string;
+  correspondentId: string;
+  correspondentName: string;
+  correspondentEmail: string;
+  universityName: string;
+  driveLink: string;
+  fileExtension: 'pdf' | 'excel' | 'csv' | 'json';
+  dataType: 'League' | 'team data' | 'players data' | 'merchandise' | 'match results';
+  description: string;
+  dateOfUpload: string; // ISO
+  status: 'pending' | 'processed';
+}

@@ -1,5 +1,5 @@
 import { parse } from 'papaparse'; // add: yarn add papaparse @types/papaparse
-import { LiveCommentary, CommentaryEvent, FixtureVideo, CsvAthleteRow, Athlete, Group, League, Match, Participant, Stage } from '@/models';
+import { LiveCommentary, CommentaryEvent, FixtureVideo, CsvAthleteRow, Athlete, Group, League, Match, Participant, Stage, ImportedData } from '@/models';
 import { db } from '@/services/firebase';
 import { doc, setDoc, updateDoc, arrayUnion, serverTimestamp, collection } from 'firebase/firestore';
 import { createAsyncThunk } from '@reduxjs/toolkit';
@@ -154,4 +154,15 @@ export const fetchPointsTable = createAsyncThunk(
   async ({ leagueId, groupId }: { leagueId: string; groupId: string }) => {
     return { leagueId, groupId, points: await firebaseLeagueService.getPointsTable(leagueId, groupId) } as any;
   },
+);
+
+/* ---------- submit imported data ---------- */
+export const submitImportedData = createAsyncThunk(
+  'correspondent/submitImportedData',
+  async (data: Omit<ImportedData, 'id'>) => {
+    const ref = doc(collection(db, 'imported_data'));
+    const fullData: ImportedData = { ...data, id: ref.id };
+    await setDoc(ref, fullData);
+    return fullData;
+  }
 );

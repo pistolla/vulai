@@ -59,10 +59,10 @@ export default function CorrespondentDashboardPage() {
     },
     {
       id: 'video' as TabType,
-      name: 'Match Reels',
+      name: 'Data Import',
       icon: FiVideo,
       color: 'red',
-      description: 'Upload game videos to Google Drive'
+      description: 'Import data files from Google Drive'
     },
     {
       id: 'commentary' as TabType,

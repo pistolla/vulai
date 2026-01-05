@@ -3,7 +3,7 @@ import {
   collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc,
   query, where, serverTimestamp, Timestamp
 } from 'firebase/firestore';
-import { University, Team, Fixture, PlayerAvatar, Sport } from '@/models';
+import { University, Team, Fixture, PlayerAvatar, Sport, ImportedData } from '@/models';
 import { AdminUserRow } from '@/store/slices/usersSlice';
 import { MerchItem } from '@/store/slices/merchSlice';
 import { ReviewRow } from '@/store/slices/reviewSlice';
@@ -259,3 +259,27 @@ export const startGame  = async (id: string) =>
 
 export const endGame    = async (id: string) =>
   updateDoc(doc(db, 'fixtures', id), { status: 'completed' });
+
+/* ---------- imported data ---------- */
+export const loadImportedData = async (): Promise<ImportedData[]> => {
+  const snap = await getDocs(collection(db, 'imported_data'));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() } as ImportedData));
+};
+
+export const processImportedData = async (id: string) =>
+  updateDoc(doc(db, 'imported_data', id), { status: 'processed' });
+
+/* ---------- processed documents ---------- */
+export interface ProcessedDocument {
+  id?: string;
+  importedDataId: string;
+  googleDriveFileId: string;
+  extractedData: any;
+  processedAt: string;
+}
+
+export const saveProcessedDocument = async (data: Omit<ProcessedDocument, 'id' | 'processedAt'>) =>
+  addDoc(collection(db, 'processed_documents'), {
+    ...data,
+    processedAt: serverTimestamp(),
+  });

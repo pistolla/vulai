@@ -61,7 +61,11 @@ export default function RegisterPage() {
           universityId: university?.value, // we store this in Firestore
         }
       );
-      setShowVerification(true);
+      if (role === 'correspondent') {
+        router.push('/correspondent/pending');
+      } else {
+        setShowVerification(true);
+      }
     } catch (err: any) {
       setError(getAuthErrorMessage(err));
     } finally {
