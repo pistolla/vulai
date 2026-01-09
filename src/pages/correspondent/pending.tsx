@@ -8,6 +8,8 @@ import { auth, db } from '@/services/firebase';
 import { reauthenticateWithCredential, EmailAuthProvider, updateEmail } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
 import { FiMail, FiLock } from 'react-icons/fi';
+import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
 
 
 export default function PendingApprovalPage() {
@@ -16,6 +18,7 @@ export default function PendingApprovalPage() {
 
   const [step, setStep] = useState(1);
   const [gmail, setGmail] = useState(user?.email || '');
+  const [phone, setPhone] = useState<string | undefined>();
   const [password, setPassword] = useState('');
   const [hasReadDocument, setHasReadDocument] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
@@ -43,6 +46,7 @@ export default function PendingApprovalPage() {
         correspondentId: user!.uid,
         correspondentName: user!.displayName || '',
         gmailAccount: gmail,
+        phoneNumber: phone,
         agreedAt: new Date().toISOString(),
         documentVersion: '1.0',
       };
@@ -75,6 +79,10 @@ export default function PendingApprovalPage() {
         throw new Error('Please enter a valid Gmail address (ending with @gmail.com)');
       }
 
+      if (!phone || !isValidPhoneNumber(phone)) {
+        throw new Error('Please enter a valid phone number');
+      }
+
       // Reauthenticate
       const credential = EmailAuthProvider.credential(auth.currentUser.email!, password);
       await reauthenticateWithCredential(auth.currentUser, credential);
@@ -87,6 +95,7 @@ export default function PendingApprovalPage() {
       // Update Firestore
       await updateDoc(doc(db, 'users', user!.uid), {
         email: gmail,
+        phone: phone,
       });
       setSuccess('Gmail account linked successfully! Proceeding to consent agreement...');
       setTimeout(() => {
@@ -170,6 +179,21 @@ export default function PendingApprovalPage() {
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Must be a Gmail account with 2FA enabled for security
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Phone Number <span className="text-red-500">*</span>
+                </label>
+                <PhoneInput
+                  value={phone}
+                  onChange={setPhone}
+                  defaultCountry="KE"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter phone number"
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Enter your phone number with country code
                 </p>
               </div>
 
@@ -257,6 +281,7 @@ export default function PendingApprovalPage() {
                     <h3 className="text-lg font-semibold mb-4">Digital Signature</h3>
                     <p><strong>Name:</strong> {user?.displayName || ''}</p>
                     <p><strong>Email:</strong> {gmail}</p>
+                    <p><strong>Phone:</strong> {phone}</p>
                     <p><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
                     <p><strong>IP Address:</strong> [Automatically recorded]</p>
                   </div>

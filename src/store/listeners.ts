@@ -21,19 +21,23 @@ listenerMiddleware.startListening({
   },
   effect: async (_, listenerApi) => {
     try {
-      const q = query(collection(db,'fixtures'), where('status','==','live'));
-      const unsubLive = onSnapshot(q, snap => {
+      // Listen to all fixtures for real-time updates
+      const unsubAll = onSnapshot(collection(db, 'fixtures'), snap => {
         try {
-          const live = snap.docs.map(d => ({id:d.id,...d.data()} as any));
-          listenerApi.dispatch(setGames({ live, upcoming:[] })); // merge in component
+          const allFixtures = snap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+          const live = allFixtures.filter(f => f.status === 'live');
+          const upcoming = allFixtures.filter(f => f.status === 'scheduled');
+          listenerApi.dispatch(setGames({ live, upcoming }));
         } catch (error) {
-          console.error('Error processing live fixtures snapshot:', error);
+          console.error('Error processing fixtures snapshot:', error);
         }
       }, error => {
-        console.error('Live fixtures listener error:', error);
+        console.error('Fixtures listener error:', error);
       });
+
+      // Store unsubscribe function if needed, but for now, let it persist
     } catch (error) {
-      console.error('Failed to set up live fixtures listener:', error);
+      console.error('Failed to set up fixtures listener:', error);
     }
 
     // Auth listener is now handled in _app.tsx to ensure it runs on app start

@@ -36,6 +36,14 @@ export interface Fixture {
   venue: string;
   status: 'scheduled' | 'live' | 'completed' | 'postponed';
   score?: { home: number; away: number };
+  stats?: {
+    homeGoals: number;
+    awayGoals: number;
+    homeAssists: number;
+    awayAssists: number;
+    possession: { home: number; away: number };
+    shots: { home: number; away: number };
+  };
 }
 
 export interface News {

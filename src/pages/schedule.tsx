@@ -20,10 +20,11 @@ const SchedulePage: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [matches, setMatches] = useState<Match[]>([]);
   const [mounted, setMounted] = useState(false);
-  const [calendarView, setCalendarView] = useState<'grid' | 'horizontal'>('grid');
+  const [calendarView, setCalendarView] = useState<'grid' | 'horizontal'>('horizontal');
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     let isMounted = true;
@@ -453,18 +454,51 @@ const SchedulePage: React.FC = () => {
           <h1 className="text-5xl md:text-6xl font-black mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
             Schedule & Results
           </h1>
-          <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-            Stay updated with live scores, upcoming fixtures, and match results across all university sports programs.
-          </p>
         </div>
       </section>
-      
-      {/* Filter Section */}
-      <section className={`py-8 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
+
+      {/* Calendar Section */}
+      <section className={`py-8 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''} border-b border-unill-yellow-400`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap gap-4 justify-center">
+          <div className="text-center mb-8">
+            <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
+              Sports Calendar
+            </h2>
+            <p className="text-xl text-gray-700">Click on any date to view matches and events</p>
+            <div className="mt-4 flex justify-center gap-4">
+              <button
+                onClick={() => setCalendarView('grid')}
+                className={`px-4 py-2 rounded-lg transition-all ${
+                  calendarView === 'grid'
+                    ? 'bg-unill-yellow-400 text-gray-900'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Grid View
+              </button>
+              <button
+                onClick={() => setCalendarView('horizontal')}
+                className={`px-4 py-2 rounded-lg transition-all ${
+                  calendarView === 'horizontal'
+                    ? 'bg-unill-yellow-400 text-gray-900'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Horizontal View
+              </button>
+            </div>
+          </div>
+
+          {renderCalendar()}
+        </div>
+      </section>
+
+      {/* Filter Section */}
+      <section className={`py-8 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''} border-b border-unill-yellow-400`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex overflow-x-auto gap-4 pb-4 horizontal-scroll">
             <button
-              className={`filter-btn active px-6 py-3 rounded-lg transition-all ${
+              className={`filter-btn active px-6 py-3 rounded-lg transition-all flex-shrink-0 ${
                 theme === 'dark'
                   ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
                   : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
@@ -476,7 +510,7 @@ const SchedulePage: React.FC = () => {
               All Sports
             </button>
             <button
-              className={`filter-btn px-6 py-3 rounded-lg transition-all ${
+              className={`filter-btn px-6 py-3 rounded-lg transition-all flex-shrink-0 ${
                 theme === 'dark'
                   ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
                   : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
@@ -488,7 +522,7 @@ const SchedulePage: React.FC = () => {
               Football
             </button>
             <button
-              className={`filter-btn px-6 py-3 rounded-lg transition-all ${
+              className={`filter-btn px-6 py-3 rounded-lg transition-all flex-shrink-0 ${
                 theme === 'dark'
                   ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
                   : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
@@ -500,7 +534,7 @@ const SchedulePage: React.FC = () => {
               Basketball
             </button>
             <button
-              className={`filter-btn px-6 py-3 rounded-lg transition-all ${
+              className={`filter-btn px-6 py-3 rounded-lg transition-all flex-shrink-0 ${
                 theme === 'dark'
                   ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
                   : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
@@ -512,7 +546,7 @@ const SchedulePage: React.FC = () => {
               Volleyball
             </button>
             <button
-              className={`filter-btn px-6 py-3 rounded-lg transition-all ${
+              className={`filter-btn px-6 py-3 rounded-lg transition-all flex-shrink-0 ${
                 theme === 'dark'
                   ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
                   : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
@@ -524,75 +558,52 @@ const SchedulePage: React.FC = () => {
               Live Now
             </button>
           </div>
-
-          {/* Leagues Dropdown */}
-          {currentFilter !== 'all' && currentFilter !== 'live' && leagues && leagues.length > 0 && (
-            <div className="mt-4 flex justify-center">
-              <select
-                value={selectedLeague}
-                onChange={(e) => {
-                  const leagueId = e.target.value;
-                  setSelectedLeague(leagueId);
-                  if (leagueId) {
-                    window.location.href = `/league/${leagueId}`;
-                  }
-                }}
-                className={`px-6 py-3 rounded-lg transition-all ${
-                  theme === 'dark'
-                    ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
-                    : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
-                }`}
-              >
-                <option value="">Select League</option>
-                {leagues
-                  .filter(league => league.sportType === 'team') // Assuming team sports for now
-                  .map(league => (
-                    <option key={league.id} value={league.id}>
-                      {league.name}
-                    </option>
-                  ))
-                }
-              </select>
-            </div>
-          )}
         </div>
       </section>
-      
-      {/* Calendar Section */}
-       <section className={`py-16 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
-         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-           <div className="text-center mb-12">
-             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
-               Sports Calendar
-             </h2>
-             <p className="text-xl text-gray-700">Click on any date to view matches and events</p>
-             <div className="mt-4 flex justify-center gap-4">
-               <button
-                 onClick={() => setCalendarView('grid')}
-                 className={`px-4 py-2 rounded-lg transition-all ${
-                   calendarView === 'grid'
-                     ? 'bg-unill-yellow-400 text-gray-900'
-                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                 }`}
-               >
-                 Grid View
-               </button>
-               <button
-                 onClick={() => setCalendarView('horizontal')}
-                 className={`px-4 py-2 rounded-lg transition-all ${
-                   calendarView === 'horizontal'
-                     ? 'bg-unill-yellow-400 text-gray-900'
-                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                 }`}
-               >
-                 Horizontal View
-               </button>
-             </div>
-           </div>
 
-           {renderCalendar()}
-         </div>
-       </section>
+      {/* Leagues and Search Section */}
+      <section className={`py-8 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''} border-b border-unill-yellow-400`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center">
+            <select
+              value={selectedLeague}
+              onChange={(e) => {
+                const leagueId = e.target.value;
+                setSelectedLeague(leagueId);
+                if (leagueId) {
+                  window.location.href = `/league/${leagueId}`;
+                }
+              }}
+              className={`px-6 py-3 rounded-lg transition-all flex-shrink-0 ${
+                theme === 'dark'
+                  ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
+                  : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              <option value="">Select League</option>
+              {leagues
+                .filter(league => league.sportType === 'team' && league.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map(league => (
+                  <option key={league.id} value={league.id}>
+                    {league.name}
+                  </option>
+                ))
+              }
+            </select>
+            <input
+              type="text"
+              placeholder="Search leagues or teams..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={`flex-1 px-6 py-3 rounded-lg transition-all ${
+                theme === 'dark'
+                  ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
+                  : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
+              }`}
+            />
+          </div>
+        </div>
+      </section>
       
       {/* Live Matches */}
       <section className={`py-16 bg-black/20 backdrop-blur-sm ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
@@ -871,6 +882,15 @@ const SchedulePage: React.FC = () => {
         .calendar-day:hover {
           background: rgba(168, 85, 247, 0.2);
           transform: scale(1.05);
+        }
+
+        .horizontal-scroll {
+          scrollbar-width: none; /* Firefox */
+          -ms-overflow-style: none; /* IE and Edge */
+        }
+
+        .horizontal-scroll::-webkit-scrollbar {
+          display: none; /* Chrome, Safari, Opera */
         }
       `}</style>
     </Layout>
