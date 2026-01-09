@@ -350,16 +350,16 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
 
   // Filter games based on search and filters
   const filteredLive = live.filter((game: any) =>
-    (game.homeTeamName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    game.awayTeamName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    game.sport.toLowerCase().includes(searchQuery.toLowerCase())) &&
+    ((game.homeTeamName || game.homeTeam || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (game.awayTeamName || game.awayTeam || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (game.sport || '').toLowerCase().includes(searchQuery.toLowerCase())) &&
     (!sportFilter || game.sport === sportFilter) &&
     (!statusFilter || game.status === statusFilter)
   );
   const filteredUpcoming = upcoming.filter((game: any) =>
-    (game.homeTeamName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    game.awayTeamName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    game.sport.toLowerCase().includes(searchQuery.toLowerCase())) &&
+    ((game.homeTeamName || game.homeTeam || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (game.awayTeamName || game.awayTeam || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (game.sport || '').toLowerCase().includes(searchQuery.toLowerCase())) &&
     (!sportFilter || game.sport === sportFilter) &&
     (!statusFilter || game.status === statusFilter)
   );
@@ -375,8 +375,8 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
   // Export data
   const allGames = [...filteredLive, ...filteredUpcoming];
   const exportData = allGames.map((game: any) => ({
-    homeTeam: game.homeTeamName,
-    awayTeam: game.awayTeamName,
+    homeTeam: game.homeTeamName || game.homeTeam,
+    awayTeam: game.awayTeamName || game.awayTeam,
     sport: game.sport,
     status: game.status || 'upcoming',
     score: game.score ? `${game.score.home} - ${game.score.away}` : 'N/A',
@@ -497,7 +497,7 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
                           className="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 dark:focus:ring-red-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                         />
                       </td>
-                      <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white">{g.homeTeamName} vs {g.awayTeamName}</td>
+                      <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white">{g.homeTeamName || g.homeTeam} vs {g.awayTeamName || g.awayTeam}</td>
                       <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-300">{g.sport}</td>
                       <td className="px-4 py-2 text-sm text-red-600 dark:text-red-400 font-bold">{g.score?.home ?? 0} - {g.score?.away ?? 0}</td>
                       <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-300">{g.stats?.homeGoals ?? 0} - {g.stats?.awayGoals ?? 0}</td>
@@ -550,7 +550,7 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
                           className="w-4 h-4 text-yellow-600 bg-gray-100 border-gray-300 rounded focus:ring-yellow-500 dark:focus:ring-yellow-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                         />
                       </td>
-                      <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white">{g.homeTeamName} vs {g.awayTeamName}</td>
+                      <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white">{g.homeTeamName || g.homeTeam} vs {g.awayTeamName || g.awayTeam}</td>
                       <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-300">{g.sport}</td>
                       <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-300">{new Date(g.scheduledAt).toLocaleString()}</td>
                       <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-300">{g.venue}</td>
