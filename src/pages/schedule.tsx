@@ -540,7 +540,7 @@ const SchedulePage: React.FC = () => {
 
           {renderCalendar()}
 
-          <div className="mt-0 flex overflow-x-auto gap-4 pb-0 horizontal-scroll">
+          <div className="mt-0 flex overflow-x-auto gap-4 pb-4 horizontal-scroll">
             <button
               className={`filter-btn active px-6 py-3 rounded-lg transition-all flex-shrink-0 ${
                 theme === 'dark'
@@ -624,13 +624,13 @@ const SchedulePage: React.FC = () => {
       </section>
       
       {/* Live Matches */}
-      <section className={`py-16 bg-black/20 backdrop-blur-sm ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
+      <section className={`py-8 bg-black/20 backdrop-blur-sm ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
+          <div className="flex justify-between items-center mb-8 flex-col sm:flex-row">
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
               Live & Upcoming Matches
             </h2>
-            <p className="text-xl text-gray-700">Real-time updates from ongoing university sports events</p>
+            <p className="text-lg text-gray-700 mt-2 sm:mt-0">Real-time updates from ongoing university sports events</p>
           </div>
           
           <div id="matches-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -714,13 +714,13 @@ const SchedulePage: React.FC = () => {
       </section>
       
       {/* Active Leagues */}
-      <section className={`py-16 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
+      <section className={`py-8 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
+          <div className="flex justify-between items-center mb-8 flex-col sm:flex-row">
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
               Active Leagues
             </h2>
-            <p className="text-xl text-gray-700">Explore ongoing tournaments and competitions</p>
+            <p className="text-lg text-gray-700 mt-2 sm:mt-0">Explore ongoing tournaments and competitions</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
