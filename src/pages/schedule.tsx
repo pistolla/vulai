@@ -8,6 +8,18 @@ import { League, Fixture } from '../models';
 import { useTheme } from '../components/ThemeProvider';
 import { loadLiveGames, loadUpcomingGames } from '../services/firestoreAdmin';
 
+type DisplayMatch = {
+  id: number;
+  status: 'live' | 'upcoming' | 'completed';
+  sport: string;
+  homeTeam: string;
+  awayTeam: string;
+  score?: { home: number; away: number };
+  date: string;
+  time: string;
+  venue: string;
+};
+
 const SchedulePage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { leagues, loading: leaguesLoading } = useAppSelector((state) =>  state.leagues);
@@ -20,10 +32,12 @@ const SchedulePage: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [matches, setMatches] = useState<Match[]>([]);
   const [mounted, setMounted] = useState(false);
-  const [calendarView, setCalendarView] = useState<'grid' | 'horizontal'>('horizontal');
+  const [calendarView, setCalendarView] = useState<string>('horizontal');
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
+  const [displayFixtures, setDisplayFixtures] = useState<DisplayMatch[]>([]);
+  const [sports, setSports] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -50,6 +64,16 @@ const SchedulePage: React.FC = () => {
           setLoading(false); // Allow UI to render with schedule data
         }
 
+        // Load sports data
+        if (isMounted) {
+          try {
+            const sportsData = await apiService.getSports();
+            setSports(sportsData);
+          } catch (sportsError) {
+            console.error('Failed to load sports data:', sportsError);
+          }
+        }
+
         // Load leagues data asynchronously (non-blocking)
          if (isMounted) {
            try {
@@ -61,16 +85,38 @@ const SchedulePage: React.FC = () => {
            }
          }
 
-        // Load fixtures if user is logged in
-        if (user && isMounted) {
+        // Load fixtures for all users
+        if (isMounted) {
           try {
             const [live, upcoming] = await Promise.all([
               loadLiveGames(),
               loadUpcomingGames()
             ]);
-            setFixtures([...live, ...upcoming]);
+            const allFixtures = [...live, ...upcoming].sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
+            setFixtures(allFixtures);
+
+            // Find closest upcoming fixture
+            const now = new Date();
+            const closest = allFixtures.find(f => new Date(f.scheduledAt) > now);
+            if (closest) {
+              setCurrentDate(new Date(closest.scheduledAt));
+            }
+
+            // Map to display format
+            setDisplayFixtures(allFixtures.map(f => ({
+              id: parseInt(f.id) || 0,
+              status: f.status === 'scheduled' ? 'upcoming' : f.status === 'postponed' ? 'upcoming' : f.status,
+              sport: f.sport,
+              homeTeam: f.homeTeamName,
+              awayTeam: f.awayTeamName,
+              score: f.score,
+              date: new Date(f.scheduledAt).toISOString().split('T')[0],
+              time: new Date(f.scheduledAt).toLocaleTimeString(),
+              venue: f.venue
+            })));
           } catch (fixtureError) {
             console.error('Failed to load fixtures:', fixtureError);
+            // Fall back to static matches
           }
         }
       } catch (error) {
@@ -160,8 +206,8 @@ const SchedulePage: React.FC = () => {
   };
 
   const showDayDetails = (date: string) => {
-    // For logged in users, use fixtures, else static matches
-    const matchesOnDay = user
+    // Use fixtures if available, else static matches
+    const matchesOnDay = fixtures.length > 0
       ? fixtures.filter(fixture => {
           const fixtureDate = new Date(fixture.scheduledAt).toISOString().split('T')[0];
           return fixtureDate === date;
@@ -203,6 +249,32 @@ const SchedulePage: React.FC = () => {
       'July', 'August', 'September', 'October', 'November', 'December'
     ];
 
+    const calendarButtons = (
+      <div className="flex gap-1">
+        <button
+          onClick={() => setCalendarView('grid')}
+          className={`p-1 rounded transition-all ${calendarView === 'grid' ? 'bg-unill-yellow-400 text-gray-900' : 'hover:bg-gray-200'}`}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+        </button>
+        <button
+          onClick={() => setCalendarView('horizontal')}
+          className={`p-1 rounded transition-all ${calendarView === 'horizontal' ? 'bg-unill-yellow-400 text-gray-900' : 'hover:bg-gray-200'}`}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    );
+
     if (calendarView === 'horizontal') {
       const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
       const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
@@ -212,7 +284,7 @@ const SchedulePage: React.FC = () => {
       for (let day = 1; day <= daysInMonth; day++) {
         const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
         const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const matchesOnDay = user
+        const matchesOnDay = fixtures.length > 0
           ? fixtures.filter(fixture => {
               const fixtureDate = new Date(fixture.scheduledAt).toISOString().split('T')[0];
               return fixtureDate === dateStr;
@@ -242,24 +314,25 @@ const SchedulePage: React.FC = () => {
 
       return (
         <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
-          <div className="calendar-header mb-6">
-            <h3 className="text-2xl font-bold text-center bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
+          <div className="calendar-header flex justify-between items-center mb-2">
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
               {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
             </h3>
-            <div className="flex justify-between mt-4">
-              <button
-                onClick={() => changeMonth(-1)}
-                className="px-4 py-2 bg-unill-purple-500 text-white rounded hover:bg-unill-purple-600 transition-colors"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => changeMonth(1)}
-                className="px-4 py-2 bg-unill-purple-500 text-white rounded hover:bg-unill-purple-600 transition-colors"
-              >
-                Next
-              </button>
-            </div>
+            {calendarButtons}
+          </div>
+          <div className="flex justify-between mt-4">
+            <button
+              onClick={() => changeMonth(-1)}
+              className="px-4 py-2 bg-unill-purple-500 text-white rounded hover:bg-unill-purple-600 transition-colors"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => changeMonth(1)}
+              className="px-4 py-2 bg-unill-purple-500 text-white rounded hover:bg-unill-purple-600 transition-colors"
+            >
+              Next
+            </button>
           </div>
           <div className="horizontal-calendar flex gap-2 overflow-x-auto pb-4">
             {dates}
@@ -283,7 +356,7 @@ const SchedulePage: React.FC = () => {
       // Days of the month
       for (let day = 1; day <= daysInMonth; day++) {
         const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const matchesOnDay = user
+        const matchesOnDay = fixtures.length > 0
           ? fixtures.filter(fixture => {
               const fixtureDate = new Date(fixture.scheduledAt).toISOString().split('T')[0];
               return fixtureDate === dateStr;
@@ -311,24 +384,25 @@ const SchedulePage: React.FC = () => {
 
       return (
         <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
-          <div className="calendar-header mb-6">
-            <h3 className="text-2xl font-bold text-center bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
+          <div className="calendar-header flex justify-between items-center mb-2">
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
               {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
             </h3>
-            <div className="flex justify-between mt-4">
-              <button
-                onClick={() => changeMonth(-1)}
-                className="px-4 py-2 bg-unill-purple-500 text-white rounded hover:bg-unill-purple-600 transition-colors"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => changeMonth(1)}
-                className="px-4 py-2 bg-unill-purple-500 text-white rounded hover:bg-unill-purple-600 transition-colors"
-              >
-                Next
-              </button>
-            </div>
+            {calendarButtons}
+          </div>
+          <div className="flex justify-between mt-4">
+            <button
+              onClick={() => changeMonth(-1)}
+              className="px-4 py-2 bg-unill-purple-500 text-white rounded hover:bg-unill-purple-600 transition-colors"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => changeMonth(1)}
+              className="px-4 py-2 bg-unill-purple-500 text-white rounded hover:bg-unill-purple-600 transition-colors"
+            >
+              Next
+            </button>
           </div>
           <div className="calendar-grid grid grid-cols-7 gap-2">
             <div className="font-semibold text-center p-2 text-gray-700">Sun</div>
@@ -345,7 +419,8 @@ const SchedulePage: React.FC = () => {
     }
   };
 
-  const filteredMatches = matches.filter(match => {
+  const displayMatches = displayFixtures.length > 0 ? displayFixtures : matches;
+  const filteredMatches = displayMatches.filter(match => {
     if (currentFilter === 'all') return true;
     if (currentFilter === 'live') return match.status === 'live';
     return match.sport === currentFilter;
@@ -449,7 +524,7 @@ const SchedulePage: React.FC = () => {
   return (
     <Layout title="Schedule & Results" description="View university sports schedules, match results, and upcoming fixtures. Stay updated with live scores and game statistics.">
       {/* Hero Section */}
-      <section className={`pt-24 pb-16 bg-gradient-to-b from-black/30 to-transparent ${themeMounted && theme === 'light' ? 'bg-transparent' : ''}`}>
+      <section className={`pt-24 pb-2 bg-gradient-to-b from-black/30 to-transparent ${themeMounted && theme === 'light' ? 'bg-transparent' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl md:text-6xl font-black mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
             Schedule & Results
@@ -457,46 +532,15 @@ const SchedulePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Calendar Section */}
-      <section className={`py-8 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''} border-b border-unill-yellow-400`}>
+      {/* Unified Actions Header */}
+      <section className={`py-0 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
-              Sports Calendar
-            </h2>
-            <p className="text-xl text-gray-700">Click on any date to view matches and events</p>
-            <div className="mt-4 flex justify-center gap-4">
-              <button
-                onClick={() => setCalendarView('grid')}
-                className={`px-4 py-2 rounded-lg transition-all ${
-                  calendarView === 'grid'
-                    ? 'bg-unill-yellow-400 text-gray-900'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                Grid View
-              </button>
-              <button
-                onClick={() => setCalendarView('horizontal')}
-                className={`px-4 py-2 rounded-lg transition-all ${
-                  calendarView === 'horizontal'
-                    ? 'bg-unill-yellow-400 text-gray-900'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                Horizontal View
-              </button>
-            </div>
+          <div className="text-center mb-0">
           </div>
 
           {renderCalendar()}
-        </div>
-      </section>
 
-      {/* Filter Section */}
-      <section className={`py-8 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''} border-b border-unill-yellow-400`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex overflow-x-auto gap-4 pb-4 horizontal-scroll">
+          <div className="mt-0 flex overflow-x-auto gap-4 pb-0 horizontal-scroll">
             <button
               className={`filter-btn active px-6 py-3 rounded-lg transition-all flex-shrink-0 ${
                 theme === 'dark'
@@ -509,42 +553,21 @@ const SchedulePage: React.FC = () => {
             >
               All Sports
             </button>
-            <button
-              className={`filter-btn px-6 py-3 rounded-lg transition-all flex-shrink-0 ${
-                theme === 'dark'
-                  ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
-                  : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
-              } ${
-                currentFilter === 'football' ? 'active' : ''
-              }`}
-              onClick={() => setCurrentFilter('football')}
-            >
-              Football
-            </button>
-            <button
-              className={`filter-btn px-6 py-3 rounded-lg transition-all flex-shrink-0 ${
-                theme === 'dark'
-                  ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
-                  : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
-              } ${
-                currentFilter === 'basketball' ? 'active' : ''
-              }`}
-              onClick={() => setCurrentFilter('basketball')}
-            >
-              Basketball
-            </button>
-            <button
-              className={`filter-btn px-6 py-3 rounded-lg transition-all flex-shrink-0 ${
-                theme === 'dark'
-                  ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
-                  : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
-              } ${
-                currentFilter === 'volleyball' ? 'active' : ''
-              }`}
-              onClick={() => setCurrentFilter('volleyball')}
-            >
-              Volleyball
-            </button>
+            {sports.map(sport => (
+              <button
+                key={sport.id}
+                className={`filter-btn px-6 py-3 rounded-lg transition-all flex-shrink-0 ${
+                  theme === 'dark'
+                    ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
+                    : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
+                } ${
+                  currentFilter === sport.name.toLowerCase() ? 'active' : ''
+                }`}
+                onClick={() => setCurrentFilter(sport.name.toLowerCase())}
+              >
+                {sport.name}
+              </button>
+            ))}
             <button
               className={`filter-btn px-6 py-3 rounded-lg transition-all flex-shrink-0 ${
                 theme === 'dark'
@@ -558,13 +581,8 @@ const SchedulePage: React.FC = () => {
               Live Now
             </button>
           </div>
-        </div>
-      </section>
 
-      {/* Leagues and Search Section */}
-      <section className={`py-8 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''} border-b border-unill-yellow-400`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center">
+          <div className="mt-0 flex flex-col md:flex-row gap-4 items-stretch md:items-center">
             <select
               value={selectedLeague}
               onChange={(e) => {
@@ -824,7 +842,7 @@ const SchedulePage: React.FC = () => {
               </button>
             </div>
             <div className="space-y-4">
-              {(user
+              {(fixtures.length > 0
                 ? fixtures.filter(fixture => {
                     const fixtureDate = new Date(fixture.scheduledAt).toISOString().split('T')[0];
                     return fixtureDate === selectedDate;
