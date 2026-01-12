@@ -1,9 +1,15 @@
 import { useState, useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { createMerchDocument } from '@/store/correspondentThunk';
+import { OrderData } from '@/models';
 
 // Cart Component
 export default function CartTab() {
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector(state => state.auth);
   const [cartItems, setCartItems] = useState<any[]>([]);
-  const [checkoutStep, setCheckoutStep] = useState<'cart' | 'payment' | 'address' | 'confirm'>('cart');
+  const [checkoutStep, setCheckoutStep] = useState<'cart' | 'payment' | 'payment_method' | 'address' | 'confirm'>('cart');
+  const [paymentMethod, setPaymentMethod] = useState<'pay_on_delivery' | 'pay_on_order'>('pay_on_delivery');
 
   // Load cart from sessionStorage
   useEffect(() => {
@@ -58,7 +64,7 @@ export default function CartTab() {
             <div className="flex justify-between items-center pt-4 border-t">
               <span className="text-lg font-medium">Total: ${total.toFixed(2)}</span>
               <button
-                onClick={() => setCheckoutStep('payment')}
+                onClick={() => setCheckoutStep('payment_method')}
                 className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
               >
                 Proceed to Checkout
@@ -74,8 +80,19 @@ export default function CartTab() {
     return (
       <PaymentStep
         total={total}
-        onNext={() => setCheckoutStep('address')}
+        onNext={() => setCheckoutStep('payment_method')}
         onBack={() => setCheckoutStep('cart')}
+      />
+    );
+  }
+
+  if (checkoutStep === 'payment_method') {
+    return (
+      <PaymentMethodStep
+        paymentMethod={paymentMethod}
+        onPaymentMethodChange={setPaymentMethod}
+        onNext={() => setCheckoutStep('address')}
+        onBack={() => setCheckoutStep('payment')}
       />
     );
   }
@@ -93,12 +110,48 @@ export default function CartTab() {
     <ConfirmStep
       cartItems={cartItems}
       total={total}
+      paymentMethod={paymentMethod}
       onBack={() => setCheckoutStep('address')}
-      onComplete={() => {
-        // Clear cart and redirect to orders
-        updateCart([]);
-        setCheckoutStep('cart');
-        alert('Order placed successfully!');
+      onComplete={async () => {
+        if (!user) {
+          alert('Please log in to place an order');
+          return;
+        }
+
+        try {
+          // Create Order document
+          const orderData: OrderData = {
+            customerName: user.displayName || user.email || 'Unknown',
+            customerEmail: user.email,
+            customerPhone: user.phoneNumber || '',
+            shippingAddress: 'To be confirmed', // This could be enhanced to store actual address
+            items: cartItems.map(item => ({
+              merchId: item.id,
+              merchName: item.name,
+              quantity: item.quantity,
+              price: item.price,
+              subtotal: item.price * item.quantity,
+            })),
+            total: total,
+            paymentMethod: paymentMethod,
+            notes: 'Order placed via online checkout',
+          };
+
+          await dispatch(createMerchDocument({
+            type: 'order',
+            merchType: 'unil', // University merchandise
+            status: 'pending_approval',
+            data: orderData,
+          }));
+
+          // Clear cart and redirect to orders
+          updateCart([]);
+          setCheckoutStep('cart');
+          alert('Order placed successfully! It will be reviewed by the university manager.');
+        } catch (error) {
+          console.error('Failed to create order:', error);
+          alert('Failed to place order. Please try again.');
+        }
       }}
     />
   );
@@ -335,10 +388,77 @@ function AddressStep({ onNext, onBack }: { onNext: () => void; onBack: () => voi
   );
 }
 
+// Payment Method Step Component
+function PaymentMethodStep({ paymentMethod, onPaymentMethodChange, onNext, onBack }: {
+  paymentMethod: 'pay_on_delivery' | 'pay_on_order';
+  onPaymentMethodChange: (method: 'pay_on_delivery' | 'pay_on_order') => void;
+  onNext: () => void;
+  onBack: () => void;
+}) {
+  return (
+    <div className="space-y-6">
+      <h3 className="text-lg font-medium text-gray-900">Payment Method</h3>
+      <div className="space-y-4">
+        <div className="space-y-3">
+          <div
+            className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+              paymentMethod === 'pay_on_delivery' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+            }`}
+            onClick={() => onPaymentMethodChange('pay_on_delivery')}
+          >
+            <div className="flex items-center space-x-3">
+              <input
+                type="radio"
+                checked={paymentMethod === 'pay_on_delivery'}
+                onChange={() => onPaymentMethodChange('pay_on_delivery')}
+                className="text-blue-600"
+              />
+              <div>
+                <h4 className="font-medium">Pay on Delivery</h4>
+                <p className="text-sm text-gray-600">Pay when you receive your order. Transport costs will be included.</p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+              paymentMethod === 'pay_on_order' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+            }`}
+            onClick={() => onPaymentMethodChange('pay_on_order')}
+          >
+            <div className="flex items-center space-x-3">
+              <input
+                type="radio"
+                checked={paymentMethod === 'pay_on_order'}
+                onChange={() => onPaymentMethodChange('pay_on_order')}
+                className="text-blue-600"
+              />
+              <div>
+                <h4 className="font-medium">Pay on Order</h4>
+                <p className="text-sm text-gray-600">Receive invoice via email and pay before shipping.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-between">
+        <button onClick={onBack} className="text-gray-600 hover:text-gray-800">
+          Back to Payment
+        </button>
+        <button onClick={onNext} className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+          Continue to Address
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // Confirm Step Component
-function ConfirmStep({ cartItems, total, onBack, onComplete }: {
+function ConfirmStep({ cartItems, total, paymentMethod, onBack, onComplete }: {
   cartItems: any[];
   total: number;
+  paymentMethod: 'pay_on_delivery' | 'pay_on_order';
   onBack: () => void;
   onComplete: () => void;
 }) {
@@ -352,14 +472,18 @@ function ConfirmStep({ cartItems, total, onBack, onComplete }: {
           {cartItems.map((item, index) => (
             <div key={index} className="flex justify-between">
               <span>{item.name} x {item.quantity}</span>
-              <span>${(item.price * item.quantity).toFixed(2)}</span>
+              <span>KSh {(item.price * item.quantity).toFixed(2)}</span>
             </div>
           ))}
         </div>
         <div className="border-t pt-2">
           <div className="flex justify-between font-medium">
+            <span>Payment Method</span>
+            <span className="capitalize">{paymentMethod.replace('_', ' ')}</span>
+          </div>
+          <div className="flex justify-between font-medium">
             <span>Total</span>
-            <span>${total.toFixed(2)}</span>
+            <span>KSh {total.toFixed(2)}</span>
           </div>
         </div>
       </div>

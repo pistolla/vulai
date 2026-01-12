@@ -42,7 +42,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
     }
   };
 
-  const documentTypes: DocumentType[] = ['order', 'invoice', 'stock_record', 'transport_document', 'return_of_goods'];
+  const documentTypes: DocumentType[] = ['order', 'invoice', 'stock_record', 'transport_document', 'return_of_goods', 'purchase_order', 'delivery_notes'];
 
   return (
     <div className="space-y-6">

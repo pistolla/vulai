@@ -1,5 +1,5 @@
 import React from 'react';
-import { MerchDocument, OrderData, InvoiceData, StockRecordData, TransportDocumentData, ReturnOfGoodsData, OrderItem, InvoiceItem, ReturnItem } from '@/models';
+import { MerchDocument, OrderData, InvoiceData, StockRecordData, TransportDocumentData, ReturnOfGoodsData, PurchaseOrderData, DeliveryNotesData, OrderItem, InvoiceItem, ReturnItem } from '@/models';
 import { FiX, FiDownload } from 'react-icons/fi';
 import jsPDF from 'jspdf';
 
@@ -146,6 +146,59 @@ export const DocumentViewModal: React.FC<DocumentViewModalProps> = ({
         if (stockData.reference) {
           yPos += 10;
           doc.text(`Reference: ${stockData.reference}`, 20, yPos);
+        }
+        break;
+
+      case 'purchase_order':
+        const purchaseOrderData = document.data as PurchaseOrderData;
+        doc.text('Purchase Order Details:', 20, yPos);
+        yPos += 10;
+        doc.text(`Supplier: ${purchaseOrderData.supplierName}`, 20, yPos);
+        yPos += 10;
+        doc.text(`Email: ${purchaseOrderData.supplierEmail}`, 20, yPos);
+        yPos += 10;
+        if (purchaseOrderData.supplierPhone) {
+          doc.text(`Phone: ${purchaseOrderData.supplierPhone}`, 20, yPos);
+          yPos += 10;
+        }
+        doc.text(`Delivery Address: ${purchaseOrderData.deliveryAddress}`, 20, yPos);
+        yPos += 10;
+        doc.text(`Expected Delivery Date: ${new Date(purchaseOrderData.expectedDeliveryDate).toLocaleDateString()}`, 20, yPos);
+        yPos += 10;
+        doc.text('Items:', 20, yPos);
+        yPos += 10;
+        purchaseOrderData.items.forEach((item: OrderItem) => {
+          doc.text(`${item.merchName} - Qty: ${item.quantity} - Price: KSh ${item.price} - Subtotal: KSh ${item.subtotal}`, 30, yPos);
+          yPos += 10;
+        });
+        doc.text(`Total: KSh ${purchaseOrderData.total}`, 20, yPos);
+        if (purchaseOrderData.notes) {
+          yPos += 10;
+          doc.text(`Notes: ${purchaseOrderData.notes}`, 20, yPos);
+        }
+        break;
+
+      case 'delivery_notes':
+        const deliveryNotesData = document.data as DeliveryNotesData;
+        doc.text('Delivery Notes Details:', 20, yPos);
+        yPos += 10;
+        doc.text(`Order ID: ${deliveryNotesData.orderId}`, 20, yPos);
+        yPos += 10;
+        doc.text(`Delivery Date: ${new Date(deliveryNotesData.deliveryDate).toLocaleDateString()}`, 20, yPos);
+        yPos += 10;
+        doc.text(`Delivered By: ${deliveryNotesData.deliveredBy}`, 20, yPos);
+        yPos += 10;
+        doc.text(`Received By: ${deliveryNotesData.receivedBy}`, 20, yPos);
+        yPos += 10;
+        doc.text('Items:', 20, yPos);
+        yPos += 10;
+        deliveryNotesData.items.forEach((item: OrderItem) => {
+          doc.text(`${item.merchName} - Qty: ${item.quantity}`, 30, yPos);
+          yPos += 10;
+        });
+        if (deliveryNotesData.notes) {
+          yPos += 10;
+          doc.text(`Notes: ${deliveryNotesData.notes}`, 20, yPos);
         }
         break;
 
@@ -405,6 +458,108 @@ export const DocumentViewModal: React.FC<DocumentViewModalProps> = ({
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Reason</label>
               <p className="mt-1 p-2 border border-gray-300 rounded-md bg-gray-50 dark:bg-gray-700 whitespace-pre-wrap">{returnData.reason}</p>
             </div>
+          </div>
+        );
+
+      case 'purchase_order':
+        const purchaseOrderData = document.data as PurchaseOrderData;
+        return (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Supplier Name</label>
+                <p className="mt-1 p-2 border border-gray-300 rounded-md bg-gray-50 dark:bg-gray-700">{purchaseOrderData.supplierName}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Supplier Email</label>
+                <p className="mt-1 p-2 border border-gray-300 rounded-md bg-gray-50 dark:bg-gray-700">{purchaseOrderData.supplierEmail}</p>
+              </div>
+              {purchaseOrderData.supplierPhone && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Supplier Phone</label>
+                  <p className="mt-1 p-2 border border-gray-300 rounded-md bg-gray-50 dark:bg-gray-700">{purchaseOrderData.supplierPhone}</p>
+                </div>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Expected Delivery Date</label>
+                <p className="mt-1 p-2 border border-gray-300 rounded-md bg-gray-50 dark:bg-gray-700">{new Date(purchaseOrderData.expectedDeliveryDate).toLocaleDateString()}</p>
+              </div>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Delivery Address</label>
+              <p className="mt-1 p-2 border border-gray-300 rounded-md bg-gray-50 dark:bg-gray-700 whitespace-pre-wrap">{purchaseOrderData.deliveryAddress}</p>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-medium mb-4">Purchase Items</h3>
+              <div className="space-y-2">
+                {purchaseOrderData.items.map((item: OrderItem, index: number) => (
+                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50 dark:bg-gray-700">
+                    <div>
+                      <p className="font-medium">{item.merchName}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Quantity: {item.quantity} | Price: KSh {item.price}</p>
+                    </div>
+                    <p className="font-medium">KSh {item.subtotal}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 text-right">
+                <strong>Total: KSh {purchaseOrderData.total}</strong>
+              </div>
+            </div>
+
+            {purchaseOrderData.notes && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
+                <p className="mt-1 p-2 border border-gray-300 rounded-md bg-gray-50 dark:bg-gray-700 whitespace-pre-wrap">{purchaseOrderData.notes}</p>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'delivery_notes':
+        const deliveryNotesData = document.data as DeliveryNotesData;
+        return (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Order ID</label>
+                <p className="mt-1 p-2 border border-gray-300 rounded-md bg-gray-50 dark:bg-gray-700">{deliveryNotesData.orderId}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Delivery Date</label>
+                <p className="mt-1 p-2 border border-gray-300 rounded-md bg-gray-50 dark:bg-gray-700">{new Date(deliveryNotesData.deliveryDate).toLocaleDateString()}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Delivered By</label>
+                <p className="mt-1 p-2 border border-gray-300 rounded-md bg-gray-50 dark:bg-gray-700">{deliveryNotesData.deliveredBy}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Received By</label>
+                <p className="mt-1 p-2 border border-gray-300 rounded-md bg-gray-50 dark:bg-gray-700">{deliveryNotesData.receivedBy}</p>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-medium mb-4">Delivered Items</h3>
+              <div className="space-y-2">
+                {deliveryNotesData.items.map((item: OrderItem, index: number) => (
+                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50 dark:bg-gray-700">
+                    <div>
+                      <p className="font-medium">{item.merchName}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Quantity: {item.quantity}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {deliveryNotesData.notes && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
+                <p className="mt-1 p-2 border border-gray-300 rounded-md bg-gray-50 dark:bg-gray-700 whitespace-pre-wrap">{deliveryNotesData.notes}</p>
+              </div>
+            )}
           </div>
         );
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAppSelector } from '@/hooks/redux';
-import { MerchDocument, DocumentType, MerchType, OrderData, InvoiceData, StockRecordData, TransportDocumentData, ReturnOfGoodsData, OrderItem } from '@/models';
+import { MerchDocument, DocumentType, MerchType, OrderData, InvoiceData, StockRecordData, TransportDocumentData, ReturnOfGoodsData, PurchaseOrderData, DeliveryNotesData, OrderItem } from '@/models';
 import { FiSave, FiX } from 'react-icons/fi';
 
 interface DocumentFormProps {
@@ -29,16 +29,17 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
       // Initialize based on type
       switch (type) {
         case 'order':
-          setFormData({
-            customerName: '',
-            customerEmail: '',
-            customerPhone: '',
-            shippingAddress: '',
-            items: [],
-            total: 0,
-            notes: '',
-          } as OrderData);
-          break;
+           setFormData({
+             customerName: '',
+             customerEmail: '',
+             customerPhone: '',
+             shippingAddress: '',
+             items: [],
+             total: 0,
+             paymentMethod: 'pay_on_delivery',
+             notes: '',
+           } as OrderData);
+           break;
         case 'invoice':
           setFormData({
             orderId: '',
@@ -80,6 +81,28 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
             refundAmount: 0,
             status: 'requested',
           } as ReturnOfGoodsData);
+          break;
+        case 'purchase_order':
+          setFormData({
+            supplierName: '',
+            supplierEmail: '',
+            supplierPhone: '',
+            deliveryAddress: '',
+            items: [],
+            total: 0,
+            expectedDeliveryDate: '',
+            notes: '',
+          } as PurchaseOrderData);
+          break;
+        case 'delivery_notes':
+          setFormData({
+            orderId: '',
+            deliveryDate: '',
+            deliveredBy: '',
+            receivedBy: '',
+            items: [],
+            notes: '',
+          } as DeliveryNotesData);
           break;
         case 'transport_document':
           setFormData({
@@ -233,6 +256,18 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
               <div className="mt-4 text-right">
                 <strong>Total: KSh {formData.total || 0}</strong>
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Payment Method</label>
+              <select
+                value={formData.paymentMethod || 'pay_on_delivery'}
+                onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+              >
+                <option value="pay_on_delivery">Pay on Delivery</option>
+                <option value="pay_on_order">Pay on Order</option>
+              </select>
             </div>
 
             <div>
@@ -667,6 +702,236 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                 rows={3}
                 required
+              />
+            </div>
+          </div>
+        );
+
+      case 'purchase_order':
+        return (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Supplier Name</label>
+                <input
+                  type="text"
+                  value={formData.supplierName || ''}
+                  onChange={(e) => setFormData({ ...formData, supplierName: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Supplier Email</label>
+                <input
+                  type="email"
+                  value={formData.supplierEmail || ''}
+                  onChange={(e) => setFormData({ ...formData, supplierEmail: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Supplier Phone</label>
+                <input
+                  type="tel"
+                  value={formData.supplierPhone || ''}
+                  onChange={(e) => setFormData({ ...formData, supplierPhone: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Expected Delivery Date</label>
+                <input
+                  type="date"
+                  value={formData.expectedDeliveryDate || ''}
+                  onChange={(e) => setFormData({ ...formData, expectedDeliveryDate: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Delivery Address</label>
+              <textarea
+                value={formData.deliveryAddress || ''}
+                onChange={(e) => setFormData({ ...formData, deliveryAddress: e.target.value })}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                rows={3}
+                required
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium">Purchase Items</h3>
+                <button
+                  type="button"
+                  onClick={addOrderItem}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  Add Item
+                </button>
+              </div>
+              <div className="space-y-2">
+                {formData.items?.map((item: OrderItem, index: number) => (
+                  <div key={index} className="flex items-center space-x-2 p-4 border rounded-lg">
+                    <select
+                      value={item.merchId}
+                      onChange={(e) => updateOrderItem(index, 'merchId', e.target.value)}
+                      className="flex-1 border border-gray-300 rounded-md p-2"
+                      required
+                    >
+                      <option value="">Select Merchandise</option>
+                      {merchItems.filter(m => m.type === merchType).map(m => (
+                        <option key={m.id} value={m.id}>{m.name}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      placeholder="Qty"
+                      value={item.quantity}
+                      onChange={(e) => updateOrderItem(index, 'quantity', parseInt(e.target.value))}
+                      className="w-20 border border-gray-300 rounded-md p-2"
+                      min="1"
+                      required
+                    />
+                    <span className="text-sm text-gray-600">KSh {item.subtotal}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeOrderItem(index)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <FiX className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 text-right">
+                <strong>Total: KSh {formData.total || 0}</strong>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
+              <textarea
+                value={formData.notes || ''}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                rows={3}
+              />
+            </div>
+          </div>
+        );
+
+      case 'delivery_notes':
+        return (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Order ID</label>
+                <input
+                  type="text"
+                  value={formData.orderId || ''}
+                  onChange={(e) => setFormData({ ...formData, orderId: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Delivery Date</label>
+                <input
+                  type="date"
+                  value={formData.deliveryDate || ''}
+                  onChange={(e) => setFormData({ ...formData, deliveryDate: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Delivered By</label>
+                <input
+                  type="text"
+                  value={formData.deliveredBy || ''}
+                  onChange={(e) => setFormData({ ...formData, deliveredBy: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Received By</label>
+                <input
+                  type="text"
+                  value={formData.receivedBy || ''}
+                  onChange={(e) => setFormData({ ...formData, receivedBy: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-medium mb-4">Delivered Items</h3>
+              <div className="space-y-2">
+                {formData.items?.map((item: OrderItem, index: number) => (
+                  <div key={index} className="flex items-center space-x-2 p-4 border rounded-lg">
+                    <input
+                      type="text"
+                      placeholder="Merchandise Name"
+                      value={item.merchName || ''}
+                      onChange={(e) => {
+                        const items = [...formData.items];
+                        items[index].merchName = e.target.value;
+                        setFormData({ ...formData, items });
+                      }}
+                      className="flex-1 border border-gray-300 rounded-md p-2"
+                      required
+                    />
+                    <input
+                      type="number"
+                      placeholder="Qty"
+                      value={item.quantity}
+                      onChange={(e) => {
+                        const items = [...formData.items];
+                        items[index].quantity = parseInt(e.target.value);
+                        setFormData({ ...formData, items });
+                      }}
+                      className="w-20 border border-gray-300 rounded-md p-2"
+                      min="1"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const items = formData.items.filter((_: any, i: number) => i !== index);
+                        setFormData({ ...formData, items });
+                      }}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <FiX className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setFormData({
+                    ...formData,
+                    items: [...(formData.items || []), { merchId: '', merchName: '', quantity: 1, price: 0, subtotal: 0 }],
+                  })}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  Add Item
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes</label>
+              <textarea
+                value={formData.notes || ''}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                rows={3}
               />
             </div>
           </div>

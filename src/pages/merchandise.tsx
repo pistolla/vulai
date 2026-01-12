@@ -107,7 +107,17 @@ const MerchandisePage: React.FC = () => {
   }, []);
 
   const handleAddToCart = (item: any) => {
-    // TODO: Implement add to cart functionality
+    const savedCart = sessionStorage.getItem('cart');
+    const cartItems = savedCart ? JSON.parse(savedCart) : [];
+    const existingItem = cartItems.find((cartItem: any) => cartItem.id === item.id);
+
+    if (existingItem) {
+      existingItem.quantity += 1;
+    } else {
+      cartItems.push({ ...item, quantity: 1 });
+    }
+
+    sessionStorage.setItem('cart', JSON.stringify(cartItems));
     alert(`Added ${item.name} to cart!`);
   };
 

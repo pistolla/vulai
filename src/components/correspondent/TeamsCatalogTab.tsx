@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
-import { MerchDocument, DocumentType } from '@/models';
+import { MerchDocument, DocumentType, InvoiceData, DeliveryNotesData, PurchaseOrderData } from '@/models';
 import { DocumentList } from './DocumentList';
 import { DocumentForm } from './DocumentForm';
 import { ApprovalModal } from './ApprovalModal';
@@ -75,8 +75,106 @@ export const TeamsCatalogTab: React.FC = () => {
     }
   };
 
-  const handleApprove = (id: string) => {
-    setApprovalModal({ isOpen: true, docId: id, action: 'approve' });
+  const handleApprove = async (id: string) => {
+    const doc = documents.find(d => d.id === id);
+    if (!doc) return;
+
+    if (doc.type === 'purchase_order') {
+      // Special handling for PurchaseOrders - generate Invoice and DeliveryNotes
+      await handlePurchaseOrderApproval(doc);
+    } else {
+      // Regular approval for other document types
+      setApprovalModal({ isOpen: true, docId: id, action: 'approve' });
+    }
+  };
+
+  const handlePurchaseOrderApproval = async (purchaseOrderDoc: MerchDocument) => {
+    try {
+      const purchaseOrderData = purchaseOrderDoc.data as PurchaseOrderData;
+
+      // Get the original order to determine payment method
+      const originalOrderId = (purchaseOrderData as any).originalOrderId;
+      const originalOrder = documents.find(d => d.id === originalOrderId);
+      const orderData = originalOrder?.data as any;
+      const paymentMethod = orderData?.paymentMethod || 'pay_on_delivery';
+
+      // Calculate transport cost (fixed at KSh 500 for delivery)
+      const transportCost = paymentMethod === 'pay_on_delivery' ? 500 : 0;
+      const totalWithTransport = purchaseOrderData.total + transportCost;
+
+      // Generate Invoice
+      const invoiceData: InvoiceData = {
+        orderId: purchaseOrderDoc.id, // Link to the purchase order
+        invoiceNumber: `INV-${Date.now()}`,
+        paymentStatus: paymentMethod === 'pay_on_delivery' ? 'pending' : 'pending',
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days
+        items: purchaseOrderData.items.map(item => ({
+          description: item.merchName,
+          quantity: item.quantity,
+          price: item.price,
+          subtotal: item.subtotal,
+        })),
+        total: totalWithTransport,
+        tax: totalWithTransport * 0.16, // 16% VAT
+        discount: 0,
+      };
+
+      // Add transport cost as a separate item if pay on delivery
+      if (paymentMethod === 'pay_on_delivery') {
+        invoiceData.items.push({
+          description: 'Transport/Delivery Cost',
+          quantity: 1,
+          price: transportCost,
+          subtotal: transportCost,
+        });
+      }
+
+      await dispatch(createMerchDocument({
+        type: 'invoice',
+        merchType: 'team',
+        status: paymentMethod === 'pay_on_order' ? 'completed' : 'pending_approval', // Send email for pay_on_order
+        data: invoiceData,
+      })).unwrap();
+
+      if (paymentMethod === 'pay_on_delivery') {
+        // Generate DeliveryNotes and ship goods
+        const deliveryNotesData: DeliveryNotesData = {
+          orderId: purchaseOrderDoc.id, // Link to the purchase order
+          deliveryDate: new Date().toISOString().split('T')[0],
+          deliveredBy: 'Team Coordinator',
+          receivedBy: purchaseOrderData.supplierName,
+          items: purchaseOrderData.items,
+          notes: `Payment: Pay on Delivery (KSh ${totalWithTransport} total incl. transport). Invoice: ${invoiceData.invoiceNumber}. Goods shipped.`,
+        };
+
+        await dispatch(createMerchDocument({
+          type: 'delivery_notes',
+          merchType: 'team',
+          status: 'completed',
+          data: deliveryNotesData,
+        })).unwrap();
+
+        // Update PurchaseOrder status to approved
+        await dispatch(approveMerchDocument({
+          id: purchaseOrderDoc.id,
+          comment: `Processed: Invoice ${invoiceData.invoiceNumber} generated, goods shipped with delivery notes`
+        })).unwrap();
+
+        alert('Purchase order processed successfully! Invoice generated and goods shipped with delivery notes.');
+      } else {
+        // Pay on order: Send invoice via email, wait for payment before shipping
+        // Update PurchaseOrder status to approved
+        await dispatch(approveMerchDocument({
+          id: purchaseOrderDoc.id,
+          comment: `Processed: Invoice ${invoiceData.invoiceNumber} sent via email. Awaiting payment before shipping.`
+        })).unwrap();
+
+        alert('Purchase order processed successfully! Invoice sent via email. Will ship after payment confirmation.');
+      }
+    } catch (error) {
+      console.error('Failed to process purchase order:', error);
+      alert('Failed to process purchase order. Please try again.');
+    }
   };
 
   const handleReject = (id: string) => {

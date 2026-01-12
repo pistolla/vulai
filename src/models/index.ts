@@ -238,7 +238,7 @@ export interface ImportedData {
 }
 
 /* ----- merchandise documents ----- */
-export type DocumentType = 'order' | 'invoice' | 'stock_record' | 'transport_document' | 'return_of_goods';
+export type DocumentType = 'order' | 'invoice' | 'stock_record' | 'transport_document' | 'return_of_goods' | 'purchase_order' | 'delivery_notes';
 export type DocumentStatus = 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'completed';
 export type MerchType = 'team' | 'unil';
 
@@ -269,6 +269,7 @@ export interface OrderData {
   shippingAddress: string;
   items: OrderItem[];
   total: number;
+  paymentMethod: 'pay_on_delivery' | 'pay_on_order';
   notes?: string;
 }
 
@@ -330,4 +331,25 @@ export interface ReturnItem {
   merchName: string;
   quantity: number;
   condition: 'new' | 'used' | 'damaged';
+}
+
+export interface PurchaseOrderData {
+  supplierName: string;
+  supplierEmail: string;
+  supplierPhone?: string;
+  deliveryAddress: string;
+  items: OrderItem[];
+  total: number;
+  expectedDeliveryDate: string;
+  notes?: string;
+  originalOrderId?: string;
+}
+
+export interface DeliveryNotesData {
+  orderId: string;
+  deliveryDate: string;
+  deliveredBy: string;
+  receivedBy: string;
+  items: OrderItem[];
+  notes?: string;
 }

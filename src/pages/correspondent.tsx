@@ -11,7 +11,7 @@ import { ManageFixtureTab } from '@/components/correspondent/ManageFixtureTab';
 import { TeamsCatalogTab } from '../components/correspondent/TeamsCatalogTab';
 import { useClientSideLibs } from '@/utils/clientLibs';
 import { fetchLeagues } from '@/store/correspondentThunk';
-import { FiUser, FiFileText, FiVideo, FiRadio, FiAward, FiArrowRight, FiShoppingCart } from 'react-icons/fi';
+import { FiUser, FiFileText, FiVideo, FiRadio, FiAward, FiArrowRight, FiShoppingCart, FiPackage } from 'react-icons/fi';
 
 type TabType = 'profile' | 'excel' | 'video' | 'commentary' | 'league' | 'fixtures' | 'catalog';
 
