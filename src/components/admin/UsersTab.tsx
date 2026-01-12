@@ -34,7 +34,7 @@ function ShimmerTableRow() {
   );
 }
 
-export default function UsersTab({ rows, approve, deleteU, openAdd, adminData, viewProfile }: any) {
+export default function UsersTab({ rows, approve, disapprove, deleteU, openAdd, adminData, viewProfile }: any) {
   const { loading } = useAppSelector(s => s.admin);
   const allUsers = rows.length > 0 ? rows : (adminData?.users || []);
   const [activeTab, setActiveTab] = useState<'fans' | 'correspondents'>('fans');
@@ -112,7 +112,8 @@ export default function UsersTab({ rows, approve, deleteU, openAdd, adminData, v
                 <td className="px-6 py-4 whitespace-nowrap"><span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${u.status==='active'?'bg-green-100 dark:bg-green-900 text-green-800 dark:text-white':'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-white'}`}>{u.status}</span></td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   {activeTab === 'correspondents' && <button onClick={() => viewProfile(u.uid)} className="text-blue-600 dark:text-white hover:text-blue-900 dark:hover:text-gray-300 mr-2">View Profile</button>}
-                  {u.status==='pending' && <button onClick={() => approve(u.uid)} className="text-green-600 dark:text-white hover:text-green-900 dark:hover:text-gray-300 mr-2">Approve</button>}
+                  {activeTab === 'correspondents' && u.status !== 'active' && <button onClick={() => approve(u.uid)} className="text-green-600 dark:text-white hover:text-green-900 dark:hover:text-gray-300 mr-2">Approve</button>}
+                  {activeTab === 'correspondents' && u.status === 'active' && <button onClick={() => disapprove(u.uid)} className="text-yellow-600 dark:text-white hover:text-yellow-900 dark:hover:text-gray-300 mr-2">Disapprove</button>}
                   <button onClick={() => deleteU(u.uid)} className="text-red-600 dark:text-white hover:text-red-900 dark:hover:text-gray-300">Delete</button>
                 </td>
               </tr>

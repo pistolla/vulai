@@ -41,17 +41,20 @@ export const loadUsers = async (): Promise<AdminUserRow[]> => {
       name:  data.displayName || '',
       email: data.email,
       role:  data.role,
-      status: data.role === 'correspondent' && !data.approved ? 'pending' : 'active',
+      status: data.role === 'correspondent' && data.status !== true ? 'pending' : 'active',
       university: data.universityId || '',
     };
   });
 };
 
 export const approveUser = async (uid: string) =>
-  updateDoc(doc(db, 'users', uid), { approved: true });
+   updateDoc(doc(db, 'users', uid), { status: true });
+
+export const disapproveUser = async (uid: string) =>
+   updateDoc(doc(db, 'users', uid), { status: false });
 
 export const deleteUserDoc = async (uid: string) =>
-  deleteDoc(doc(db, 'users', uid));
+   deleteDoc(doc(db, 'users', uid));
 
 /* ---------- merchandise ---------- */
 export const loadMerch = async (): Promise<MerchItem[]> => {

@@ -24,6 +24,7 @@ import {
   fetchGames,
   fetchUniversities,
   approveUserT,
+  disapproveUserT,
   deleteUserT,
   createMerchT,
   removeMerchT,
@@ -99,6 +100,16 @@ export default function AdminDashboardPage() {
       showNotification('User approved successfully', 'success');
     } catch {
       showNotification('Failed to approve user', 'error');
+    }
+  };
+
+  const disapproveUser = async (uid: any) => {
+    try {
+      await dispatch(disapproveUserT(uid)).unwrap();
+      dispatch(fetchUsers());
+      showNotification('User disapproved successfully', 'success');
+    } catch {
+      showNotification('Failed to disapprove user', 'error');
     }
   };
 
@@ -275,7 +286,7 @@ export default function AdminDashboardPage() {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard': return <DashboardTab stats={stats} live={live} users={users} upcoming={upcoming} openGame={(g: any) => open('gameDetails', g)} adminData={adminData} />;
-      case 'users': return <UsersTab rows={users} approve={approveUser} deleteU={deleteUser} openAdd={() => open('addUser')} adminData={adminData} viewProfile={(uid: string) => open('profileModal', { uid, user: users.find(u => u.uid === uid) })} />;
+      case 'users': return <UsersTab rows={users} approve={approveUser} disapprove={disapproveUser} deleteU={deleteUser} openAdd={() => open('addUser')} adminData={adminData} viewProfile={(uid: string) => open('profileModal', { uid, user: users.find(u => u.uid === uid) })} />;
       case 'universities': return <UniversitiesTab adminData={adminData} create={createUniversity} update={updateUniversity} deleteU={deleteUniversity} />;
       case 'teams': return <TeamsTab adminData={adminData} create={createTeam} update={updateTeam} deleteU={deleteTeam} addPlayer={addPlayerToTeam} updatePlayer={updatePlayerInTeam} deletePlayer={deletePlayerFromTeam} />;
       case 'players': return <PlayersTab adminData={adminData} />;

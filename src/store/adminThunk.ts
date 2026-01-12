@@ -1,7 +1,7 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { University, Team, Sport, ImportedData } from '@/models';
 import {
-  loadAdminDashboard, loadUsers, approveUser, deleteUserDoc,
+  loadAdminDashboard, loadUsers, approveUser, disapproveUser, deleteUserDoc,
   loadMerch, addMerch, updateMerch, deleteMerch,
   loadReviews, approveReview, rejectReview,
   loadGames, updateFixtureScore, startGame, endGame,
@@ -21,6 +21,7 @@ export const fetchDashboard = createAsyncThunk('admin/fetchDashboard', loadAdmin
 /* ---------- users ---------- */
 export const fetchUsers     = createAsyncThunk('users/fetch', loadUsers);
 export const approveUserT   = createAsyncThunk('users/approve', approveUser);
+export const disapproveUserT = createAsyncThunk('users/disapprove', disapproveUser);
 export const deleteUserT    = createAsyncThunk('users/delete', deleteUserDoc);
 
 /* ---------- merchandise ---------- */
