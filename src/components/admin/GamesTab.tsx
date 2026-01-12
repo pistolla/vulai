@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useAppSelector } from '@/hooks/redux';
 import { apiService } from '@/services/apiService';
 import { db } from '@/services/firebase';
-import { addDoc, collection, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { addDoc, collection, updateDoc, deleteDoc, doc, getDocs } from 'firebase/firestore';
+import { loadLiveGames, loadUpcomingGames, addLiveGame, addUpcomingGame, updateLiveGame, updateUpcomingGame, deleteLiveGame, deleteUpcomingGame, syncAdminGameCollections } from '@/services/firestoreAdmin';
 import ExportButtons from './ExportButtons';
 
 // Modal Component
@@ -149,13 +150,79 @@ function ShimmerGameCard() {
   );
 }
 
-export default function GamesTab({ live, upcoming, updateScore, startG, endG }: any) {
+// Prediction Form Component
+function PredictionForm({ game, onSave }: { game: any; onSave: (data: any) => void }) {
+  const [predictions, setPredictions] = useState(game.predictions || { homeWinOdds: 0, drawOdds: 0, awayWinOdds: 0 });
+  const [ranking, setRanking] = useState(game.ranking || 0);
+
+  const handleSubmit = (e: any) => {
+    e.preventDefault();
+    onSave({ predictions, ranking });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <h4 className="text-lg font-medium">{game.homeTeamName} vs {game.awayTeamName}</h4>
+      </div>
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <label className="block text-sm font-medium">Home Win Odds</label>
+          <input
+            type="number"
+            step="0.01"
+            value={predictions.homeWinOdds}
+            onChange={(e) => setPredictions({ ...predictions, homeWinOdds: +e.target.value })}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium">Draw Odds</label>
+          <input
+            type="number"
+            step="0.01"
+            value={predictions.drawOdds}
+            onChange={(e) => setPredictions({ ...predictions, drawOdds: +e.target.value })}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium">Away Win Odds</label>
+          <input
+            type="number"
+            step="0.01"
+            value={predictions.awayWinOdds}
+            onChange={(e) => setPredictions({ ...predictions, awayWinOdds: +e.target.value })}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium">Match Ranking</label>
+        <input
+          type="number"
+          value={ranking}
+          onChange={(e) => setRanking(+e.target.value)}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        />
+      </div>
+      <div className="flex justify-end">
+        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Save</button>
+      </div>
+    </form>
+  );
+}
+
+export default function GamesTab({ updateScore, startG, endG }: any) {
   const { loading: reduxLoading } = useAppSelector(s => s.admin);
-  const [matches, setMatches] = useState<any[]>([]);
+  const [live, setLive] = useState<any[]>([]);
+  const [upcoming, setUpcoming] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showPredictionModal, setShowPredictionModal] = useState(false);
+  const [selectedGame, setSelectedGame] = useState<any>(null);
   const [editingGame, setEditingGame] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGames, setSelectedGames] = useState<Set<string>>(new Set());
@@ -186,36 +253,23 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Try to load matches from Firebase API first
-        const matchesData = await apiService.getSchedule();
-        if (matchesData && matchesData.length > 0) {
-          setMatches(matchesData);
-        } else {
-          throw new Error('Empty Firebase matches data');
-        }
-
         // Load teams for dropdowns
         const teamsData = await apiService.getTeams();
         setTeams(teamsData);
+
+        // Sync admin collections
+        await syncAdminGameCollections();
+
+        // Load admin collections
+        const liveData = await loadLiveGames();
+        const upcomingData = await loadUpcomingGames();
+        setLive(liveData);
+        setUpcoming(upcomingData);
       } catch (error) {
-        console.error('Failed to load data from Firebase:', error);
-        // Fallback to local JSON files
-        try {
-          const scheduleResponse = await fetch('/data/schedule.json');
-          const teamsResponse = await fetch('/data/teams.json');
-          if (scheduleResponse.ok) {
-            const scheduleData = await scheduleResponse.json();
-            setMatches(scheduleData.matches || []);
-          }
-          if (teamsResponse.ok) {
-            const teamsData = await teamsResponse.json();
-            setTeams(teamsData.teams || []);
-          }
-        } catch (localError) {
-          console.error('Failed to load local data:', localError);
-          setMatches([]);
-          setTeams([]);
-        }
+        console.error('Failed to load data:', error);
+        setLive([]);
+        setUpcoming([]);
+        setTeams([]);
       } finally {
         setLoading(false);
       }
@@ -240,13 +294,32 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
         createdAt: new Date().toISOString(),
         scheduledAt: `${newGame.date}T${newGame.time}:00`
       };
-      await addDoc(collection(db, 'games'), gameData);
+      await addDoc(collection(db, 'fixtures'), gameData);
       alert('Game added successfully');
       resetNewGame();
       setShowAddModal(false);
-      // Reload matches
-      const matchesData = await apiService.getSchedule();
-      setMatches(matchesData || []);
+      // Reload
+      const fixtures = await apiService.getFixtures();
+      // Sync again
+      const liveGamesSnap = await getDocs(collection(doc(db, 'admin'), 'liveGames'));
+      const existingLiveIds = liveGamesSnap.docs.map(d => d.data().fixtureId);
+      for (const f of fixtures.filter((f: any) => f.status === 'live' || f.status === 'active')) {
+        if (!existingLiveIds.includes(f.id)) {
+          await addLiveGame(f);
+        }
+      }
+      const upcomingGamesSnap = await getDocs(collection(doc(db, 'admin'), 'upcomingGames'));
+      const existingUpcomingIds = upcomingGamesSnap.docs.map(d => d.data().fixtureId);
+      const today = new Date().toDateString();
+      for (const f of fixtures.filter((f: any) => new Date(f.scheduledAt).toDateString() === today && f.status === 'scheduled')) {
+        if (!existingUpcomingIds.includes(f.id)) {
+          await addUpcomingGame(f);
+        }
+      }
+      const liveData = await loadLiveGames();
+      const upcomingData = await loadUpcomingGames();
+      setLive(liveData);
+      setUpcoming(upcomingData);
     } catch (error) {
       alert('Failed to add game: ' + (error as Error).message);
     }
@@ -266,26 +339,39 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
         ...editingGame,
         scheduledAt: `${editingGame.date}T${editingGame.time}:00`
       };
-      await updateDoc(doc(db, 'games', editingGame.id), gameData);
+      await updateDoc(doc(db, 'fixtures', editingGame.fixtureId), gameData);
       alert('Game updated successfully');
       setShowEditModal(false);
       setEditingGame(null);
-      // Reload matches
-      const matchesData = await apiService.getSchedule();
-      setMatches(matchesData || []);
+      // Reload
+      const liveData = await loadLiveGames();
+      const upcomingData = await loadUpcomingGames();
+      setLive(liveData);
+      setUpcoming(upcomingData);
     } catch (error) {
       alert('Failed to update game: ' + (error as Error).message);
     }
   };
 
-  const handleDeleteGame = async (gameId: string) => {
+  const handleDeleteGame = async (fixtureId: string) => {
     if (!confirm('Are you sure you want to delete this game?')) return;
     try {
-      await deleteDoc(doc(db, 'games', gameId));
-      alert('Game deleted successfully');
-      // Reload matches
-      const matchesData = await apiService.getSchedule();
-      setMatches(matchesData || []);
+      await deleteDoc(doc(db, 'fixtures', fixtureId));
+      // Also delete from admin collection
+      const liveGame = live.find(l => l.fixtureId === fixtureId);
+      if (liveGame) {
+        await deleteLiveGame(liveGame.id);
+      } else {
+        const upcomingGame = upcoming.find(u => u.fixtureId === fixtureId);
+        if (upcomingGame) {
+          await deleteUpcomingGame(upcomingGame.id);
+        }
+      }
+      // Reload
+      const liveData = await loadLiveGames();
+      const upcomingData = await loadUpcomingGames();
+      setLive(liveData);
+      setUpcoming(upcomingData);
     } catch (error) {
       alert('Failed to delete game: ' + (error as Error).message);
     }
@@ -295,15 +381,31 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
     if (selectedGames.size === 0) return;
     if (!confirm(`Are you sure you want to delete ${selectedGames.size} games?`)) return;
     try {
-      const deletePromises = Array.from(selectedGames).map(id => deleteDoc(doc(db, 'games', id)));
+      const deletePromises = Array.from(selectedGames).map(id => handleDeleteGame(id));
       await Promise.all(deletePromises);
       alert('Games deleted successfully');
       setSelectedGames(new Set());
-      // Reload matches
-      const matchesData = await apiService.getSchedule();
-      setMatches(matchesData || []);
     } catch (error) {
       alert('Failed to delete games: ' + (error as Error).message);
+    }
+  };
+
+  const handleSavePredictions = async (data: any) => {
+    try {
+      if (selectedGame.status === 'live' || selectedGame.status === 'active') {
+        await updateLiveGame(selectedGame.id, data);
+      } else {
+        await updateUpcomingGame(selectedGame.id, data);
+      }
+      // Reload
+      const liveData = await loadLiveGames();
+      const upcomingData = await loadUpcomingGames();
+      setLive(liveData);
+      setUpcoming(upcomingData);
+      setShowPredictionModal(false);
+      setSelectedGame(null);
+    } catch (error) {
+      alert('Failed to save predictions: ' + (error as Error).message);
     }
   };
 
@@ -319,12 +421,12 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
     }
   };
 
-  const toggleGameSelection = (gameId: string) => {
+  const toggleGameSelection = (fixtureId: string) => {
     const newSelected = new Set(selectedGames);
-    if (newSelected.has(gameId)) {
-      newSelected.delete(gameId);
+    if (newSelected.has(fixtureId)) {
+      newSelected.delete(fixtureId);
     } else {
-      newSelected.add(gameId);
+      newSelected.add(fixtureId);
     }
     setSelectedGames(newSelected);
   };
@@ -388,9 +490,13 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
     awayPossession: game.stats?.possession?.away ?? 'N/A',
     homeShots: game.stats?.shots?.home ?? 'N/A',
     awayShots: game.stats?.shots?.away ?? 'N/A',
-    venue: game.venue || 'TBD'
+    venue: game.venue || 'TBD',
+    homeWinOdds: game.predictions?.homeWinOdds ?? 'N/A',
+    drawOdds: game.predictions?.drawOdds ?? 'N/A',
+    awayWinOdds: game.predictions?.awayWinOdds ?? 'N/A',
+    ranking: game.ranking ?? 'N/A'
   }));
-  const exportHeaders = ['homeTeam', 'awayTeam', 'sport', 'status', 'score', 'homeGoals', 'awayGoals', 'homeAssists', 'awayAssists', 'homePossession', 'awayPossession', 'homeShots', 'awayShots', 'venue'];
+  const exportHeaders = ['homeTeam', 'awayTeam', 'sport', 'status', 'score', 'homeGoals', 'awayGoals', 'homeAssists', 'awayAssists', 'homePossession', 'awayPossession', 'homeShots', 'awayShots', 'venue', 'homeWinOdds', 'drawOdds', 'awayWinOdds', 'ranking'];
 
   return (
     <div id="content-games" className="slide-in-left">
@@ -461,6 +567,13 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
           />
         </Modal>
       )}
+
+      {/* Prediction Modal */}
+      {showPredictionModal && selectedGame && (
+        <Modal title="Game Predictions & Ranking" onClose={() => { setShowPredictionModal(false); setSelectedGame(null); }}>
+          <PredictionForm game={selectedGame} onSave={handleSavePredictions} />
+        </Modal>
+      )}
       {allGames.length > 0 && <ExportButtons data={exportData} headers={exportHeaders} filename="games" />}
       <div className="space-y-6">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
@@ -483,6 +596,7 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Assists</th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Possession</th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Shots</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Predictions</th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
@@ -492,8 +606,8 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
                       <td className="px-4 py-2">
                         <input
                           type="checkbox"
-                          checked={selectedGames.has(g.id)}
-                          onChange={() => toggleGameSelection(g.id)}
+                          checked={selectedGames.has(g.fixtureId)}
+                          onChange={() => toggleGameSelection(g.fixtureId)}
                           className="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 dark:focus:ring-red-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                         />
                       </td>
@@ -504,9 +618,12 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
                       <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-300">{g.stats?.homeAssists ?? 0} - {g.stats?.awayAssists ?? 0}</td>
                       <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-300">{g.stats?.possession?.home ?? 0}% - {g.stats?.possession?.away ?? 0}%</td>
                       <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-300">{g.stats?.shots?.home ?? 0} - {g.stats?.shots?.away ?? 0}</td>
+                      <td className="px-4 py-2 text-sm">
+                        <button onClick={() => { setSelectedGame(g); setShowPredictionModal(true); }} className="bg-purple-600 text-white px-2 py-1 rounded text-xs hover:bg-purple-700">Predictions</button>
+                      </td>
                       <td className="px-4 py-2 text-sm space-x-2">
-                        <button onClick={() => { const h = prompt('Home score'); const a = prompt('Away score'); if (h !== null && a !== null) updateScore(g.id, +h, +a); }} className="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700">Update Score</button>
-                        <button onClick={() => endG(g.id)} className="bg-gray-600 text-white px-2 py-1 rounded text-xs hover:bg-gray-700">End Game</button>
+                        <button onClick={() => { const h = prompt('Home score'); const a = prompt('Away score'); if (h !== null && a !== null) updateScore(g.fixtureId, +h, +a); }} className="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700">Update Score</button>
+                        <button onClick={() => endG(g.fixtureId)} className="bg-gray-600 text-white px-2 py-1 rounded text-xs hover:bg-gray-700">End Game</button>
                       </td>
                     </tr>
                   ))}
@@ -536,6 +653,7 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Sport</th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date & Time</th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Venue</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Predictions</th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
@@ -545,8 +663,8 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
                       <td className="px-4 py-2">
                         <input
                           type="checkbox"
-                          checked={selectedGames.has(g.id)}
-                          onChange={() => toggleGameSelection(g.id)}
+                          checked={selectedGames.has(g.fixtureId)}
+                          onChange={() => toggleGameSelection(g.fixtureId)}
                           className="w-4 h-4 text-yellow-600 bg-gray-100 border-gray-300 rounded focus:ring-yellow-500 dark:focus:ring-yellow-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                         />
                       </td>
@@ -554,10 +672,13 @@ export default function GamesTab({ live, upcoming, updateScore, startG, endG }: 
                       <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-300">{g.sport}</td>
                       <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-300">{new Date(g.scheduledAt).toLocaleString()}</td>
                       <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-300">{g.venue}</td>
+                      <td className="px-4 py-2 text-sm">
+                        <button onClick={() => { setSelectedGame(g); setShowPredictionModal(true); }} className="bg-purple-600 text-white px-2 py-1 rounded text-xs hover:bg-purple-700">Predictions</button>
+                      </td>
                       <td className="px-4 py-2 text-sm space-x-2">
-                        <button onClick={() => startG(g.id)} className="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700">Start</button>
+                        <button onClick={() => startG(g.fixtureId)} className="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700">Start</button>
                         <button onClick={() => { setEditingGame({ ...g, date: g.scheduledAt.split('T')[0], time: g.scheduledAt.split('T')[1].substring(0, 5) }); setShowEditModal(true); }} className="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700">Edit</button>
-                        <button onClick={() => handleDeleteGame(g.id)} className="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700">Delete</button>
+                        <button onClick={() => handleDeleteGame(g.fixtureId)} className="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700">Delete</button>
                       </td>
                     </tr>
                   ))}

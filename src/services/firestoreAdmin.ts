@@ -241,14 +241,94 @@ export const loadGames = async () => {
   };
 };
 
-export const loadLiveGames = async (): Promise<Fixture[]> => {
+export const loadLiveGames = async (): Promise<any[]> => {
   const liveSnap = await getDocs(collection(doc(db, 'admin'), 'liveGames'));
-  return liveSnap.docs.map(d => ({ id: d.id, ...d.data() } as Fixture));
+  return liveSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 };
 
-export const loadUpcomingGames = async (): Promise<Fixture[]> => {
+export const loadUpcomingGames = async (): Promise<any[]> => {
   const upcomingSnap = await getDocs(collection(doc(db, 'admin'), 'upcomingGames'));
-  return upcomingSnap.docs.map(d => ({ id: d.id, ...d.data() } as Fixture));
+  return upcomingSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+};
+
+export const addLiveGame = async (fixture: any) => {
+  await addDoc(collection(doc(db, 'admin'), 'liveGames'), {
+    fixtureId: fixture.id,
+    ...fixture,
+    predictions: { homeWinOdds: 0, drawOdds: 0, awayWinOdds: 0 },
+    ranking: 0,
+    createdAt: serverTimestamp()
+  });
+};
+
+export const addUpcomingGame = async (fixture: any) => {
+  await addDoc(collection(doc(db, 'admin'), 'upcomingGames'), {
+    fixtureId: fixture.id,
+    ...fixture,
+    predictions: { homeWinOdds: 0, drawOdds: 0, awayWinOdds: 0 },
+    ranking: 0,
+    createdAt: serverTimestamp()
+  });
+};
+
+export const updateLiveGame = async (id: string, data: any) => {
+  await updateDoc(doc(db, 'admin', 'liveGames', id), data);
+};
+
+export const updateUpcomingGame = async (id: string, data: any) => {
+  await updateDoc(doc(db, 'admin', 'upcomingGames', id), data);
+};
+
+export const deleteLiveGame = async (id: string) => {
+  await deleteDoc(doc(db, 'admin', 'liveGames', id));
+};
+
+export const deleteUpcomingGame = async (id: string) => {
+  await deleteDoc(doc(db, 'admin', 'upcomingGames', id));
+};
+
+// Sync function to update admin collections based on fixtures
+export const syncAdminGameCollections = async () => {
+  const fixturesSnap = await getDocs(collection(db, 'fixtures'));
+  const fixtures = fixturesSnap.docs.map(d => ({ id: d.id, ...d.data() } as Fixture));
+
+  // Sync live games
+  const liveGamesSnap = await getDocs(collection(doc(db, 'admin'), 'liveGames'));
+  const existingLiveIds = liveGamesSnap.docs.map(d => d.data().fixtureId);
+  for (const f of fixtures.filter(f => f.status === 'live')) {
+    if (!existingLiveIds.includes(f.id)) {
+      await addLiveGame(f);
+    }
+  }
+
+  // Sync upcoming games
+  const upcomingGamesSnap = await getDocs(collection(doc(db, 'admin'), 'upcomingGames'));
+  const existingUpcomingIds = upcomingGamesSnap.docs.map(d => d.data().fixtureId);
+  const today = new Date().toDateString();
+  for (const f of fixtures.filter(f => new Date(f.scheduledAt).toDateString() === today && f.status === 'scheduled')) {
+    if (!existingUpcomingIds.includes(f.id)) {
+      await addUpcomingGame(f);
+    }
+  }
+
+  // Optionally, remove old entries (e.g., completed games from live, past dates from upcoming)
+  // For live, remove if fixture status is not live
+  for (const doc of liveGamesSnap.docs) {
+    const data = doc.data();
+    const fixture = fixtures.find(f => f.id === data.fixtureId);
+    if (!fixture || fixture.status !== 'live') {
+      await deleteLiveGame(doc.id);
+    }
+  }
+
+  // For upcoming, remove if not today or status changed
+  for (const doc of upcomingGamesSnap.docs) {
+    const data = doc.data();
+    const fixture = fixtures.find(f => f.id === data.fixtureId);
+    if (!fixture || new Date(fixture.scheduledAt).toDateString() !== today || fixture.status !== 'scheduled') {
+      await deleteUpcomingGame(doc.id);
+    }
+  }
 };
 
 export const updateFixtureScore = async (id: string, home: number, away: number) =>

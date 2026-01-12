@@ -26,25 +26,28 @@ export interface Athlete {
 }
 
 export interface Fixture {
-  homeTeamName: string;
-  awayTeamName: string;
-  id: string;
-  homeTeamId: string;
-  awayTeamId: string;
-  sport: string;
-  scheduledAt: string; // ISO
-  venue: string;
-  status: 'scheduled' | 'live' | 'completed' | 'postponed';
-  score?: { home: number; away: number };
-  stats?: {
-    homeGoals: number;
-    awayGoals: number;
-    homeAssists: number;
-    awayAssists: number;
-    possession: { home: number; away: number };
-    shots: { home: number; away: number };
-  };
-}
+   homeTeamName: string;
+   awayTeamName: string;
+   id: string;
+   homeTeamId: string;
+   awayTeamId: string;
+   sport: string;
+   scheduledAt: string; // ISO
+   venue: string;
+   status: 'scheduled' | 'live' | 'completed' | 'postponed';
+   score?: { home: number; away: number };
+   stats?: {
+     homeGoals: number;
+     awayGoals: number;
+     homeAssists: number;
+     awayAssists: number;
+     possession: { home: number; away: number };
+     shots: { home: number; away: number };
+   };
+   type: 'league' | 'friendly';
+   matchId?: string; // for league fixtures, links to Match
+   blogContent?: string;
+ }
 
 export interface News {
   id: string;

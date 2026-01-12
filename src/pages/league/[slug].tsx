@@ -4,10 +4,13 @@ import Layout from '../../components/Layout';
 import { TeamSportLayout } from '../../components/league/TeamSportLayout';
 import { IndividualSportLayout } from '../../components/league/IndividualSportLayout';
 import { ScheduledMatches } from '../../components/league/ScheduledMatches';
+import { LeagueVisualizer } from '../../components/correspondent/LeagueVisualizer';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { fetchLeagues } from '../../store/correspondentThunk';
 import { League, Group, Stage, Match, Participant } from '../../models';
 import { firebaseLeagueService } from '../../services/firebaseCorrespondence';
+import { loadLiveGames, loadUpcomingGames } from '../../services/firestoreAdmin';
+import { Fixture } from '../../models';
 
 interface LeagueData {
   id: string;
@@ -27,7 +30,9 @@ const LeaguePage: React.FC = () => {
   const { slug } = router.query;
   const dispatch = useAppDispatch();
   const { leagues, loading: leaguesLoading } = useAppSelector((state) => state.leagues);
+  const [league, setLeague] = useState<League | null>(null);
   const [leagueData, setLeagueData] = useState<any>(null);
+  const [fixtures, setFixtures] = useState<Fixture[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'groups' | 'stages' | 'matches' | 'standings'>('overview');
 
@@ -39,22 +44,23 @@ const LeaguePage: React.FC = () => {
         setLoading(true);
 
         // Fetch the specific league data from Firebase
-        const league = await firebaseLeagueService.getLeague(slug as string);
-        if (!league) {
+        const leagueObj = await firebaseLeagueService.getLeague(slug as string);
+        if (!leagueObj) {
           setLoading(false);
           return;
         }
+        setLeague(leagueObj);
 
         // Fetch groups, stages, and matches for this league
         const groups = await firebaseLeagueService.listGroups(slug as string);
 
         // Build the league data structure expected by components
         const leagueData: LeagueData = {
-          id: league.id!,
-          name: league.name,
-          description: league.description || '',
-          sportType: league.sportType,
-          sport: league.name, // Using name as sport for now
+          id: leagueObj.id!,
+          name: leagueObj.name,
+          description: leagueObj.description || '',
+          sportType: leagueObj.sportType,
+          sport: leagueObj.name, // Using name as sport for now
           status: 'active', // Default status
           groups: {},
           stages: {},
@@ -75,6 +81,23 @@ const LeaguePage: React.FC = () => {
               leagueData.matches[`${group.id}_${stage.id}_${match.id}`] = match;
             }
           }
+        }
+
+        // Load fixtures related to this league's matches
+        try {
+          const [live, upcoming] = await Promise.all([
+            loadLiveGames(),
+            loadUpcomingGames()
+          ]);
+          const allFixtures = [...live, ...upcoming];
+          // Filter fixtures that have matchId in this league's matches
+          const leagueMatchIds = Object.values(leagueData.matches).map((match: any) => match.id);
+          const leagueFixtures = allFixtures.filter(fixture =>
+            fixture.matchId && leagueMatchIds.includes(fixture.matchId)
+          );
+          setFixtures(leagueFixtures);
+        } catch (fixtureError) {
+          console.error('Failed to load fixtures:', fixtureError);
         }
 
         setLeagueData(leagueData);
@@ -160,6 +183,56 @@ const LeaguePage: React.FC = () => {
           <div className="mt-8">
             <ScheduledMatches leagueData={leagueData} />
           </div>
+
+          {/* History Table */}
+          <section className="mt-8 bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
+            <h3 className="text-2xl font-bold mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
+              Match History & Results
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-white/20">
+                    <th className="pb-3 text-gray-700">Date</th>
+                    <th className="pb-3 text-gray-700">Home Team</th>
+                    <th className="pb-3 text-gray-700">Score</th>
+                    <th className="pb-3 text-gray-700">Away Team</th>
+                    <th className="pb-3 text-gray-700">Status</th>
+                    <th className="pb-3 text-gray-700">Venue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {fixtures.map((fixture) => (
+                    <tr key={fixture.id} className="border-b border-white/10">
+                      <td className="py-3">{new Date(fixture.scheduledAt).toLocaleDateString()}</td>
+                      <td className="py-3 font-medium">{fixture.homeTeamName}</td>
+                      <td className="py-3 text-center">
+                        {fixture.score ? `${fixture.score.home} - ${fixture.score.away}` : 'TBD'}
+                      </td>
+                      <td className="py-3 font-medium">{fixture.awayTeamName}</td>
+                      <td className="py-3">
+                        <span className={`px-2 py-1 rounded text-xs ${
+                          fixture.status === 'completed' ? 'bg-green-500 text-white' :
+                          fixture.status === 'live' ? 'bg-red-500 text-white' :
+                          'bg-blue-500 text-white'
+                        }`}>
+                          {fixture.status}
+                        </span>
+                      </td>
+                      <td className="py-3">{fixture.venue}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {/* League Visualizer */}
+          {league && (
+            <section className="mt-8">
+              <LeagueVisualizer league={league} />
+            </section>
+          )}
         </div>
       </section>
     </Layout>

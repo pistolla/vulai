@@ -1,5 +1,5 @@
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import { League, Group, Stage, Participant, Match, MatchPlayer, Athlete } from "@/models";
+import { League, Group, Stage, Participant, Match } from "@/models";
 import { firebaseLeagueService } from "@/services/firebaseCorrespondence";
 import { apiService } from "@/services/apiService";
 import { RootState } from "@/store";
@@ -9,14 +9,6 @@ import { toISO } from "@/utils/csvHelpers";
 import { useState, useEffect } from "react";
 import { MatchCard } from "./MatchCard";
 import { useTheme } from "@/components/ThemeProvider";
-import dynamic from 'next/dynamic';
-
-// Dynamically import ReactQuill to avoid SSR issues
-const ReactQuill = dynamic(() => import('react-quill'), {
-  ssr: false,
-  loading: () => <div className="h-32 bg-gray-100 dark:bg-gray-700 rounded-lg animate-pulse"></div>
-});
-import 'react-quill/dist/quill.snow.css';
 
 // --- MatchManager ---
 export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage }> = ({ league, group, stage }) => {
@@ -28,18 +20,8 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
     const [venue, setVenue] = useState('');
     const [blogContent, setBlogContent] = useState('');
     const [participants, setParticipants] = useState<Participant[]>([]);
-    const [players, setPlayers] = useState<MatchPlayer[]>([]);
-    const [pRefId, setPRefId] = useState('');
-    const [pName, setPName] = useState('');
-    const [pRefType, setPRefType] = useState<'team' | 'individual'>(league.sportType === 'team' ? 'team' : 'individual');
     const [isLoading, setIsLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
-    const [teams, setTeams] = useState<any[]>([]);
-    const [allPlayers, setAllPlayers] = useState<any[]>([]);
-    const [selectedPlayerId, setSelectedPlayerId] = useState('');
-    const [playerPosition, setPlayerPosition] = useState('');
-    const [playerEntranceTime, setPlayerEntranceTime] = useState('');
-    const [playerJerseyNumber, setPlayerJerseyNumber] = useState<number | ''>('');
 
     useEffect(() => {
       (async () => {
@@ -56,74 +38,18 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
       })();
     }, [league.id, group.id, stage.id, dispatch]);
 
-    useEffect(() => {
-      (async () => {
-        try {
-          const allTeams = await apiService.getTeams();
-          setTeams(allTeams);
-        } catch (error) {
-          console.error('Failed to load teams:', error);
-        }
-      })();
-    }, []);
-
-    useEffect(() => {
-      (async () => {
-        try {
-          const playersData = await apiService.getPlayers();
-          setAllPlayers(playersData);
-        } catch (error) {
-          console.error('Failed to load players:', error);
-        }
-      })();
-    }, []);
 
     const addParticipant = () => {
-      if (!pRefId.trim()) return alert('Participant reference ID is required');
+      const nextIndex = participants.length + 1;
+      const refType = league.sportType === 'team' ? 'team' : 'individual';
+      const refId = league.sportType === 'team' ? `Team ${String.fromCharCode(65 + participants.length)}` : `Player ${nextIndex}`;
+      const name = refId;
 
-      // Check for duplicate participants
-      if (participants.some(p => p.refId === pRefId.trim())) {
-        return alert('Participant already added');
-      }
-
-      const selectedTeam = pRefType === 'team' ? teams.find(t => t.id === pRefId) : null;
-      const name = selectedTeam ? selectedTeam.name : (pName.trim() || pRefId.trim());
-
-      setParticipants((s) => [...s, { refType: pRefType, refId: pRefId.trim(), name, score: 0 }]);
-      setPRefId('');
-      setPName('');
+      setParticipants((s) => [...s, { refType, refId, name, score: 0 }]);
     };
 
-    const addPlayer = () => {
-      if (!selectedPlayerId) return alert('Please select a player');
-      if (!playerPosition.trim()) return alert('Position is required');
-
-      // Check for duplicate players
-      if (players.some(p => p.id === selectedPlayerId)) {
-        return alert('Player already added');
-      }
-
-      const selectedPlayer = allPlayers.find(p => p.id === selectedPlayerId);
-      if (!selectedPlayer) return alert('Player not found');
-
-      const selectedTeam = teams.find(t => t.id === selectedPlayer.teamId);
-      if (!selectedTeam) return alert('Player\'s team not found');
-
-      const matchPlayer: MatchPlayer = {
-        id: selectedPlayer.id,
-        name: selectedPlayer.name,
-        teamId: selectedPlayer.teamId,
-        teamName: selectedTeam.name,
-        position: playerPosition.trim(),
-        entranceTime: playerEntranceTime || undefined,
-        jerseyNumber: playerJerseyNumber || selectedPlayer.kitNumber || undefined,
-      };
-
-      setPlayers(prev => [...prev, matchPlayer]);
-      setSelectedPlayerId('');
-      setPlayerPosition('');
-      setPlayerEntranceTime('');
-      setPlayerJerseyNumber('');
+    const removeParticipant = (index: number) => {
+      setParticipants(prev => prev.filter((_, i) => i !== index));
     };
 
     const submit = async (e?: React.FormEvent) => {
@@ -137,9 +63,7 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
           date,
           venue,
           status: 'pending',
-          participants,
-          players: players.length > 0 ? players : undefined,
-          blogContent: blogContent || undefined
+          participants
         };
         await dispatch(createMatch({ leagueId: league.id!, groupId: group.id!, stageId: stage.id!, match }));
 
@@ -151,8 +75,7 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
         // Reset form
         setMatchNumber(matchNumber + 1);
         setVenue('');
-        setBlogContent('');
-        setPlayers([]);
+        setParticipants([]);
       } catch (error) {
         console.error('Failed to create match:', error);
         alert('Failed to create match. Please try again.');
@@ -218,131 +141,20 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
                 </div>
               </div>
 
-              <div className="mb-4">
-                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest mb-2">Blog Content</label>
-                <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
-                  <ReactQuill
-                    value={blogContent}
-                    onChange={setBlogContent}
-                    theme="snow"
-                    className="min-h-[120px] sm:min-h-[150px]"
-                    readOnly={isLoading}
-                  />
-                </div>
-              </div>
 
               <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg mb-4">
-                <h6 className="font-bold text-gray-900 dark:text-white mb-3">Add Players</h6>
-                <div className="space-y-3">
-                  {/* Player Selection Row */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <select
-                      value={selectedPlayerId}
-                      onChange={(e) => setSelectedPlayerId(e.target.value)}
-                      className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white text-sm"
-                      disabled={isLoading}
-                    >
-                      <option value="">Select Player</option>
-                      {allPlayers.map(player => (
-                        <option key={player.id} value={player.id}>
-                          {player.name} ({teams.find(t => t.id === player.teamId)?.name || player.teamId})
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      value={playerPosition}
-                      onChange={(e) => setPlayerPosition(e.target.value)}
-                      placeholder="Position (e.g., Forward)"
-                      className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
-                      disabled={isLoading}
-                    />
-                  </div>
-
-                  {/* Additional Details Row */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <input
-                      value={playerEntranceTime}
-                      onChange={(e) => setPlayerEntranceTime(e.target.value)}
-                      type="datetime-local"
-                      placeholder="Entrance Time"
-                      className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white text-sm"
-                      disabled={isLoading}
-                    />
-                    <input
-                      value={playerJerseyNumber || ''}
-                      onChange={(e) => setPlayerJerseyNumber(e.target.value ? Number(e.target.value) : '')}
-                      type="number"
-                      placeholder="Jersey #"
-                      className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
-                      disabled={isLoading}
-                      min="1"
-                    />
-                    <button
-                      type="button"
-                      onClick={addPlayer}
-                      className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-bold shadow-sm hover:shadow-md transition-all active:scale-95 disabled:opacity-70 text-sm sm:text-base"
-                      disabled={isLoading || !selectedPlayerId || !playerPosition.trim()}
-                    >
-                      Add Player
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg mb-4">
-                <h6 className="font-bold text-gray-900 dark:text-white mb-3">Add Participants</h6>
-                <div className="space-y-3">
-                  {/* First Row: Type and Reference */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <select
-                      value={pRefType}
-                      onChange={(e) => setPRefType(e.target.value as 'team' | 'individual')}
-                      className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white text-sm"
-                      disabled={isLoading}
-                    >
-                      <option value="team">Team</option>
-                      <option value="individual">Individual</option>
-                    </select>
-                    {pRefType === 'team' ? (
-                      <select
-                        value={pRefId}
-                        onChange={(e) => setPRefId(e.target.value)}
-                        className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white text-sm"
-                        disabled={isLoading}
-                      >
-                        <option value="">Select Team</option>
-                        {teams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}
-                      </select>
-                    ) : (
-                      <input
-                        value={pRefId}
-                        onChange={(e) => setPRefId(e.target.value)}
-                        placeholder="Participant ID"
-                        className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
-                        disabled={isLoading}
-                      />
-                    )}
-                  </div>
-
-                  {/* Second Row: Name and Add Button */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <input
-                      value={pName}
-                      onChange={(e) => setPName(e.target.value)}
-                      placeholder="Display name (optional)"
-                      className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm sm:col-span-2"
-                      disabled={isLoading}
-                    />
-                    <button
-                      type="button"
-                      onClick={addParticipant}
-                      className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-bold shadow-sm hover:shadow-md transition-all active:scale-95 disabled:opacity-70 text-sm sm:text-base"
-                      disabled={isLoading || !pRefId.trim()}
-                    >
-                      Add Participant
-                    </button>
-                  </div>
-                </div>
+                <h6 className="font-bold text-gray-900 dark:text-white mb-3">Add Placeholder Participants</h6>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                  Click to add placeholder {league.sportType === 'team' ? 'teams' : 'players'} (Team A, Team B, etc.)
+                </p>
+                <button
+                  type="button"
+                  onClick={addParticipant}
+                  className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-bold shadow-sm hover:shadow-md transition-all active:scale-95 disabled:opacity-70 text-sm sm:text-base"
+                  disabled={isLoading}
+                >
+                  Add {league.sportType === 'team' ? 'Team' : 'Player'} Placeholder
+                </button>
               </div>
 
               {participants && participants.length > 0 && (
@@ -360,7 +172,7 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
                             <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">Score: {p.score}</span>
                             <button
                               type="button"
-                              onClick={() => setParticipants(prev => prev.filter((_, i) => i !== idx))}
+                              onClick={() => removeParticipant(idx)}
                               className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-xs sm:text-sm px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                               disabled={isLoading}
                             >
@@ -374,39 +186,6 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
                 </div>
               )}
 
-              {players.length > 0 && (
-                <div className="mb-4">
-                  <h6 className="font-bold text-gray-900 dark:text-white mb-3">Players ({players.length})</h6>
-                  <div className="space-y-3">
-                    {players.map((p, idx) => (
-                      <div key={idx} className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium text-gray-900 dark:text-white text-sm sm:text-base">{p.name}</div>
-                            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
-                              {p.teamName} • {p.position}
-                              {p.jerseyNumber && ` • #${p.jerseyNumber}`}
-                            </div>
-                            {p.entranceTime && (
-                              <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                                Enters: {new Date(p.entranceTime).toLocaleString()}
-                              </div>
-                            )}
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setPlayers(prev => prev.filter((_, i) => i !== idx))}
-                            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-xs sm:text-sm px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors self-start sm:self-center"
-                            disabled={isLoading}
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               <button
                 type="submit"

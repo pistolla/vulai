@@ -9,6 +9,9 @@ import { LivePitch } from '../../components/live-match/LivePitch';
 import { StatsComparison } from '../../components/live-match/StatsComparison';
 import { MomentumBar } from '../../components/live-match/MomentumBar';
 import { FiMessageSquare, FiSend, FiZap } from 'react-icons/fi';
+import { db } from '../../services/firebase';
+import { collection, query, where, orderBy, limit, onSnapshot, getDoc, doc } from 'firebase/firestore';
+import { SoccerGameProcessor, GameState, Player, Ball } from '../../services/soccer_processor';
 
 interface MatchStats {
   possession: { home: number; away: number };
@@ -31,8 +34,9 @@ interface MatchData {
 }
 
 interface TelemetryData {
-  ball: { x: number; y: number };
-  players: Array<{ id: string; x: number; y: number; team: 'home' | 'away' }>;
+  ball: { x: number; y: number; z: number };
+  players: Array<{ id: string; x: number; y: number; z: number; team: 'home' | 'away' }>;
+  timestamp: number;
 }
 
 interface ChatMessage {
@@ -49,6 +53,31 @@ interface CommentaryMessage {
   timestamp: number;
 }
 
+// Basic game stats analysis function
+function analyzeGameStats(telemetry: TelemetryData): any {
+  // Basic analysis: detect ball position, player speeds, etc.
+  // This is a simplified example
+  const ball = telemetry.ball;
+  const players = telemetry.players;
+
+  // Detect if ball is in goal area (simplified)
+  const homeGoal = ball.x < 50 && ball.y > 100 && ball.y < 200;
+  const awayGoal = ball.x > 450 && ball.y > 100 && ball.y < 200;
+
+  // Calculate team control (players in ball vicinity)
+  const ballVicinity = 50;
+  const homePlayersNear = players.filter(p => p.team === 'home' && Math.sqrt((p.x - ball.x)**2 + (p.y - ball.y)**2) < ballVicinity).length;
+  const awayPlayersNear = players.filter(p => p.team === 'away' && Math.sqrt((p.x - ball.x)**2 + (p.y - ball.y)**2) < ballVicinity).length;
+
+  return {
+    ballInHomeGoal: homeGoal,
+    ballInAwayGoal: awayGoal,
+    homeControl: homePlayersNear > awayPlayersNear,
+    awayControl: awayPlayersNear > homePlayersNear,
+    // Add more analysis as needed
+  };
+}
+
 export default function LiveMatchPage() {
   const router = useRouter();
   const { id } = router.query;
@@ -63,16 +92,20 @@ export default function LiveMatchPage() {
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [cheerEffect, setCheerEffect] = useState<{ team: 'home' | 'away', active: boolean } | null>(null);
+  const [enableGameStats, setEnableGameStats] = useState(false);
+  const [gameStats, setGameStats] = useState<any>(null);
 
   // Mock telemetry data for demo
   const mockTelemetry: TelemetryData = {
-    ball: { x: Math.random() * 482 + 19, y: Math.random() * 270 + 11 },
+    ball: { x: Math.random() * 482 + 19, y: Math.random() * 270 + 11, z: Math.random() * 10 },
     players: Array.from({ length: 22 }, (_, i) => ({
       id: `player${i}`,
       x: Math.random() * 482 + 19,
       y: Math.random() * 270 + 11,
+      z: Math.random() * 10,
       team: i < 11 ? 'home' : 'away' as 'home' | 'away'
-    }))
+    })),
+    timestamp: Date.now()
   };
 
   useEffect(() => {
@@ -107,17 +140,37 @@ export default function LiveMatchPage() {
         };
         setMatchData(mockMatch);
 
-        const telemetryInterval = setInterval(() => {
-          setTelemetry({
-            ball: { x: Math.random() * 482 + 19, y: Math.random() * 270 + 11 },
-            players: Array.from({ length: 22 }, (_, i) => ({
-              id: `player${i}`,
-              x: Math.random() * 482 + 19,
-              y: Math.random() * 270 + 11,
-              team: i < 11 ? 'home' : 'away' as 'home' | 'away'
-            }))
-          });
-        }, 1000);
+        const telemetryInterval = setInterval(async () => {
+          try {
+            const channelDoc = await getDoc(doc(db, 'channels', id as string));
+            if (channelDoc.exists()) {
+              const data = channelDoc.data();
+              if (data.latestTelemetry) {
+                setTelemetry(data.latestTelemetry);
+                if (enableGameStats) {
+                  // Process game stats
+                  const stats = analyzeGameStats(data.latestTelemetry);
+                  setGameStats(stats);
+                }
+              }
+            } else {
+              // Fallback to mock
+              setTelemetry({
+                ball: { x: Math.random() * 482 + 19, y: Math.random() * 270 + 11, z: Math.random() * 10 },
+                players: Array.from({ length: 22 }, (_, i) => ({
+                  id: `player${i}`,
+                  x: Math.random() * 482 + 19,
+                  y: Math.random() * 270 + 11,
+                  z: Math.random() * 10,
+                  team: i < 11 ? 'home' : 'away' as 'home' | 'away'
+                })),
+                timestamp: Date.now()
+              });
+            }
+          } catch (error) {
+            console.error('Error fetching telemetry:', error);
+          }
+        }, 500);
 
         const unsubscribe = subscribeFanChat(id as string, setChatMessages);
 
@@ -333,6 +386,40 @@ export default function LiveMatchPage() {
                 ) : (
                   <p className="text-center text-gray-500 text-sm">Login to join the chat</p>
                 )}
+              </div>
+
+              {/* Game Stats Toggle */}
+              <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-gray-800 p-8">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                    <FiZap className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Game Stats</h3>
+                </div>
+
+                <div className="space-y-4">
+                  <label className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      checked={enableGameStats}
+                      onChange={(e) => setEnableGameStats(e.target.checked)}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Enable Advanced Game Analysis</span>
+                  </label>
+
+                  {enableGameStats && gameStats && (
+                    <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl space-y-2">
+                      <p className="text-sm text-gray-800 dark:text-gray-200">
+                        <strong>Ball Position:</strong> {gameStats.ballInHomeGoal ? 'In Home Goal Area' : gameStats.ballInAwayGoal ? 'In Away Goal Area' : 'In Play'}
+                      </p>
+                      <p className="text-sm text-gray-800 dark:text-gray-200">
+                        <strong>Team Control:</strong> {gameStats.homeControl ? 'Home Team' : gameStats.awayControl ? 'Away Team' : 'Neutral'}
+                      </p>
+                      {/* Add more stats as analysis improves */}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

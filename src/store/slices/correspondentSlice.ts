@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { CorrespondentDashboard, LiveCommentary, FixtureVideo, Group, Match, Stage, League } from '@/models';
-import { pushCommentaryEvent, attachDriveVideo, createLeague, fetchLeagues, createGroup, createStage, createMatch, updateMatchScores, fetchPointsTable } from '@/store/correspondentThunk';
+import { CorrespondentDashboard, LiveCommentary, FixtureVideo, Group, Match, Stage, League, Fixture } from '@/models';
+import { pushCommentaryEvent, attachDriveVideo, createLeague, fetchLeagues, createGroup, createStage, createMatch, updateMatchScores, fetchPointsTable, fetchFixtures, createFixture, updateFixture } from '@/store/correspondentThunk';
 
 // Define proper type for points data
 interface PointsEntry {
@@ -16,6 +16,7 @@ interface ExtendedCorrState extends CorrespondentDashboard {
   stages: Record<string, Stage[]>;
   matches: Record<string, Match[]>;
   points: Record<string, PointsEntry[]>;
+  fixtures: Fixture[];
 }
 
 const initialState: ExtendedCorrState = {
@@ -28,6 +29,7 @@ const initialState: ExtendedCorrState = {
   activeCommentary: null,
   fixtureVideos: {},
   leagues: [],
+  fixtures: [],
 };
 
 const correspondentSlice = createSlice({
@@ -56,6 +58,7 @@ const correspondentSlice = createSlice({
       activeCommentary: null,
       fixtureVideos: {},
       leagues: [],
+      fixtures: [],
     }),
     clearCorrespondentData: () => initialState,
     setActiveCommentary: (s, { payload }: PayloadAction<LiveCommentary | null>) => {
@@ -106,6 +109,18 @@ const correspondentSlice = createSlice({
         const { leagueId, groupId, points } = payload;
         const key = `${leagueId}_${groupId}`;
         s.points[key] = points;
+      })
+      .addCase(fetchFixtures.fulfilled, (s, { payload }) => {
+        s.fixtures = payload;
+      })
+      .addCase(createFixture.fulfilled, (s, { payload }) => {
+        s.fixtures.push(payload);
+      })
+      .addCase(updateFixture.fulfilled, (s, { payload }) => {
+        const index = s.fixtures.findIndex(f => f.id === payload.id);
+        if (index !== -1) {
+          s.fixtures[index] = payload;
+        }
       }),
 });
 

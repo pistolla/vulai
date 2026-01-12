@@ -1,7 +1,7 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs, doc, getDoc, setDoc } from 'firebase/firestore';
-import * as fs from 'fs';
-import * as path from 'path';
+const { initializeApp } = require('firebase/app');
+const { getFirestore, collection, getDocs, doc, getDoc, setDoc } = require('firebase/firestore');
+const fs = require('fs');
+const path = require('path');
 
 const firebaseConfig = {
   apiKey: "AIzaSyAfueNrXFi1MR5RwbLSYVOwAkW2IfiM9RI",
@@ -23,12 +23,10 @@ const collectionsToValidate = [
   'sports',
   'teams',
   'universities',
-  'schedule',
   'fixtures',
   'admin',
   'merchandise',
   'reviews',
-  'games',
   'players'
 ];
 
@@ -36,7 +34,6 @@ const dataMappings: { [key: string]: { file: string; key: string; type: 'array' 
   'sports': { file: 'sports.json', key: 'sports', type: 'array' },
   'teams': { file: 'teams.json', key: 'teams', type: 'array' },
   'universities': { file: 'universities.json', key: 'universities', type: 'array' },
-  'schedule': { file: 'schedule.json', key: 'matches', type: 'array' },
   'fixtures': { file: 'schedule.json', key: 'matches', type: 'array' },
   'home': { file: 'home.json', key: 'stats', type: 'object', id: 'main' },
   'admin': { file: 'admin.json', key: 'dashboard', type: 'object', id: 'dashboard' },
@@ -77,14 +74,63 @@ async function populateCollection(colName: string) {
   }
 }
 
+async function validateSubcollections() {
+  console.log('--- Validating League Subcollections ---');
+
+  try {
+    const leaguesRef = collection(db, 'leagues');
+    const leaguesSnapshot = await getDocs(leaguesRef);
+
+    if (leaguesSnapshot.empty) {
+      console.warn('[WARNING] No leagues found, skipping subcollection validation.');
+      return;
+    }
+
+    for (const leagueDoc of leaguesSnapshot.docs) {
+      const leagueId = leagueDoc.id;
+      console.log(`Validating subcollections for league: ${leagueId}`);
+
+      // Check groups subcollection
+      const groupsRef = collection(db, 'leagues', leagueId, 'groups');
+      const groupsSnapshot = await getDocs(groupsRef);
+      console.log(`  Groups: ${groupsSnapshot.size} documents`);
+
+      for (const groupDoc of groupsSnapshot.docs) {
+        const groupId = groupDoc.id;
+
+        // Check stages subcollection under groups
+        const stagesRef = collection(db, 'leagues', leagueId, 'groups', groupId, 'stages');
+        const stagesSnapshot = await getDocs(stagesRef);
+        console.log(`    Stages for group ${groupId}: ${stagesSnapshot.size} documents`);
+
+        for (const stageDoc of stagesSnapshot.docs) {
+          const stageId = stageDoc.id;
+
+          // Check matches subcollection under stages
+          const matchesRef = collection(db, 'leagues', leagueId, 'groups', groupId, 'stages', stageId, 'matches');
+          const matchesSnapshot = await getDocs(matchesRef);
+          console.log(`      Matches for stage ${stageId}: ${matchesSnapshot.size} documents`);
+        }
+      }
+
+      // Check participants subcollection
+      const participantsRef = collection(db, 'leagues', leagueId, 'participants');
+      const participantsSnapshot = await getDocs(participantsRef);
+      console.log(`  Participants: ${participantsSnapshot.size} documents`);
+    }
+  } catch (error) {
+    console.error('[ERROR] Failed to validate subcollections:', (error as Error).message);
+  }
+}
+
 async function validate() {
   console.log('--- Starting Firebase Data Validation ---');
-  
+
   for (const colName of collectionsToValidate) {
     try {
       const colRef = collection(db, colName);
       const snapshot = await getDocs(colRef);
-      
+
       if (snapshot.empty) {
         console.warn(`[WARNING] Collection "${colName}" is empty.`);
         await populateCollection(colName);
@@ -98,6 +144,9 @@ async function validate() {
       console.error(`[ERROR] Failed to fetch collection "${colName}":`, (error as Error).message);
     }
   }
+
+  // Validate league subcollections
+  await validateSubcollections();
 
   // Check specific documents if needed
   const specificDocs = [

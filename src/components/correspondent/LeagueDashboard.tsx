@@ -1,29 +1,33 @@
-import { League } from "@/models";
+import { League, Match, Group } from "@/models";
 import { useState } from "react";
 import { GroupManager } from "./GroupManager";
 import { LeagueForm } from "./LeagueForm";
 import { LeagueList } from "./LeagueList";
 import { StageManager } from "./StageManager";
 import { MatchManager } from "./MatchManager";
+import { LeagueVisualizer } from "./LeagueVisualizer.tsx";
 import { useTheme } from "@/components/ThemeProvider";
 
 // --- Top-level Dashboard Component ---
 export const LeagueDashboard: React.FC = () => {
-    const [selectedLeague, setSelectedLeague] = useState<League | null>(null);
-    const [selectedGroup, setSelectedGroup] = useState<any | null>(null);
-    const [currentStep, setCurrentStep] = useState<'leagues' | 'groups' | 'stages'>('leagues');
-    const { theme } = useTheme();
+  const [selectedLeague, setSelectedLeague] = useState<League | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+  const [currentStep, setCurrentStep] = useState<'leagues' | 'groups' | 'stages' | 'visualize'>('leagues');
+  const [viewMode, setViewMode] = useState<'manage' | 'visualize'>('manage');
+  const { theme } = useTheme();
 
     const steps = [
       { id: 'leagues', label: 'Leagues', icon: '🏆' },
       { id: 'groups', label: 'Groups', icon: '👥' },
-      { id: 'stages', label: 'Stages & Matches', icon: '🏅' }
+      { id: 'stages', label: 'Stages & Matches', icon: '🏅' },
+      { id: 'visualize', label: 'Visualize', icon: '📊' }
     ];
 
     const canAccessStep = (step: string) => {
       if (step === 'leagues') return true;
       if (step === 'groups') return !!selectedLeague;
       if (step === 'stages') return !!selectedGroup;
+      if (step === 'visualize') return !!selectedLeague;
       return false;
     };
 
@@ -61,6 +65,16 @@ export const LeagueDashboard: React.FC = () => {
                 <p className="text-gray-600 dark:text-gray-300">Manage stages and matches for this group</p>
               </div>
               <StageManager league={selectedLeague!} group={selectedGroup!} />
+            </div>
+          ) : null;
+        case 'visualize':
+          return selectedLeague ? (
+            <div className="space-y-6">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl shadow-black/5 border border-gray-100 dark:border-gray-700">
+                <h3 className="text-xl font-black dark:text-white mb-2">{selectedLeague.name} - League Visualization</h3>
+                <p className="text-gray-600 dark:text-gray-300">Click on match nodes to view details</p>
+              </div>
+              <LeagueVisualizer league={selectedLeague} />
             </div>
           ) : null;
         default:

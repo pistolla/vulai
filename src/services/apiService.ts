@@ -148,6 +148,12 @@ export class ApiService {
         break;
       }
 
+      case "/api/fixtures": {
+        const snap = await getDocs(collection(db, "fixture"));
+        result = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        break;
+      }
+
       case "/api/players": {
         const snap = await getDocs(collection(db, "players"));
         result = { players: snap.docs.map(d => d.data()) };
@@ -213,6 +219,10 @@ export class ApiService {
   async getSchedule(): Promise<any[]> {
     const data = await this.fetchWithFallback<any>("/api/schedule", "/data/schedule.json");
     return data.matches || [];
+  }
+
+  async getFixtures(): Promise<any[]> {
+    return this.fetchWithFallback<any[]>("/api/fixtures", "/data/schedule.json");
   }
 
   async getSports(): Promise<any[]> {

@@ -7,11 +7,12 @@ import { UploadTeamExcelTab } from '@/components/correspondent/UploadTeamExcelTa
 import { UploadTeamVideoTab } from '@/components/correspondent/UploadTeamVideoTab';
 import { GameLiveCommentaryTab } from '@/components/correspondent/GameLiveCommentaryTab';
 import { ManageLeagueTab } from '@/components/correspondent/ManageLeagueTab';
+import { ManageFixtureTab } from '@/components/correspondent/ManageFixtureTab';
 import { useClientSideLibs } from '@/utils/clientLibs';
 import { fetchLeagues } from '@/store/correspondentThunk';
 import { FiUser, FiFileText, FiVideo, FiRadio, FiAward, FiArrowRight } from 'react-icons/fi';
 
-type TabType = 'profile' | 'excel' | 'video' | 'commentary' | 'league';
+type TabType = 'profile' | 'excel' | 'video' | 'commentary' | 'league' | 'fixtures';
 
 export default function CorrespondentDashboardPage() {
   const user = useAppSelector(s => s.auth.user);
@@ -77,6 +78,13 @@ export default function CorrespondentDashboardPage() {
       icon: FiAward,
       color: 'yellow',
       description: 'Manage leagues, groups, and matches'
+    },
+    {
+      id: 'fixtures' as TabType,
+      name: 'Fixture Manager',
+      icon: FiAward,
+      color: 'orange',
+      description: 'Manage fixtures and match details'
     }
   ];
 
@@ -87,6 +95,7 @@ export default function CorrespondentDashboardPage() {
       case 'video': return <UploadTeamVideoTab />;
       case 'commentary': return <GameLiveCommentaryTab />;
       case 'league': return <ManageLeagueTab />;
+      case 'fixtures': return <ManageFixtureTab />;
       default: return <ProfileTab />;
     }
   };

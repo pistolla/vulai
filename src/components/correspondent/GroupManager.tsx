@@ -1,5 +1,5 @@
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import { League } from "@/models";
+import { League, Group } from "@/models";
 import { firebaseLeagueService } from "@/services/firebaseCorrespondence";
 import { RootState } from "@/store";
 import { createGroup } from "@/store/correspondentThunk";
@@ -9,7 +9,7 @@ import { StageManager } from "./StageManager";
 import { useTheme } from "@/components/ThemeProvider";
 
 // --- GroupManager ---
-export const GroupManager: React.FC<{ league: League | null; onGroupSelect?: (group: any) => void }> = ({ league, onGroupSelect }) => {
+export const GroupManager: React.FC<{ league: League | null; onGroupSelect?: (group: Group) => void }> = ({ league, onGroupSelect }) => {
     const dispatch = useAppDispatch();
     const groups = useAppSelector((s: RootState) => (league ? s.correspondent.groups[league.id!] ?? [] : []));
     const { theme } = useTheme();

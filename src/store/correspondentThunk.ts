@@ -1,5 +1,5 @@
 import { parse } from 'papaparse'; // add: yarn add papaparse @types/papaparse
-import { LiveCommentary, CommentaryEvent, FixtureVideo, CsvAthleteRow, Athlete, Group, League, Match, Participant, Stage, ImportedData } from '@/models';
+import { LiveCommentary, CommentaryEvent, FixtureVideo, CsvAthleteRow, Athlete, Group, League, Match, Participant, Stage, ImportedData, Fixture } from '@/models';
 import { db } from '@/services/firebase';
 import { doc, setDoc, updateDoc, arrayUnion, serverTimestamp, collection } from 'firebase/firestore';
 import { createAsyncThunk } from '@reduxjs/toolkit';
@@ -166,3 +166,23 @@ export const submitImportedData = createAsyncThunk(
     return fullData;
   }
 );
+
+/* ---------- fixtures ---------- */
+export const fetchFixtures = createAsyncThunk('fixtures/fetchAll', async () => {
+  // For now, return empty array - implement Firebase service later
+  return [] as Fixture[];
+});
+
+export const createFixture = createAsyncThunk('fixtures/create', async (fixture: Omit<Fixture, 'id'>) => {
+  // TODO: Implement Firebase service for fixtures
+  const id = doc(collection(db, 'fixtures')).id;
+  const fullFixture: Fixture = { id, ...fixture };
+  // await setDoc(doc(db, 'fixtures', id), fullFixture);
+  return fullFixture;
+});
+
+export const updateFixture = createAsyncThunk('fixtures/update', async ({ id, fixture }: { id: string; fixture: Partial<Fixture> }) => {
+  // TODO: Implement Firebase service for fixtures
+  // await updateDoc(doc(db, 'fixtures', id), fixture);
+  return { id, ...fixture } as Fixture;
+});
