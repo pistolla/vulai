@@ -48,8 +48,6 @@ export default function CorrespondentGuard({ children }: Props) {
         if (userDoc.exists()) {
           const userData = userDoc.data();
           const userStatus = userData.status === true ? 'active' : 'pending';
-          // Update user in Redux with status
-          dispatch(setUser({ ...user, status: userStatus }));
 
           if (userStatus !== 'active') {
             router.replace('/correspondent/pending');

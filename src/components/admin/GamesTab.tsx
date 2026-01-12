@@ -30,11 +30,15 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
 }
 
 // Game Form Component
-function GameForm({ formData, setFormData, teams, onSubmit, submitLabel, leagues }: any) {
+function GameForm({ formData, setFormData, teams, players, sports, onSubmit, submitLabel, leagues }: any) {
   const [leaguesData, setLeaguesData] = useState<any[]>([]);
   const [groups, setGroups] = useState<any[]>([]);
   const [stages, setStages] = useState<any[]>([]);
   const [matches, setMatches] = useState<any[]>([]);
+
+  const currentSport = sports.find((s: any) => s.name.toLowerCase() === formData.sport.toLowerCase());
+  const isTeamSport = currentSport?.category === 'team';
+  const participants = isTeamSport ? teams : players;
 
   useEffect(() => {
     if (leagues) setLeaguesData(leagues);
@@ -177,7 +181,7 @@ function GameForm({ formData, setFormData, teams, onSubmit, submitLabel, leagues
             required
             value={formData.homeTeam}
             onChange={(e) => setFormData({...formData, homeTeam: e.target.value})}
-            list="teams-list"
+            list="participants-list"
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             placeholder="Type or select home team"
           />
@@ -189,16 +193,16 @@ function GameForm({ formData, setFormData, teams, onSubmit, submitLabel, leagues
             required
             value={formData.awayTeam}
             onChange={(e) => setFormData({...formData, awayTeam: e.target.value})}
-            list="teams-list"
+            list="participants-list"
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             placeholder="Type or select away team"
           />
         </div>
-        <datalist id="teams-list">
-          {teams.map((team: any) => (
-            <option key={team.id} value={team.name} />
-          ))}
-        </datalist>
+        <datalist id="participants-list">
+           {participants.map((p: any) => (
+             <option key={p.id} value={p.name || `${p.firstName} ${p.lastName}`} />
+           ))}
+         </datalist>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Date</label>
           <input
@@ -340,6 +344,8 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
   const [live, setLive] = useState<any[]>([]);
   const [upcoming, setUpcoming] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
+  const [players, setPlayers] = useState<any[]>([]);
+  const [sports, setSports] = useState<any[]>([]);
   const [leagues, setLeagues] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -390,6 +396,16 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
         const teamsData = await apiService.getTeams();
         setTeams(teamsData);
 
+        // Load players
+        const playersSnap = await getDocs(collection(db, 'players'));
+        const playersData = playersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setPlayers(playersData);
+
+        // Load sports
+        const sportsSnap = await getDocs(collection(db, 'sports'));
+        const sportsData = sportsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setSports(sportsData);
+
         // Load leagues
         const leaguesSnap = await getDocs(collection(db, 'leagues'));
         const leaguesData = leaguesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -408,6 +424,8 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
         setLive([]);
         setUpcoming([]);
         setTeams([]);
+        setPlayers([]);
+        setSports([]);
         setLeagues([]);
       } finally {
         setLoading(false);
@@ -694,6 +712,8 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
             formData={newGame}
             setFormData={setNewGame}
             teams={teams}
+            players={players}
+            sports={sports}
             leagues={leagues}
             onSubmit={handleAddGame}
             submitLabel="Add Game"
@@ -708,6 +728,8 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
             formData={editingGame}
             setFormData={setEditingGame}
             teams={teams}
+            players={players}
+            sports={sports}
             leagues={leagues}
             onSubmit={handleEditGame}
             submitLabel="Update Game"
