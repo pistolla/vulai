@@ -29,6 +29,7 @@ export interface Fixture {
    homeTeamName: string;
    awayTeamName: string;
    id: string;
+   correspondentId: string;
    homeTeamId: string;
    awayTeamId: string;
    sport: string;
@@ -47,6 +48,7 @@ export interface Fixture {
    type: 'league' | 'friendly';
    matchId?: string; // for league fixtures, links to Match
    blogContent?: string;
+   approved?: boolean;
  }
 
 export interface News {
