@@ -29,7 +29,7 @@ export interface Fixture {
    homeTeamName: string;
    awayTeamName: string;
    id: string;
-   correspondentId: string;
+   correspondentId?: string;
    homeTeamId: string;
    awayTeamId: string;
    sport: string;

@@ -32,6 +32,8 @@ const initialState: ExtendedCorrState = {
   fixtures: [],
 };
 
+export type CorrespondentState = ExtendedCorrState;
+
 const correspondentSlice = createSlice({
   name: 'correspondent',
   initialState,

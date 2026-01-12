@@ -1,66 +1,100 @@
-import { Fixture } from "@/models";
+import { Match, League } from "@/models";
 import { useAppSelector } from "@/hooks/redux";
+import { useState, useEffect } from "react";
+import { firebaseLeagueService } from "@/services/firebaseCorrespondence";
 
 interface FixtureListProps {
-  onSelect: (fixture: Fixture) => void;
+  onSelect: (match: Match, league: League) => void;
 }
 
 export const FixtureList: React.FC<FixtureListProps> = ({ onSelect }) => {
+  const [unlinkedMatches, setUnlinkedMatches] = useState<{ match: Match; league: League; groupName: string; stageName: string }[]>([]);
+  const [loading, setLoading] = useState(true);
   const fixtures = useAppSelector((state) => state.correspondent.fixtures) || [];
+  const leagues = useAppSelector((state) => state.correspondent.leagues) || [];
+
+  useEffect(() => {
+    const loadUnlinkedMatches = async () => {
+      setLoading(true);
+      try {
+        const allMatches: { match: Match; league: League; groupName: string; stageName: string }[] = [];
+
+        for (const league of leagues) {
+          const groups = await firebaseLeagueService.listGroups(league.id!);
+          for (const group of groups) {
+            const stages = await firebaseLeagueService.listStages(league.id!, group.id!);
+            for (const stage of stages) {
+              const matches = await firebaseLeagueService.listMatches(league.id!, group.id!, stage.id!);
+              matches.forEach(match => {
+                if (!fixtures.some(f => f.matchId === match.id) && match.participants.length >= 2) {
+                  allMatches.push({ match, league, groupName: group.name, stageName: stage.name });
+                }
+              });
+            }
+          }
+        }
+
+        setUnlinkedMatches(allMatches);
+      } catch (error) {
+        console.error('Failed to load unlinked matches:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUnlinkedMatches();
+  }, [leagues, fixtures]);
 
   return (
     <div className="space-y-4">
-      {fixtures.length === 0 ? (
+      {loading ? (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-3 text-gray-500 dark:text-gray-400 font-medium">Loading matches...</p>
+        </div>
+      ) : unlinkedMatches.length === 0 ? (
         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
           <div className="text-3xl mb-2">⚽</div>
-          <p className="font-medium">No fixtures yet.</p>
-          <p className="text-sm">Create your first fixture to get started.</p>
+          <p className="font-medium">No unlinked matches.</p>
+          <p className="text-sm">All matches have fixtures or no matches available.</p>
         </div>
       ) : (
-        fixtures.map((fixture) => (
-          <div
-            key={fixture.id}
-            className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            onClick={() => onSelect(fixture)}
-          >
-            <div className="flex justify-between items-start">
-              <div>
-                <h4 className="font-semibold text-gray-900 dark:text-white">
-                  {fixture.homeTeamName} vs {fixture.awayTeamName}
-                </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {new Date(fixture.scheduledAt).toLocaleString()}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {fixture.venue}
-                </p>
-                <span className={`inline-block px-2 py-1 text-xs rounded-full ${
-                  fixture.type === 'league'
-                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
-                    : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
-                }`}>
-                  {fixture.type}
-                </span>
-              </div>
-              <div className="text-right">
-                <span className={`px-2 py-1 text-xs rounded-full ${
-                  fixture.status === 'completed'
-                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
-                    : fixture.status === 'live'
-                    ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
-                    : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-                }`}>
-                  {fixture.status}
-                </span>
-                {fixture.score && (
-                  <p className="text-sm font-semibold mt-1">
-                    {fixture.score.home} - {fixture.score.away}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-        ))
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+            <thead className="bg-gray-50 dark:bg-gray-700">
+              <tr>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Match</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">League</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Group</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Stage</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Participants</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {unlinkedMatches.map(({ match, league, groupName, stageName }) => (
+                <tr key={match.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" onClick={() => onSelect(match, league)}>
+                  <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">#{match.matchNumber}</td>
+                  <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{league.name}</td>
+                  <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{groupName}</td>
+                  <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{stageName}</td>
+                  <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
+                    {match.participants.map(p => p.name || p.refId).join(' vs ')}
+                  </td>
+                  <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
+                    {new Date(match.date).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-2 text-sm">
+                    <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs">
+                      Create Fixture
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

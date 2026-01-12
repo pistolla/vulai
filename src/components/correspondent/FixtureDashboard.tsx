@@ -1,10 +1,12 @@
-import { Fixture } from "@/models";
+import { Fixture, Match, League } from "@/models";
 import { useState } from "react";
 import { FixtureList } from "./FixtureList.tsx";
 import { FixtureForm } from "./FixtureForm.tsx";
 
 export const FixtureDashboard: React.FC = () => {
   const [selectedFixture, setSelectedFixture] = useState<Fixture | null>(null);
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  const [selectedLeague, setSelectedLeague] = useState<League | null>(null);
   const [showForm, setShowForm] = useState(false);
 
   return (
@@ -12,7 +14,12 @@ export const FixtureDashboard: React.FC = () => {
       <div className="flex justify-between items-center">
         <h3 className="text-xl font-black dark:text-white">Fixtures</h3>
         <button
-          onClick={() => setShowForm(true)}
+          onClick={() => {
+            setSelectedMatch(null);
+            setSelectedLeague(null);
+            setSelectedFixture(null);
+            setShowForm(true);
+          }}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
         >
           Create Fixture
@@ -22,16 +29,22 @@ export const FixtureDashboard: React.FC = () => {
       {showForm && (
         <FixtureForm
           fixture={selectedFixture}
+          match={selectedMatch}
+          league={selectedLeague}
           onClose={() => {
             setShowForm(false);
             setSelectedFixture(null);
+            setSelectedMatch(null);
+            setSelectedLeague(null);
           }}
         />
       )}
 
       <FixtureList
-        onSelect={(fixture) => {
-          setSelectedFixture(fixture);
+        onSelect={(match, league) => {
+          setSelectedMatch(match);
+          setSelectedLeague(league);
+          setSelectedFixture(null);
           setShowForm(true);
         }}
       />

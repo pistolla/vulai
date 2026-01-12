@@ -3,7 +3,7 @@ import { LiveCommentary, CommentaryEvent, FixtureVideo, CsvAthleteRow, Athlete, 
 import { db } from '@/services/firebase';
 import { doc, setDoc, updateDoc, arrayUnion, serverTimestamp, collection, getDocs, query, where, deleteDoc } from 'firebase/firestore';
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { RootState } from '.';
+import { RootState } from './types';
 import { firebaseLeagueService } from '@/services/firebaseCorrespondence';
 
 /* ---------- 1. excel (CSV) bulk athlete roster ---------- */
@@ -168,16 +168,18 @@ export const submitImportedData = createAsyncThunk(
 );
 
 /* ---------- fixtures ---------- */
-export const fetchFixtures = createAsyncThunk('fixtures/fetchAll', async () => {
-  // For now, return empty array - implement Firebase service later
-  return [] as Fixture[];
+export const fetchFixtures = createAsyncThunk('fixtures/fetchAll', async (_, { getState }) => {
+  const uid = (getState() as RootState).auth.user!.uid;
+  const q = query(collection(db, 'fixtures'), where('correspondentId', '==', uid));
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() } as Fixture));
 });
 
-export const createFixture = createAsyncThunk('fixtures/create', async (fixture: Omit<Fixture, 'id'>) => {
-  // TODO: Implement Firebase service for fixtures
+export const createFixture = createAsyncThunk('fixtures/create', async (fixture: Omit<Fixture, 'id'>, { getState }) => {
+  const uid = (getState() as RootState).auth.user!.uid;
   const id = doc(collection(db, 'fixtures')).id;
-  const fullFixture: Fixture = { id, ...fixture };
-  // await setDoc(doc(db, 'fixtures', id), fullFixture);
+  const fullFixture: Fixture = { id, correspondentId: uid, ...fixture, approved: false };
+  await setDoc(doc(db, 'fixtures', id), fullFixture);
   return fullFixture;
 });
 

@@ -112,6 +112,10 @@ class FirebaseLeagueService {
     });
   }
 
+  async updateMatchParticipants(leagueId: string, groupId: string, stageId: string, matchId: string, participants: Participant[]) {
+    await this.updateMatch(leagueId, groupId, stageId, matchId, { participants });
+  }
+
   async getMatch(leagueId: string, groupId: string, stageId: string, matchId: string): Promise<Match | null> {
     const snap = await getDoc(doc(db, `leagues/${leagueId}/groups/${groupId}/stages/${stageId}/matches/${matchId}`));
     return snap.exists() ? ({ id: snap.id, ...snap.data() } as Match) : null;

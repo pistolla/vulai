@@ -351,6 +351,12 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPredictionModal, setShowPredictionModal] = useState(false);
+
+  const [allFixtures, setAllFixtures] = useState<any[]>([]);
+
+  const [selectedFixture, setSelectedFixture] = useState<any>(null);
+
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedGame, setSelectedGame] = useState<any>(null);
   const [editingGame, setEditingGame] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -410,6 +416,14 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
         const leaguesSnap = await getDocs(collection(db, 'leagues'));
         const leaguesData = leaguesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         setLeagues(leaguesData);
+
+        // Load fixtures
+
+        const fixturesSnap = await getDocs(collection(db, 'fixtures'));
+
+        const fixturesData = fixturesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        setAllFixtures(fixturesData);
 
         // Sync admin collections
         await syncAdminGameCollections();

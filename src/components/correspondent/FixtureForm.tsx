@@ -1,9 +1,11 @@
-import { Fixture, League, Match } from "@/models";
+import { Fixture, League, Match, Team } from "@/models";
 import { useState, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "@/hooks/redux";
-import { fetchLeagues, createFixture, updateFixture } from "@/store/correspondentThunk";
+import { fetchLeagues, fetchFixtures, createFixture, updateFixture } from "@/store/correspondentThunk";
 import { firebaseLeagueService } from "@/services/firebaseCorrespondence";
 import { apiService } from "@/services/apiService";
+import { db } from "@/services/firebase";
+import { doc, setDoc } from "firebase/firestore";
 import dynamic from 'next/dynamic';
 
 const ReactQuill = dynamic(() => import('react-quill'), {
@@ -14,28 +16,33 @@ import 'react-quill/dist/quill.snow.css';
 
 interface FixtureFormProps {
   fixture?: Fixture | null;
+  match?: Match | null;
+  league?: League | null;
   onClose: () => void;
 }
 
-export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, onClose }) => {
+export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league, onClose }) => {
   const dispatch = useAppDispatch();
+  const state = useAppSelector((state) => state);
   const leagues = useAppSelector((state) => state.correspondent.leagues);
-  const [type, setType] = useState<'league' | 'friendly'>(fixture?.type || 'league');
-  const [selectedLeague, setSelectedLeague] = useState<string>('');
-  const [selectedMatch, setSelectedMatch] = useState<string>('');
+  const fixtures = useAppSelector((state) => state.correspondent.fixtures);
+  const [type, setType] = useState<'league' | 'friendly'>(fixture?.type || (match ? 'league' : 'friendly'));
+  const [selectedLeague, setSelectedLeague] = useState<string>(league?.id || '');
+  const [selectedMatch, setSelectedMatch] = useState<string>(match?.id || '');
   const [matches, setMatches] = useState<Match[]>([]);
   const [homeTeamId, setHomeTeamId] = useState(fixture?.homeTeamId || '');
   const [awayTeamId, setAwayTeamId] = useState(fixture?.awayTeamId || '');
-  const [homeTeamName, setHomeTeamName] = useState(fixture?.homeTeamName || '');
-  const [awayTeamName, setAwayTeamName] = useState(fixture?.awayTeamName || '');
-  const [scheduledAt, setScheduledAt] = useState(fixture?.scheduledAt || '');
-  const [venue, setVenue] = useState(fixture?.venue || '');
+  const [homeTeamName, setHomeTeamName] = useState(fixture?.homeTeamName || (match && match.participants[0] ? match.participants[0].name || match.participants[0].refId : ''));
+  const [awayTeamName, setAwayTeamName] = useState(fixture?.awayTeamName || (match && match.participants[1] ? match.participants[1].name || match.participants[1].refId : ''));
+  const [scheduledAt, setScheduledAt] = useState(fixture?.scheduledAt || match?.date || '');
+  const [venue, setVenue] = useState(fixture?.venue || match?.venue || '');
   const [blogContent, setBlogContent] = useState(fixture?.blogContent || '');
   const [teams, setTeams] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     dispatch(fetchLeagues());
+    dispatch(fetchFixtures());
     loadTeams();
   }, [dispatch]);
 
@@ -51,7 +58,7 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, onClose }) =>
   const loadMatches = async (leagueId: string) => {
     try {
       // Load all matches from all groups and stages in the league
-      const league = leagues.find(l => l.id === leagueId);
+      const league = leagues.find((l: League) => l.id === leagueId);
       if (!league) return;
 
       const allMatches: Match[] = [];
@@ -99,12 +106,50 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, onClose }) =>
     setIsLoading(true);
 
     try {
-      const fixtureData: Omit<Fixture, 'id'> = {
+      let homeId = homeTeamId;
+      let awayId = awayTeamId;
+
+      if (type === 'league' && league) {
+        // Create teams if not exist
+        const homeTeam = teams.find(t => t.name === homeTeamName);
+        if (!homeTeam) {
+          const teamId = doc(collection(db, 'teams')).id;
+          const newTeam: Omit<Team, 'id'> = {
+            universityId: state.auth.user!.universityId!,
+            name: homeTeamName,
+            sport: league.name,
+            foundedYear: new Date().getFullYear(),
+          };
+          await setDoc(doc(db, 'teams', teamId), newTeam);
+          homeId = teamId;
+        } else {
+          homeId = homeTeam.id;
+        }
+
+        const awayTeam = teams.find(t => t.name === awayTeamName);
+        if (!awayTeam) {
+          const teamId = doc(collection(db, 'teams')).id;
+          const newTeam: Omit<Team, 'id'> = {
+            universityId: state.auth.user!.universityId!,
+            name: awayTeamName,
+            sport: league.name,
+            foundedYear: new Date().getFullYear(),
+          };
+          await setDoc(doc(db, 'teams', teamId), newTeam);
+          awayId = teamId;
+        } else {
+          awayId = awayTeam.id;
+        }
+
+        // TODO: Update match participants - need to find groupId and stageId
+      }
+
+      const fixtureData: Omit<Fixture, 'id' | 'correspondentId'> = {
         homeTeamName,
         awayTeamName,
-        homeTeamId,
-        awayTeamId,
-        sport: leagues.find(l => l.id === selectedLeague)?.name || 'Unknown',
+        homeTeamId: homeId,
+        awayTeamId: awayId,
+        sport: leagues.find((l: League) => l.id === selectedLeague)?.name || 'Unknown',
         scheduledAt,
         venue,
         status: 'scheduled',
@@ -170,7 +215,7 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, onClose }) =>
                   className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
                 >
                   <option value="">Choose League</option>
-                  {leagues.map(league => (
+                  {leagues.map((league: League) => (
                     <option key={league.id} value={league.id}>{league.name}</option>
                   ))}
                 </select>
@@ -187,7 +232,7 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, onClose }) =>
                     className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
                   >
                     <option value="">Choose Match</option>
-                    {matches.filter(match => match.participants && match.participants.length >= 2).map(match => (
+                    {matches.filter((match: Match) => !fixtures.some((f: Fixture) => f.matchId === match.id) && match.participants && match.participants.length >= 2).map((match: Match) => (
                       <option key={match.id} value={match.id}>
                         Match #{match.matchNumber} - {match.participants.map(p => p.name || p.refId).join(' vs ')}
                       </option>
@@ -222,9 +267,9 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, onClose }) =>
                 <input
                   type="text"
                   value={homeTeamName}
-                  readOnly
-                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
-                  placeholder="Will be set from match"
+                  onChange={(e) => setHomeTeamName(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+                  placeholder="Enter home team name"
                 />
               )}
             </div>
@@ -252,9 +297,9 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, onClose }) =>
                 <input
                   type="text"
                   value={awayTeamName}
-                  readOnly
-                  className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
-                  placeholder="Will be set from match"
+                  onChange={(e) => setAwayTeamName(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+                  placeholder="Enter away team name"
                 />
               )}
             </div>
