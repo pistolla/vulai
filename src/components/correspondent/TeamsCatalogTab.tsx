@@ -76,7 +76,7 @@ export const TeamsCatalogTab: React.FC = () => {
   };
 
   const handleApprove = async (id: string) => {
-    const doc = documents.find(d => d.id === id);
+    const doc = documents.find((d: any) => d.id === id);
     if (!doc) return;
 
     if (doc.type === 'purchase_order') {
@@ -94,7 +94,7 @@ export const TeamsCatalogTab: React.FC = () => {
 
       // Get the original order to determine payment method
       const originalOrderId = (purchaseOrderData as any).originalOrderId;
-      const originalOrder = documents.find(d => d.id === originalOrderId);
+      const originalOrder = documents.find((d: any) => d.id === originalOrderId);
       const orderData = originalOrder?.data as any;
       const paymentMethod = orderData?.paymentMethod || 'pay_on_delivery';
 
@@ -219,7 +219,7 @@ export const TeamsCatalogTab: React.FC = () => {
         />
       ) : (
         <DocumentList
-          documents={documents.filter(d => d.merchType === 'team')}
+          documents={documents.filter((d: any) => d.merchType === 'team')}
           onCreate={handleCreate}
           onEdit={handleEdit}
           onDelete={handleDelete}

@@ -6,7 +6,7 @@ export default function StoreTab({ adminData }: any) {
     merchItems: state.merch.items,
   }));
 
-  const unilMerch = merchItems.filter(m => m.type === 'unil');
+  const unilMerch = merchItems.filter((m: any) => m.type === 'unil');
 
   return (
     <div id="content-store" className="slide-in-left">

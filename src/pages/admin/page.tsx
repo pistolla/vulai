@@ -292,7 +292,7 @@ export default function AdminDashboardPage() {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard': return <DashboardTab stats={stats} live={live} users={users} upcoming={upcoming} openGame={(g: any) => open('gameDetails', g)} adminData={adminData} />;
-      case 'users': return <UsersTab rows={users} approve={approveUser} disapprove={disapproveUser} deleteU={deleteUser} openAdd={() => open('addUser')} adminData={adminData} viewProfile={(uid: string) => open('profileModal', { uid, user: users.find(u => u.uid === uid) })} />;
+      case 'users': return <UsersTab rows={users} approve={approveUser} disapprove={disapproveUser} deleteU={deleteUser} openAdd={() => open('addUser')} adminData={adminData} viewProfile={(uid: string) => open('profileModal', { uid, user: users.find((u: any) => u.uid === uid) })} />;
       case 'universities': return <UniversitiesTab adminData={adminData} create={createUniversity} update={updateUniversity} deleteU={deleteUniversity} />;
       case 'teams': return <TeamsTab adminData={adminData} create={createTeam} update={updateTeam} deleteU={deleteTeam} addPlayer={addPlayerToTeam} updatePlayer={updatePlayerInTeam} deletePlayer={deletePlayerFromTeam} />;
       case 'players': return <PlayersTab adminData={adminData} />;

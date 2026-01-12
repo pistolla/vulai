@@ -15,7 +15,7 @@ export const UploadTeamVideoTab: React.FC = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const universityName = universities.find(u => u.id === user?.universityId)?.name || '';
+  const universityName = universities.find((u: any) => u.id === user?.universityId)?.name || '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

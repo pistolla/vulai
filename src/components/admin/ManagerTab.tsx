@@ -64,7 +64,7 @@ export default function ManagerTab({ adminData }: any) {
   };
 
   const handleApprove = async (id: string) => {
-    const doc = documents.find(d => d.id === id);
+    const doc = documents.find((d: MerchDocument) => d.id === id);
     if (!doc) return;
 
     if (doc.type === 'return_of_goods') {
@@ -85,7 +85,7 @@ export default function ManagerTab({ adminData }: any) {
       const teamItems = [];
 
       for (const item of orderData.items) {
-        const merch = merchItems.find(m => m.id === item.merchId);
+        const merch = merchItems.find((m: any) => m.id === item.merchId);
         if (merch) {
           if (merch.type === 'unil') {
             unilItems.push(item);
@@ -155,7 +155,7 @@ export default function ManagerTab({ adminData }: any) {
       const unilItems = [];
 
       for (const item of returnData.items) {
-        const merch = merchItems.find(m => m.id === item.merchId);
+        const merch = merchItems.find((m: any) => m.id === item.merchId);
         if (merch) {
           if (merch.type === 'team') {
             teamItems.push(item);
@@ -230,7 +230,7 @@ export default function ManagerTab({ adminData }: any) {
   };
 
   // Filter to show unil orders and returns
-  const unilDocuments = documents.filter(d =>
+  const unilDocuments = documents.filter((d: MerchDocument) =>
     d.merchType === 'unil' &&
     (d.type === 'order' || d.type === 'return_of_goods')
   );

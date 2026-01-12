@@ -114,7 +114,7 @@ const TeamsPage: React.FC = () => {
   };
 
   const findLeagueByName = (leagueName: string): League | undefined => {
-    return leagues?.find(league => league.name.toLowerCase() === leagueName.toLowerCase());
+    return leagues?.find((league: any) => league.name.toLowerCase() === leagueName.toLowerCase());
   };
 
   const handleViewLeagueHistory = (team: Team) => {

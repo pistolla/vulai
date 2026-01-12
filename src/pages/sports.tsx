@@ -369,7 +369,7 @@ const SportsPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {hasLeaguesData ? (
               filteredLeagues
-                .filter((league) => {
+                .filter((league: any) => {
                   // Filter leagues based on selected sport type
                   // Map sport IDs to sport types
                   const sportTypeMap: { [key: string]: 'team' | 'individual' } = {
@@ -390,7 +390,7 @@ const SportsPage: React.FC = () => {
                   const selectedSportType = sportTypeMap[selectedSport.id] || 'team';
                   return league.sportType === selectedSportType;
                 })
-                .map((league) => (
+                .map((league: any) => (
                 <div
                   key={league.id}
                   className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 cursor-pointer hover:bg-white/20 transition-all transform hover:scale-105"

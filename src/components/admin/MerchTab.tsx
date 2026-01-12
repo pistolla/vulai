@@ -215,7 +215,7 @@ export default function MerchTab({ adminData }: any) {
     dispatch(fetchTeams() as any);
   }, [dispatch]);
 
-  const filteredTeams = teams.filter(team => !selectedUniversity || team.universityId === selectedUniversity);
+  const filteredTeams = teams.filter((team: any) => !selectedUniversity || team.universityId === selectedUniversity);
 
   const handleAddMerch = async () => {
     await dispatch(createMerchT({

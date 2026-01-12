@@ -318,7 +318,7 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {players.map((player) => (
+              {players.map((player: any) => (
                 <tr key={player.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
@@ -337,7 +337,7 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-white">{player.year}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                     <button
-                      onClick={() => openAvatarModal(player, playerAvatars.find(a => a.playerId === player.id))}
+                      onClick={() => openAvatarModal(player, playerAvatars.find((a: any) => a.playerId === player.id))}
                       className="text-green-600 dark:text-white hover:text-green-900 dark:hover:text-green-300"
                     >
                       Avatar

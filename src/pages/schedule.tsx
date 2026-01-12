@@ -600,8 +600,8 @@ const SchedulePage: React.FC = () => {
             >
               <option value="">Select League</option>
               {leagues
-                .filter(league => league.sportType === 'team' && league.name.toLowerCase().includes(searchQuery.toLowerCase()))
-                .map(league => (
+                .filter((league: any) => league.sportType === 'team' && league.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                .map((league: any) => (
                   <option key={league.id} value={league.id}>
                     {league.name}
                   </option>
@@ -725,7 +725,7 @@ const SchedulePage: React.FC = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {leagues && leagues.length > 0 ? (
-              leagues.map((league) => (
+              leagues.map((league: any) => (
                 <div
                   key={league.id}
                   className="bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20 cursor-pointer hover:bg-white/20 transition-all transform hover:scale-105"

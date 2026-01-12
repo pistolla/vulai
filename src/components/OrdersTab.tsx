@@ -17,7 +17,7 @@ export default function OrdersTab() {
   }, [dispatch]);
 
   // Filter orders for current user
-  const userOrders = documents.filter(doc =>
+  const userOrders = documents.filter((doc: MerchDocument) =>
     doc.type === 'order' &&
     doc.merchType === 'unil' &&
     (doc.data as any).customerEmail === user?.email
@@ -67,7 +67,7 @@ export default function OrdersTab() {
         <p className="text-gray-600">No orders found</p>
       ) : (
         <div className="space-y-4">
-          {userOrders.map((order) => {
+          {userOrders.map((order: MerchDocument) => {
             const orderData = order.data as any;
             return (
               <div key={order.id} className="border border-gray-200 rounded p-4">

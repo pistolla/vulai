@@ -144,7 +144,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
     const items = [...formData.items];
     items[index] = { ...items[index], [field]: value };
     if (field === 'merchId') {
-      const merch = merchItems.find(m => m.id === value);
+      const merch = merchItems.find((m: any) => m.id === value);
       if (merch) {
         items[index].merchName = merch.name;
         items[index].price = merch.price;
@@ -229,7 +229,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                       required
                     >
                       <option value="">Select Merchandise</option>
-                      {merchItems.filter(m => m.type === merchType).map(m => (
+                      {merchItems.filter((m: any) => m.type === merchType).map((m: any) => (
                         <option key={m.id} value={m.id}>{m.name}</option>
                       ))}
                     </select>
@@ -442,7 +442,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                 <select
                   value={formData.merchId || ''}
                   onChange={(e) => {
-                    const merch = merchItems.find(m => m.id === e.target.value);
+                    const merch = merchItems.find((m: any) => m.id === e.target.value);
                     setFormData({
                       ...formData,
                       merchId: e.target.value,
@@ -453,7 +453,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                   required
                 >
                   <option value="">Select Merchandise</option>
-                  {merchItems.filter(m => m.type === merchType).map(m => (
+                  {merchItems.filter((m: any) => m.type === merchType).map((m: any) => (
                     <option key={m.id} value={m.id}>{m.name}</option>
                   ))}
                 </select>
@@ -783,7 +783,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                       required
                     >
                       <option value="">Select Merchandise</option>
-                      {merchItems.filter(m => m.type === merchType).map(m => (
+                      {merchItems.filter((m: any) => m.type === merchType).map((m: any) => (
                         <option key={m.id} value={m.id}>{m.name}</option>
                       ))}
                     </select>

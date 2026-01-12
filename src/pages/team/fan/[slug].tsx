@@ -102,7 +102,7 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
   const [onlineUsers, setOnlineUsers] = useState<Array<{name: string; avatar?: string}>>([]);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const selectedFixture = upcoming.find(game => game.homeTeamId === slug || game.awayTeamId === slug) || upcoming[0]; // Find game for this team or default to first
+  const selectedFixture = upcoming.find((game: any) => game.homeTeamId === slug || game.awayTeamId === slug) || upcoming[0]; // Find game for this team or default to first
 
   /* ---------- mounted check ---------- */
   useEffect(() => {
@@ -338,7 +338,7 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
                     <ShimmerMerchCard />
                   </>
                 ) : merch.length > 0 ? (
-                  merch.filter(item => item.name.toLowerCase().includes(teamData?.name?.toLowerCase() || '')).slice(0, 3).map((item: any, index: number) => (
+                  merch.filter((item: any) => item.name.toLowerCase().includes(teamData?.name?.toLowerCase() || '')).slice(0, 3).map((item: any, index: number) => (
                     <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden merch-item transition-all duration-300" data-aos="fade-up" data-aos-delay={index * 200}>
                       <img src={item.image} alt={item.name} className="w-full h-48 object-cover" />
                       <div className="p-6">
@@ -379,8 +379,8 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
                     <ShimmerGameCard />
                     <ShimmerGameCard />
                   </>
-                ) : upcoming.filter(g => g.homeTeamId === slug || g.awayTeamId === slug).length > 0 ? (
-                  upcoming.filter(g => g.homeTeamId === slug || g.awayTeamId === slug).slice(0, 2).map((g, idx) => (
+                ) : upcoming.filter((g: any) => g.homeTeamId === slug || g.awayTeamId === slug).length > 0 ? (
+                  upcoming.filter((g: any) => g.homeTeamId === slug || g.awayTeamId === slug).slice(0, 2).map((g: any, idx: number) => (
                     <div key={g.id} className="bg-white rounded-lg shadow-md p-6" data-aos="fade-up" data-aos-delay={idx * 200}>
                       <div className="flex justify-between items-center mb-4">
                         <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm">UPCOMING</span>
