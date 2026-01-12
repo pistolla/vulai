@@ -236,3 +236,98 @@ export interface ImportedData {
   dateOfUpload: string; // ISO
   status: 'pending' | 'processed';
 }
+
+/* ----- merchandise documents ----- */
+export type DocumentType = 'order' | 'invoice' | 'stock_record' | 'transport_document' | 'return_of_goods';
+export type DocumentStatus = 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'completed';
+export type MerchType = 'team' | 'unil';
+
+export interface DocumentApproval {
+  userId: string;
+  status: 'approved' | 'rejected';
+  timestamp: string; // ISO
+  comment?: string;
+}
+
+export interface MerchDocument {
+  id: string;
+  type: DocumentType;
+  merchType: MerchType;
+  status: DocumentStatus;
+  createdBy: string; // user id
+  createdAt: string; // ISO
+  updatedAt: string; // ISO
+  approvals: DocumentApproval[];
+  data: any; // type-specific data
+}
+
+// Type-specific data interfaces
+export interface OrderData {
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string;
+  shippingAddress: string;
+  items: OrderItem[];
+  total: number;
+  notes?: string;
+}
+
+export interface OrderItem {
+  merchId: string;
+  merchName: string;
+  quantity: number;
+  price: number;
+  subtotal: number;
+}
+
+export interface InvoiceData {
+  orderId: string;
+  invoiceNumber: string;
+  paymentStatus: 'pending' | 'paid' | 'overdue';
+  dueDate: string; // ISO
+  items: InvoiceItem[];
+  total: number;
+  tax?: number;
+  discount?: number;
+}
+
+export interface InvoiceItem {
+  description: string;
+  quantity: number;
+  price: number;
+  subtotal: number;
+}
+
+export interface StockRecordData {
+  merchId: string;
+  merchName: string;
+  quantity: number;
+  type: 'in' | 'out';
+  reason: string;
+  reference?: string; // e.g., order id
+}
+
+export interface TransportDocumentData {
+  orderId: string;
+  carrier: string;
+  trackingNumber: string;
+  shippedAt: string; // ISO
+  estimatedDelivery: string; // ISO
+  status: 'shipped' | 'in_transit' | 'delivered';
+}
+
+export interface ReturnOfGoodsData {
+  orderId: string;
+  items: ReturnItem[];
+  reason: string;
+  returnDate: string; // ISO
+  refundAmount?: number;
+  status: 'requested' | 'approved' | 'received' | 'refunded';
+}
+
+export interface ReturnItem {
+  merchId: string;
+  merchName: string;
+  quantity: number;
+  condition: 'new' | 'used' | 'damaged';
+}

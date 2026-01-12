@@ -9,6 +9,9 @@ import {
   fetchUniversities,
   fetchTeams,
   fetchPlayers,
+  createPlayerT,
+  savePlayerT,
+  removePlayerT,
   fetchPlayerAvatars,
   fetchSports,
   fetchImportedData,
@@ -148,6 +151,18 @@ const adminSlice = createSlice({
       })
       .addCase(fetchPlayers.rejected, (state) => {
         state.loading.players = false;
+      })
+      .addCase(createPlayerT.fulfilled, (state, action) => {
+        state.players.push(action.payload);
+      })
+      .addCase(savePlayerT.fulfilled, (state, action) => {
+        const index = state.players.findIndex(p => p.id === action.payload.id);
+        if (index !== -1) {
+          state.players[index] = action.payload;
+        }
+      })
+      .addCase(removePlayerT.fulfilled, (state, action) => {
+        state.players = state.players.filter(p => p.id !== action.payload);
       });
 
     // Player Avatars

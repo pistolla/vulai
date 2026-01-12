@@ -93,6 +93,7 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
   const handleCreatePlayer = async () => {
     try {
       await dispatch(createPlayerT(formData));
+      dispatch(fetchPlayers());
       setShowCreateModal(false);
       resetForm();
     } catch (error) {
@@ -104,6 +105,7 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
     if (!selectedPlayer) return;
     try {
       await dispatch(savePlayerT({ id: selectedPlayer.id, data: formData }));
+      dispatch(fetchPlayers());
       setShowEditModal(false);
       setSelectedPlayer(null);
       resetForm();
@@ -116,6 +118,7 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
     if (confirm('Are you sure you want to delete this player?')) {
       try {
         await dispatch(removePlayerT(id));
+        dispatch(fetchPlayers());
       } catch (error) {
         alert('Failed to delete player: ' + (error as Error).message);
       }

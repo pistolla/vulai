@@ -8,11 +8,12 @@ import { UploadTeamVideoTab } from '@/components/correspondent/UploadTeamVideoTa
 import { GameLiveCommentaryTab } from '@/components/correspondent/GameLiveCommentaryTab';
 import { ManageLeagueTab } from '@/components/correspondent/ManageLeagueTab';
 import { ManageFixtureTab } from '@/components/correspondent/ManageFixtureTab';
+import { TeamsCatalogTab } from '../components/correspondent/TeamsCatalogTab';
 import { useClientSideLibs } from '@/utils/clientLibs';
 import { fetchLeagues } from '@/store/correspondentThunk';
-import { FiUser, FiFileText, FiVideo, FiRadio, FiAward, FiArrowRight } from 'react-icons/fi';
+import { FiUser, FiFileText, FiVideo, FiRadio, FiAward, FiArrowRight, FiShoppingCart } from 'react-icons/fi';
 
-type TabType = 'profile' | 'excel' | 'video' | 'commentary' | 'league' | 'fixtures';
+type TabType = 'profile' | 'excel' | 'video' | 'commentary' | 'league' | 'fixtures' | 'catalog';
 
 export default function CorrespondentDashboardPage() {
   const user = useAppSelector(s => s.auth.user);
@@ -85,6 +86,13 @@ export default function CorrespondentDashboardPage() {
       icon: FiAward,
       color: 'orange',
       description: 'Manage fixtures and match details'
+    },
+    {
+      id: 'catalog' as TabType,
+      name: 'Teams Catalog',
+      icon: FiShoppingCart,
+      color: 'indigo',
+      description: 'Manage team merchandise orders'
     }
   ];
 
@@ -96,6 +104,7 @@ export default function CorrespondentDashboardPage() {
       case 'commentary': return <GameLiveCommentaryTab />;
       case 'league': return <ManageLeagueTab />;
       case 'fixtures': return <ManageFixtureTab />;
+      case 'catalog': return <TeamsCatalogTab />;
       default: return <ProfileTab />;
     }
   };

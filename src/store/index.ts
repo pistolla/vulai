@@ -6,6 +6,7 @@ import fanSlice from './slices/fanSlice';
 import sportTeamSlice from './slices/sportTeamSlice';
 import usersSlice     from './slices/usersSlice';
 import merchSlice     from './slices/merchSlice';
+import merchDocumentsSlice from './slices/merchDocumentsSlice';
 import reviewSlice    from './slices/reviewSlice';
 import gamesSlice     from './slices/gamesSlice';
 import teamSlice from './slices/teamSlice';
@@ -19,6 +20,7 @@ export const store = configureStore({
     admin:   adminSlice,
     users:   usersSlice,
     merch:   merchSlice,
+    merchDocuments: merchDocumentsSlice,
     review:  reviewSlice,
     games:   gamesSlice,
     team: teamSlice,

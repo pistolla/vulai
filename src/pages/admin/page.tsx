@@ -3,7 +3,7 @@ import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import AdminGuard from '@/guards/AdminGuard';
 import UserHeader from '@/components/UserHeader';
 import { apiService, AdminData } from '../../services/apiService';
-import { FiGrid, FiUsers, FiMap, FiAward, FiTarget, FiBox, FiCheckCircle, FiCalendar, FiPlus, FiX } from 'react-icons/fi';
+import { FiGrid, FiUsers, FiMap, FiAward, FiTarget, FiBox, FiCheckCircle, FiCalendar, FiPlus, FiX, FiPackage, FiUser } from 'react-icons/fi';
 
 // Import all tab components
 import DashboardTab from '../../components/admin/DashboardTab';
@@ -13,6 +13,8 @@ import TeamsTab from '../../components/admin/TeamsTab';
 import PlayersTab from '../../components/admin/PlayersTab';
 import SportsTab from '../../components/admin/SportsTab';
 import MerchTab from '../../components/admin/MerchTab';
+import StoreTab from '../../components/admin/StoreTab';
+import ManagerTab from '../../components/admin/ManagerTab';
 import ReviewTab from '../../components/admin/ReviewTab';
 import GamesTab from '../../components/admin/GamesTab';
 import { ImportedDataTab } from '../../components/admin/ImportedDataTab';
@@ -23,6 +25,7 @@ import {
   fetchReviews,
   fetchGames,
   fetchUniversities,
+  fetchPlayers,
   approveUserT,
   disapproveUserT,
   deleteUserT,
@@ -59,7 +62,7 @@ export default function AdminDashboardPage() {
   const { live, upcoming } = useAppSelector(s => s.games);
 
   /* ---------- Local UI state ---------- */
-  type TabId = 'dashboard' | 'users' | 'universities' | 'teams' | 'players' | 'sports' | 'merchandise' | 'review' | 'games' | 'importedData';
+  type TabId = 'dashboard' | 'users' | 'universities' | 'teams' | 'players' | 'sports' | 'merchandise' | 'store' | 'manager' | 'review' | 'games' | 'importedData';
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [modals, setModals] = useState({
     addUser: false,
@@ -88,6 +91,7 @@ export default function AdminDashboardPage() {
     dispatch(fetchReviews());
     dispatch(fetchGames());
     dispatch(fetchUniversities());
+    dispatch(fetchPlayers());
     dispatch(fetchTeams());
     dispatch(fetchImportedData());
   }, []);
@@ -278,6 +282,8 @@ export default function AdminDashboardPage() {
     { id: 'players', label: 'Players', icon: FiTarget },
     { id: 'sports', label: 'Sports', icon: FiGrid },
     { id: 'merchandise', label: 'Merchandise', icon: FiBox },
+    { id: 'store', label: 'Store Stock', icon: FiPackage },
+    { id: 'manager', label: 'Manager', icon: FiUser },
     { id: 'review', label: 'Reviews', icon: FiCheckCircle },
     { id: 'games', label: 'Live Games', icon: FiCalendar },
     { id: 'importedData', label: 'Data Imports', icon: FiBox },
@@ -292,6 +298,8 @@ export default function AdminDashboardPage() {
       case 'players': return <PlayersTab adminData={adminData} />;
       case 'sports': return <SportsTab adminData={adminData} />;
       case 'merchandise': return <MerchTab items={merch} create={createMerch} remove={removeMerch} adminData={adminData} />;
+      case 'store': return <StoreTab adminData={adminData} />;
+      case 'manager': return <ManagerTab adminData={adminData} />;
       case 'review': return <ReviewTab rows={reviews} approve={approveReview} reject={rejectReview} adminData={adminData} />;
       case 'games': return <GamesTab live={live} upcoming={upcoming} updateScore={updateScore} startG={startGame} endG={endGame} />;
       case 'importedData': return <ImportedDataTab />;

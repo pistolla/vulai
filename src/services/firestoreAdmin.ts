@@ -161,15 +161,18 @@ export const loadPlayers = async (): Promise<any[]> => {
 };
 
 export const addPlayer = async (player: any) => {
-  await addDoc(collection(db, 'players'), { ...player, createdAt: serverTimestamp() });
+  const docRef = await addDoc(collection(db, 'players'), { ...player, createdAt: serverTimestamp() });
+  return { id: docRef.id, ...player };
 };
 
 export const updatePlayer = async (id: string, playerData: any) => {
   await updateDoc(doc(db, 'players', id), playerData);
+  return { id, ...playerData };
 };
 
 export const deletePlayer = async (id: string) => {
   await deleteDoc(doc(db, 'players', id));
+  return id;
 };
 
 export const addPlayerHighlight = async (playerId: string, highlight: any) => {

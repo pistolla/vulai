@@ -3,6 +3,7 @@ import { fetchMerch } from '../adminThunk';
 
 export interface MerchItem {
   id: string;
+  type: 'team' | 'unil';
   name: string;
   price: number;
   image: string;

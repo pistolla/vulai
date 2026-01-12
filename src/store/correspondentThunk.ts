@@ -1,7 +1,7 @@
 import { parse } from 'papaparse'; // add: yarn add papaparse @types/papaparse
-import { LiveCommentary, CommentaryEvent, FixtureVideo, CsvAthleteRow, Athlete, Group, League, Match, Participant, Stage, ImportedData, Fixture } from '@/models';
+import { LiveCommentary, CommentaryEvent, FixtureVideo, CsvAthleteRow, Athlete, Group, League, Match, Participant, Stage, ImportedData, Fixture, MerchDocument } from '@/models';
 import { db } from '@/services/firebase';
-import { doc, setDoc, updateDoc, arrayUnion, serverTimestamp, collection } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, arrayUnion, serverTimestamp, collection, getDocs, query, where, deleteDoc } from 'firebase/firestore';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { RootState } from '.';
 import { firebaseLeagueService } from '@/services/firebaseCorrespondence';
@@ -186,3 +186,79 @@ export const updateFixture = createAsyncThunk('fixtures/update', async ({ id, fi
   // await updateDoc(doc(db, 'fixtures', id), fixture);
   return { id, ...fixture } as Fixture;
 });
+
+/* ---------- merchandise documents ---------- */
+export const fetchMerchDocuments = createAsyncThunk('merchDocuments/fetchAll', async () => {
+  const snap = await getDocs(collection(db, 'merchandise_documents'));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() } as MerchDocument));
+});
+
+export const createMerchDocument = createAsyncThunk(
+  'merchDocuments/create',
+  async (document: Omit<MerchDocument, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'approvals'>, { getState }) => {
+    const uid = (getState() as RootState).auth.user!.uid;
+    const now = new Date().toISOString();
+    const fullDoc: MerchDocument = {
+      ...document,
+      id: doc(collection(db, 'merchandise_documents')).id,
+      createdBy: uid,
+      createdAt: now,
+      updatedAt: now,
+      approvals: [],
+    };
+    await setDoc(doc(db, 'merchandise_documents', fullDoc.id), fullDoc);
+    return fullDoc;
+  }
+);
+
+export const updateMerchDocument = createAsyncThunk(
+  'merchDocuments/update',
+  async ({ id, updates }: { id: string; updates: Partial<MerchDocument> }) => {
+    const updateData = { ...updates, updatedAt: new Date().toISOString() };
+    await updateDoc(doc(db, 'merchandise_documents', id), updateData);
+    return { id, ...updateData } as MerchDocument;
+  }
+);
+
+export const deleteMerchDocument = createAsyncThunk('merchDocuments/delete', async (id: string) => {
+  await deleteDoc(doc(db, 'merchandise_documents', id));
+  return id;
+});
+
+export const approveMerchDocument = createAsyncThunk(
+  'merchDocuments/approve',
+  async ({ id, comment }: { id: string; comment?: string }, { getState }) => {
+    const uid = (getState() as RootState).auth.user!.uid;
+    const approval = {
+      userId: uid,
+      status: 'approved' as const,
+      timestamp: new Date().toISOString(),
+      comment,
+    };
+    await updateDoc(doc(db, 'merchandise_documents', id), {
+      approvals: arrayUnion(approval),
+      status: 'approved',
+      updatedAt: new Date().toISOString(),
+    });
+    return { id, approval };
+  }
+);
+
+export const rejectMerchDocument = createAsyncThunk(
+  'merchDocuments/reject',
+  async ({ id, comment }: { id: string; comment?: string }, { getState }) => {
+    const uid = (getState() as RootState).auth.user!.uid;
+    const approval = {
+      userId: uid,
+      status: 'rejected' as const,
+      timestamp: new Date().toISOString(),
+      comment,
+    };
+    await updateDoc(doc(db, 'merchandise_documents', id), {
+      approvals: arrayUnion(approval),
+      status: 'rejected',
+      updatedAt: new Date().toISOString(),
+    });
+    return { id, approval };
+  }
+);

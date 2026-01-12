@@ -30,6 +30,13 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
 function MerchandiseForm({ formData, setFormData, universities, teams, selectedUniversity, setSelectedUniversity, selectedTeam, setSelectedTeam, onSubmit, submitLabel }: any) {
   const filteredTeams = teams.filter((team: any) => !selectedUniversity || team.university === selectedUniversity);
 
+  const handleTypeChange = (type: string) => {
+    setFormData({...formData, type, team: type === 'unil' ? '' : formData.team});
+    if (type === 'unil') {
+      setSelectedTeam('');
+    }
+  };
+
   const handleUniversityChange = (universityId: string) => {
     setSelectedUniversity(universityId);
     setFormData({...formData, university: universityId, team: ''});
@@ -44,6 +51,17 @@ function MerchandiseForm({ formData, setFormData, universities, teams, selectedU
   return (
     <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Type</label>
+          <select
+            value={formData.type || 'team'}
+            onChange={(e) => handleTypeChange(e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          >
+            <option value="team">Team</option>
+            <option value="unil">Unil</option>
+          </select>
+        </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Name</label>
           <input
@@ -128,8 +146,8 @@ function MerchandiseForm({ formData, setFormData, universities, teams, selectedU
           <select
             value={selectedTeam}
             onChange={(e) => handleTeamChange(e.target.value)}
-            disabled={!selectedUniversity}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            disabled={!selectedUniversity || formData.type === 'unil'}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed"
           >
             <option value="">Select Team</option>
             {filteredTeams.map((team: any) => (
@@ -179,6 +197,7 @@ export default function MerchTab({ adminData }: any) {
   const [selectedUniversity, setSelectedUniversity] = useState('');
   const [selectedTeam, setSelectedTeam] = useState('');
   const [newItem, setNewItem] = useState({
+    type: 'team',
     name: '',
     description: '',
     price: '',
@@ -200,6 +219,7 @@ export default function MerchTab({ adminData }: any) {
 
   const handleAddMerch = async () => {
     await dispatch(createMerchT({
+      type: newItem.type as 'team' | 'unil',
       name: newItem.name,
       description: newItem.description,
       price: parseFloat(newItem.price),
@@ -216,6 +236,7 @@ export default function MerchTab({ adminData }: any) {
 
   const resetNewItem = () => {
     setNewItem({
+      type: 'team',
       name: '',
       description: '',
       price: '',
@@ -273,6 +294,7 @@ export default function MerchTab({ adminData }: any) {
         ) : hasItems ? displayItems.map((m: any) => (
           <div key={m.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 flex flex-col items-center text-center">
             <img src={m.image} alt={m.name} className="rounded-lg mb-4" />
+            <div className="mb-2"><span className={`px-2 py-1 rounded-full text-xs font-medium ${m.type === 'unil' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'}`}>{m.type === 'unil' ? 'Unil' : 'Team'}</span></div>
             <h3 className="font-bold text-lg text-gray-900 dark:text-white">{m.name}</h3><p className="text-sm text-gray-600 dark:text-gray-400">{m.description}</p>
             <div className="flex items-center space-x-2 mt-2"><span className="text-2xl font-bold text-green-600 dark:text-green-400">KSh {m.price}</span></div>
             <div className="flex space-x-2 mt-4"><button onClick={() => { setEditingItem(m); setShowEditModal(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">Edit</button><button onClick={() => dispatch(removeMerchT(m.id) as any)} className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm">Delete</button></div>
