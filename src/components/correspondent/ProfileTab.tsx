@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useAppSelector } from '@/hooks/redux';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '@/services/firebase';
 
 export const ProfileTab: React.FC = () => {
   const user = useAppSelector(s => s.auth.user);
@@ -13,9 +15,44 @@ export const ProfileTab: React.FC = () => {
     phoneNumber: user?.phoneNumber || '',
     twoFactorEnabled: user?.twoFactorEnabled || false
   });
+  const [avatar, setAvatar] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const onProfileChange = (field: keyof typeof profile, value: string) => {
     setProfile(p => ({ ...p, [field]: value }));
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const img = new Image();
+        img.onload = async () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 200;
+          canvas.height = 200;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, 200, 200);
+            const resizedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+            setAvatar(resizedBase64);
+            // Save to Firestore
+            await updateDoc(doc(db, 'users', user!.uid), { avatar: resizedBase64 });
+            alert('Avatar updated successfully!');
+          }
+        };
+        img.src = event.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      alert('Failed to upload avatar');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -27,6 +64,36 @@ export const ProfileTab: React.FC = () => {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
       <h2 className="text-2xl font-semibold mb-6 dark:text-white">Profile Management</h2>
+
+      {/* Avatar Upload Section */}
+      <div className="mb-6">
+        <h3 className="text-lg font-medium mb-4 dark:text-white">Profile Picture</h3>
+        <div className="flex items-center space-x-4">
+          <div className="w-24 h-24 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center overflow-hidden">
+            {avatar ? (
+              <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-2xl font-bold text-gray-600 dark:text-gray-300">
+                {profile.firstName[0]}{profile.lastName[0]}
+              </span>
+            )}
+          </div>
+          <div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              disabled={uploading}
+              className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Upload a 200x200 image (JPG, PNG). Will be resized automatically.
+            </p>
+            {uploading && <p className="text-sm text-blue-600 mt-1">Uploading...</p>}
+          </div>
+        </div>
+      </div>
+
       <form className="space-y-4" onSubmit={handleSubmit}>
         <div className="grid md:grid-cols-2 gap-4">
           <div>

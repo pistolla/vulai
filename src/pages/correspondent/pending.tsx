@@ -112,7 +112,21 @@ export default function PendingApprovalPage() {
   useEffect(() => {
     if (!user) {
       router.replace('/login');
+      return;
     }
+
+    if (user.role !== 'correspondent') {
+      router.replace('/'); // or appropriate page
+      return;
+    }
+
+    if (user.status === 'active') {
+      router.replace('/correspondent');
+      return;
+    }
+
+    // If correspondent and pending, show alert
+    alert('Your correspondent account is pending verification. Please complete the setup process.');
   }, [user, router]);
 
   return (

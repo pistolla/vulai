@@ -63,6 +63,7 @@ export default function AdminDashboardPage() {
   const [modals, setModals] = useState({
     addUser: false,
     gameDetails: null as null | { id: string; teams: string; score: string; details: string; location: string },
+    profileModal: null as null | { uid: string; user: any },
   });
 
   /* ---------- Notification helper ---------- */
@@ -274,7 +275,7 @@ export default function AdminDashboardPage() {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard': return <DashboardTab stats={stats} live={live} users={users} upcoming={upcoming} openGame={(g: any) => open('gameDetails', g)} adminData={adminData} />;
-      case 'users': return <UsersTab rows={users} approve={approveUser} deleteU={deleteUser} openAdd={() => open('addUser')} adminData={adminData} />;
+      case 'users': return <UsersTab rows={users} approve={approveUser} deleteU={deleteUser} openAdd={() => open('addUser')} adminData={adminData} viewProfile={(uid: string) => open('profileModal', { uid, user: users.find(u => u.uid === uid) })} />;
       case 'universities': return <UniversitiesTab adminData={adminData} create={createUniversity} update={updateUniversity} deleteU={deleteUniversity} />;
       case 'teams': return <TeamsTab adminData={adminData} create={createTeam} update={updateTeam} deleteU={deleteTeam} addPlayer={addPlayerToTeam} updatePlayer={updatePlayerInTeam} deletePlayer={deletePlayerFromTeam} />;
       case 'players': return <PlayersTab adminData={adminData} />;
@@ -337,6 +338,7 @@ export default function AdminDashboardPage() {
 
       {modals.addUser && <AddUserModal close={() => close('addUser')} showNotification={showNotification} universities={universities} dispatch={dispatch} />}
       {modals.gameDetails && <GameDetailsModal data={modals.gameDetails} close={() => close('gameDetails')} />}
+      {modals.profileModal && <ProfileModal data={modals.profileModal} close={() => close('profileModal')} />}
     </AdminGuard>
   );
 }
@@ -476,6 +478,41 @@ function GameDetailsModal({ data, close }: any) {
             <span>{data.location}</span>
           </div>
           <a href="#" target="_blank" className="block w-full text-center bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-8 py-5 rounded-[1.5rem] hover:scale-[1.02] transition-all font-black shadow-xl">Enter Commentary Booth</a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProfileModal({ data, close }: any) {
+  const { user } = data;
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-950/80 backdrop-blur-md animate-in fade-in duration-300">
+      <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-2xl w-full max-w-md p-8 border border-gray-100 dark:border-gray-800 animate-in zoom-in-95 duration-300">
+        <div className="flex justify-between items-center mb-8">
+          <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Correspondent Profile</h3>
+          <button onClick={close} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400"><FiX className="w-6 h-6" /></button>
+        </div>
+        <div className="text-center mb-6">
+          <div className="w-24 h-24 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center">
+            <span className="text-2xl font-bold text-gray-600 dark:text-gray-300">{user.name.slice(0,2).toUpperCase()}</span>
+          </div>
+          <h4 className="text-xl font-bold text-gray-900 dark:text-white">{user.name}</h4>
+          <p className="text-gray-500 dark:text-gray-400">{user.email}</p>
+        </div>
+        <div className="space-y-4">
+          <div className="flex justify-between">
+            <span className="text-gray-600 dark:text-gray-400">Role:</span>
+            <span className="font-medium text-gray-900 dark:text-white">{user.role}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600 dark:text-gray-400">Status:</span>
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{user.status}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600 dark:text-gray-400">University:</span>
+            <span className="font-medium text-gray-900 dark:text-white">{user.university || 'N/A'}</span>
+          </div>
         </div>
       </div>
     </div>
