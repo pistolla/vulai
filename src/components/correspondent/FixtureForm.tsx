@@ -187,7 +187,7 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, onClose }) =>
                     className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
                   >
                     <option value="">Choose Match</option>
-                    {matches.map(match => (
+                    {matches.filter(match => match.participants && match.participants.length >= 2).map(match => (
                       <option key={match.id} value={match.id}>
                         Match #{match.matchNumber} - {match.participants.map(p => p.name || p.refId).join(' vs ')}
                       </option>
