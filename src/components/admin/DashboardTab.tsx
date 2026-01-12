@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAppSelector } from '@/hooks/redux';
 import { apiService } from '@/services/apiService';
+import { db } from '@/services/firebase';
+import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { FiUsers, FiPlayCircle, FiShoppingBag, FiMessageSquare, FiArrowRight, FiCalendar } from 'react-icons/fi';
 
 /* ---------------------------------
@@ -150,6 +152,24 @@ function MatchInfo({ match }: { match: any }) {
 }
 
 function ActivityFeed({ users }: any) {
+  const [recentUsers, setRecentUsers] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchRecentUsers = async () => {
+      try {
+        const q = query(collection(db, 'admin', 'dashboard', 'recentUsers'), orderBy('timestamp', 'desc'), limit(4));
+        const snapshot = await getDocs(q);
+        const recent = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setRecentUsers(recent);
+      } catch (error) {
+        console.error('Failed to fetch recent users:', error);
+        // Fallback to provided users
+        setRecentUsers(users.slice(0, 4));
+      }
+    };
+    fetchRecentUsers();
+  }, [users]);
+
   return (
     <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-xl shadow-black/5 p-6 border border-gray-100 dark:border-gray-700">
       <div className="flex justify-between items-center mb-6">
@@ -157,21 +177,22 @@ function ActivityFeed({ users }: any) {
         <button className="text-sm text-blue-600 dark:text-blue-400 font-medium hover:underline">View All</button>
       </div>
       <div className="space-y-4">
-        {users.slice(0, 4).map((u: any, idx: number) => (
-          <div key={u.uid} className="group flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all border border-transparent hover:border-gray-100 dark:hover:border-gray-600">
+        {recentUsers.map((u: any, idx: number) => (
+          <div key={u.id || u.uid} className="group flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all border border-transparent hover:border-gray-100 dark:hover:border-gray-600">
             <div className="relative">
               <div className="w-12 h-12 bg-gradient-to-tr from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg transform group-hover:rotate-12 transition-transform">
                 <span className="text-white font-bold text-lg">{u.name.slice(0, 1).toUpperCase()}</span>
               </div>
-              <div className={`absolute -bottom-1 -right-1 w-4 h-4 border-2 border-white dark:border-gray-800 rounded-full ${u.status === 'active' ? 'bg-green-500' : 'bg-yellow-500'}`} />
+              <div className={`absolute -bottom-1 -right-1 w-4 h-4 border-2 border-white dark:border-gray-800 rounded-full ${u.status === 'active' || u.status === true ? 'bg-green-500' : 'bg-yellow-500'}`} />
             </div>
             <div className="flex-1">
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{u.name}</p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">{u.role} at {u.university || 'Unill Sports'}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">{u.clientBrowser} • {u.ip}</p>
                 </div>
-                <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">{idx + 1}h ago</span>
+                <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">{u.timestamp ? new Date(u.timestamp.toDate()).toLocaleString() : `${idx + 1}h ago`}</span>
               </div>
             </div>
           </div>

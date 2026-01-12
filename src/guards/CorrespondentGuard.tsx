@@ -47,7 +47,7 @@ export default function CorrespondentGuard({ children }: Props) {
         const userDoc = await getDoc(doc(db, 'users', user.uid));
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          const userStatus = userData.status || 'pending';
+          const userStatus = userData.status === true ? 'active' : 'pending';
           // Update user in Redux with status
           dispatch(setUser({ ...user, status: userStatus }));
 

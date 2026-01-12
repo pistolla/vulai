@@ -30,24 +30,146 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
 }
 
 // Game Form Component
-function GameForm({ formData, setFormData, teams, onSubmit, submitLabel }: any) {
+function GameForm({ formData, setFormData, teams, onSubmit, submitLabel, leagues }: any) {
+  const [leaguesData, setLeaguesData] = useState<any[]>([]);
+  const [groups, setGroups] = useState<any[]>([]);
+  const [stages, setStages] = useState<any[]>([]);
+  const [matches, setMatches] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (leagues) setLeaguesData(leagues);
+  }, [leagues]);
+
+  useEffect(() => {
+    if (formData.selectedLeague) {
+      const league = leaguesData.find(l => l.id === formData.selectedLeague);
+      setGroups(league?.groups || []);
+    } else {
+      setGroups([]);
+    }
+    setStages([]);
+    setMatches([]);
+  }, [formData.selectedLeague, leaguesData]);
+
+  useEffect(() => {
+    if (formData.selectedGroup) {
+      const group = groups.find(g => g.id === formData.selectedGroup);
+      setStages(group?.stages || []);
+    } else {
+      setStages([]);
+    }
+    setMatches([]);
+  }, [formData.selectedGroup, groups]);
+
+  useEffect(() => {
+    if (formData.selectedStage) {
+      const stage = stages.find(s => s.id === formData.selectedStage);
+      setMatches(stage?.matches || []);
+    } else {
+      setMatches([]);
+    }
+  }, [formData.selectedStage, stages]);
+
   return (
     <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Sport</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Type</label>
           <select
-            value={formData.sport}
-            onChange={(e) => setFormData({...formData, sport: e.target.value})}
+            value={formData.type || 'friendly'}
+            onChange={(e) => setFormData({...formData, type: e.target.value, sport: e.target.value === 'league' ? '' : formData.sport, selectedLeague: '', selectedGroup: '', selectedStage: '', selectedMatch: ''})}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           >
-            <option value="football">Football</option>
-            <option value="basketball">Basketball</option>
-            <option value="volleyball">Volleyball</option>
-            <option value="rugby">Rugby</option>
-            <option value="hockey">Hockey</option>
+            <option value="friendly">Friendly</option>
+            <option value="league">League</option>
           </select>
         </div>
+        {formData.type === 'league' ? (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Sport</label>
+              <select
+                value={formData.sport}
+                onChange={(e) => setFormData({...formData, sport: e.target.value, selectedLeague: '', selectedGroup: '', selectedStage: '', selectedMatch: ''})}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value="">Select Sport</option>
+                <option value="football">Football</option>
+                <option value="basketball">Basketball</option>
+                <option value="volleyball">Volleyball</option>
+                <option value="rugby">Rugby</option>
+                <option value="hockey">Hockey</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">League</label>
+              <select
+                value={formData.selectedLeague}
+                onChange={(e) => setFormData({...formData, selectedLeague: e.target.value, selectedGroup: '', selectedStage: '', selectedMatch: ''})}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value="">Select League</option>
+                {leaguesData.filter((l: any) => l.sportType === 'team' && l.sport === formData.sport).map((l: any) => (
+                  <option key={l.id} value={l.id}>{l.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Group</label>
+              <select
+                value={formData.selectedGroup}
+                onChange={(e) => setFormData({...formData, selectedGroup: e.target.value, selectedStage: '', selectedMatch: ''})}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value="">Select Group</option>
+                {groups.map((g: any) => (
+                  <option key={g.id} value={g.id}>{g.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Stage</label>
+              <select
+                value={formData.selectedStage}
+                onChange={(e) => setFormData({...formData, selectedStage: e.target.value, selectedMatch: ''})}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value="">Select Stage</option>
+                {stages.map((s: any) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Match</label>
+              <select
+                value={formData.selectedMatch}
+                onChange={(e) => setFormData({...formData, selectedMatch: e.target.value})}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value="">Select Match</option>
+                {matches.map((m: any) => (
+                  <option key={m.id} value={m.id}>{m.participants.map((p: any) => p.name).join(' vs ')}</option>
+                ))}
+              </select>
+            </div>
+          </>
+        ) : (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Sport</label>
+            <select
+              value={formData.sport}
+              onChange={(e) => setFormData({...formData, sport: e.target.value})}
+              className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            >
+              <option value="football">Football</option>
+              <option value="basketball">Basketball</option>
+              <option value="volleyball">Volleyball</option>
+              <option value="rugby">Rugby</option>
+              <option value="hockey">Hockey</option>
+            </select>
+          </div>
+        )}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Home Team</label>
           <input
@@ -218,6 +340,7 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
   const [live, setLive] = useState<any[]>([]);
   const [upcoming, setUpcoming] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
+  const [leagues, setLeagues] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -231,22 +354,32 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
   const [sportFilter, setSportFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [newGame, setNewGame] = useState({
+    type: 'friendly',
     sport: 'football',
     homeTeam: '',
     awayTeam: '',
     date: '',
     time: '',
-    venue: ''
+    venue: '',
+    selectedLeague: '',
+    selectedGroup: '',
+    selectedStage: '',
+    selectedMatch: ''
   });
 
   const resetNewGame = () => {
     setNewGame({
+      type: 'friendly',
       sport: 'football',
       homeTeam: '',
       awayTeam: '',
       date: '',
       time: '',
-      venue: ''
+      venue: '',
+      selectedLeague: '',
+      selectedGroup: '',
+      selectedStage: '',
+      selectedMatch: ''
     });
   };
 
@@ -256,6 +389,11 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
         // Load teams for dropdowns
         const teamsData = await apiService.getTeams();
         setTeams(teamsData);
+
+        // Load leagues
+        const leaguesSnap = await getDocs(collection(db, 'leagues'));
+        const leaguesData = leaguesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setLeagues(leaguesData);
 
         // Sync admin collections
         await syncAdminGameCollections();
@@ -270,6 +408,7 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
         setLive([]);
         setUpcoming([]);
         setTeams([]);
+        setLeagues([]);
       } finally {
         setLoading(false);
       }
@@ -287,10 +426,16 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
       alert('Home and away teams cannot be the same');
       return;
     }
+    if (newGame.type === 'league' && !newGame.selectedMatch) {
+      alert('Please select a match for league fixtures');
+      return;
+    }
     try {
       const gameData = {
         ...newGame,
-        status: 'upcoming',
+        type: newGame.type,
+        matchId: newGame.type === 'league' ? newGame.selectedMatch : undefined,
+        status: 'scheduled',
         createdAt: new Date().toISOString(),
         scheduledAt: `${newGame.date}T${newGame.time}:00`
       };
@@ -549,6 +694,7 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
             formData={newGame}
             setFormData={setNewGame}
             teams={teams}
+            leagues={leagues}
             onSubmit={handleAddGame}
             submitLabel="Add Game"
           />
@@ -562,6 +708,7 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
             formData={editingGame}
             setFormData={setEditingGame}
             teams={teams}
+            leagues={leagues}
             onSubmit={handleEditGame}
             submitLabel="Update Game"
           />

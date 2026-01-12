@@ -44,6 +44,18 @@ export default function LoginPage() {
       const user = await login(email, password);
       // Save user to Redux store (which also saves to localStorage)
       dispatch(setUser(user));
+      // Log login
+      await fetch('/api/log-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: user.displayName,
+          role: user.role,
+          status: user.status,
+          uid: user.uid,
+          university: user.universityId
+        })
+      });
       switch (user.role) {
         case 'admin': router.replace('/admin/page'); break;
         case 'correspondent': router.replace('/correspondent'); break;
@@ -67,6 +79,18 @@ export default function LoginPage() {
       const user = await fn();
       // Save user to Redux store (which also saves to localStorage)
       dispatch(setUser(user));
+      // Log login
+      await fetch('/api/log-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: user.displayName,
+          role: user.role,
+          status: user.status,
+          uid: user.uid,
+          university: user.universityId
+        })
+      });
       switch (user.role) {
         case 'admin': router.replace('/admin/page'); break;
         case 'correspondent': router.replace('/correspondent'); break;

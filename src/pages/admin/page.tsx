@@ -496,33 +496,103 @@ function GameDetailsModal({ data, close }: any) {
 }
 
 function ProfileModal({ data, close }: any) {
-  const { user } = data;
+  const { uid } = data;
+  const [profileData, setProfileData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const userDoc = await getDoc(doc(db, 'users', uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          let universityName = 'N/A';
+          if (userData.universityId) {
+            const uniDoc = await getDoc(doc(db, 'universities', userData.universityId));
+            if (uniDoc.exists()) {
+              universityName = uniDoc.data().name;
+            }
+          }
+          setProfileData({ ...userData, universityName });
+        }
+      } catch (error) {
+        console.error('Failed to fetch profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, [uid]);
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-950/80 backdrop-blur-md">
+        <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-2xl w-full max-w-md p-8 border border-gray-100 dark:border-gray-800 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profileData) return null;
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-950/80 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-2xl w-full max-w-md p-8 border border-gray-100 dark:border-gray-800 animate-in zoom-in-95 duration-300">
+      <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-2xl w-full max-w-lg p-8 border border-gray-100 dark:border-gray-800 animate-in zoom-in-95 duration-300">
         <div className="flex justify-between items-center mb-8">
           <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Correspondent Profile</h3>
           <button onClick={close} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400"><FiX className="w-6 h-6" /></button>
         </div>
         <div className="text-center mb-6">
-          <div className="w-24 h-24 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center">
-            <span className="text-2xl font-bold text-gray-600 dark:text-gray-300">{user.name.slice(0,2).toUpperCase()}</span>
+          <div className="w-24 h-24 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center overflow-hidden">
+            {profileData.avatar ? (
+              <img src={profileData.avatar} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-2xl font-bold text-gray-600 dark:text-gray-300">{profileData.displayName?.slice(0,2).toUpperCase() || 'CO'}</span>
+            )}
           </div>
-          <h4 className="text-xl font-bold text-gray-900 dark:text-white">{user.name}</h4>
-          <p className="text-gray-500 dark:text-gray-400">{user.email}</p>
+          <h4 className="text-xl font-bold text-gray-900 dark:text-white">{profileData.displayName || 'N/A'}</h4>
+          <p className="text-gray-500 dark:text-gray-400">{profileData.email}</p>
         </div>
         <div className="space-y-4">
           <div className="flex justify-between">
             <span className="text-gray-600 dark:text-gray-400">Role:</span>
-            <span className="font-medium text-gray-900 dark:text-white">{user.role}</span>
+            <span className="font-medium text-gray-900 dark:text-white">{profileData.role}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600 dark:text-gray-400">Status:</span>
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{user.status}</span>
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${profileData.status === true ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{profileData.status === true ? 'Active' : 'Pending'}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600 dark:text-gray-400">University:</span>
-            <span className="font-medium text-gray-900 dark:text-white">{user.university || 'N/A'}</span>
+            <span className="font-medium text-gray-900 dark:text-white">{profileData.universityName}</span>
+          </div>
+          {profileData.lastLogin && (
+            <div className="flex justify-between">
+              <span className="text-gray-600 dark:text-gray-400">Last Login:</span>
+              <span className="font-medium text-gray-900 dark:text-white">{new Date(profileData.lastLogin).toLocaleString()}</span>
+            </div>
+          )}
+          <div className="border-t pt-4">
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Consent Details</h4>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Consent Signed:</span>
+                <span className={`font-medium ${profileData.consentSigned ? 'text-green-600' : 'text-red-600'}`}>{profileData.consentSigned ? 'Yes' : 'No'}</span>
+              </div>
+              {profileData.consentData && (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Gmail:</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{profileData.consentData.gmailAccount || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Phone:</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{profileData.consentData.phoneNumber || 'N/A'}</span>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
