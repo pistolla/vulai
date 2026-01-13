@@ -1,23 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { startLiveCommentary, pushCommentaryEvent, endLiveCommentary } from '@/store/correspondentThunk';
-import { fetchGames } from '@/store/adminThunk';
+import { startLiveCommentary, pushCommentaryEvent, endLiveCommentary, fetchFixtures } from '@/store/correspondentThunk';
 
 export const GameLiveCommentaryTab: React.FC = () => {
-  const dispatch = useAppDispatch();
-  const user = useAppSelector(s => s.auth.user);
-  const games = useAppSelector(s => s.games.upcoming);
-  const activeCommentary = useAppSelector(s => s.correspondent.activeCommentary);
-  
-  const [selectedGameId, setSelectedGameId] = useState<string>('');
-  const [commentary, setCommentary] = useState('');
-  const [minute, setMinute] = useState<number>(0);
-  const [eventType, setEventType] = useState<'goal' | 'card' | 'substitution' | 'period' | 'text'>('text');
-  const [isLive, setIsLive] = useState(false);
+   const dispatch = useAppDispatch();
+   const user = useAppSelector(s => s.auth.user);
+   const fixtures = useAppSelector(s => s.correspondent.fixtures);
+   const activeCommentary = useAppSelector(s => s.correspondent.activeCommentary);
 
-  useEffect(() => {
-    dispatch(fetchGames());
-  }, [dispatch]);
+   const [selectedGameId, setSelectedGameId] = useState<string>('');
+   const [commentary, setCommentary] = useState('');
+   const [minute, setMinute] = useState<number>(0);
+   const [eventType, setEventType] = useState<'goal' | 'card' | 'substitution' | 'period' | 'text'>('text');
+   const [isLive, setIsLive] = useState(false);
+
+   useEffect(() => {
+     dispatch(fetchFixtures());
+   }, [dispatch]);
 
   useEffect(() => {
     setIsLive(activeCommentary?.status === 'live');
@@ -77,7 +76,7 @@ export const GameLiveCommentaryTab: React.FC = () => {
     }
   };
 
-  const selectedGame = games.find((g: any) => g.id === selectedGameId);
+  const selectedGame = fixtures.find((f: any) => f.id === selectedGameId);
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
@@ -97,9 +96,9 @@ export const GameLiveCommentaryTab: React.FC = () => {
           <option value="" disabled>
             Choose a game for live commentary...
           </option>
-          {games.map((game: any) => (
-            <option key={game.id} value={game.id}>
-              {game.homeTeamName} vs {game.awayTeamName} - {game.sport} ({new Date(game.scheduledAt).toLocaleDateString()})
+          {fixtures.map((fixture: any) => (
+            <option key={fixture.id} value={fixture.id}>
+              {fixture.homeTeamName} vs {fixture.awayTeamName} - {fixture.sport} ({new Date(fixture.scheduledAt).toLocaleDateString()})
             </option>
           ))}
         </select>

@@ -5,7 +5,7 @@ import { fetchLeagues, fetchFixtures, createFixture, updateFixture } from "@/sto
 import { firebaseLeagueService } from "@/services/firebaseCorrespondence";
 import { apiService } from "@/services/apiService";
 import { db } from "@/services/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, collection } from "firebase/firestore";
 import dynamic from 'next/dynamic';
 
 const ReactQuill = dynamic(() => import('react-quill'), {

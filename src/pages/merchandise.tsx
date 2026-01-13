@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
 import MerchandiseCard from '../components/MerchandiseCard';
+import CartTab from '../components/CartTab';
+import { useAppSelector } from '@/hooks/redux';
 
 const MerchandisePage: React.FC = () => {
+  const router = useRouter();
+  const user = useAppSelector(s => s.auth.user);
   const [merchandise, setMerchandise] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentFilter, setCurrentFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [showCheckout, setShowCheckout] = useState(false);
 
   useEffect(() => {
     const loadMerchandise = async () => {
@@ -106,7 +112,18 @@ const MerchandisePage: React.FC = () => {
     loadMerchandise();
   }, []);
 
+  useEffect(() => {
+    if (router.query.checkout === 'true') {
+      setShowCheckout(true);
+    }
+  }, [router.query.checkout]);
+
   const handleAddToCart = (item: any) => {
+    if (!user) {
+      alert('Please log in to add items to your cart.');
+      return;
+    }
+
     const savedCart = sessionStorage.getItem('cart');
     const cartItems = savedCart ? JSON.parse(savedCart) : [];
     const existingItem = cartItems.find((cartItem: any) => cartItem.id === item.id);
@@ -118,6 +135,7 @@ const MerchandisePage: React.FC = () => {
     }
 
     sessionStorage.setItem('cart', JSON.stringify(cartItems));
+    window.dispatchEvent(new Event('cartUpdated'));
     alert(`Added ${item.name} to cart!`);
   };
 
@@ -149,6 +167,18 @@ const MerchandisePage: React.FC = () => {
               <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-unill-yellow-400 mx-auto"></div>
               <p className="mt-4 text-gray-700">Loading merchandise...</p>
             </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (showCheckout) {
+    return (
+      <Layout title="Checkout" description="Complete your purchase">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <CartTab />
           </div>
         </div>
       </Layout>

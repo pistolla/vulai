@@ -294,22 +294,12 @@ const TeamsPage: React.FC = () => {
           <h1 className="text-5xl md:text-6xl font-black mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
             Teams & Players
           </h1>
-          <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-            Meet our exceptional student-athletes and discover the talented teams representing Unill University across multiple sports disciplines.
-          </p>
         </div>
       </section>
       
       {/* Team Selection */}
-      <section className={`py-16 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
+      <section className={`py-4 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
-              Our Teams
-            </h2>
-            <p className="text-xl text-gray-700">Select a team to view detailed roster and player information</p>
-          </div>
-          
           {/* University Filter Buttons */}
           <div className="mb-6">
             <div className="flex flex-wrap gap-3 justify-center">

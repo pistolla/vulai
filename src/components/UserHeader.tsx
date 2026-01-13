@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAppSelector } from '@/hooks/redux';
 import { signOut } from '@/services/firebase';
 import { useTheme } from './ThemeProvider';
-import { FiSun, FiMoon } from 'react-icons/fi';
+import { FiSun, FiMoon, FiShoppingCart } from 'react-icons/fi';
 
 type TeamTheme = 'crimson' | 'blue' | 'cardinal' | 'gold';
 
@@ -21,16 +21,29 @@ export default function UserHeader({ theme = 'crimson' }: UserHeaderProps) {
   const user = useAppSelector(s => s.auth.user);
   const { theme: appTheme, toggleTheme } = useTheme();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [cartItems, setCartItems] = useState<any[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const cartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setDropdownOpen(false);
       }
+      if (cartRef.current && !cartRef.current.contains(event.target as Node)) {
+        setCartOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const savedCart = sessionStorage.getItem('cart');
+    if (savedCart) {
+      setCartItems(JSON.parse(savedCart));
+    }
   }, []);
 
   const handleLogout = async () => {
@@ -67,6 +80,72 @@ export default function UserHeader({ theme = 'crimson' }: UserHeaderProps) {
           </div>
 
           <div className="flex items-center space-x-4">
+            {/* Cart Button */}
+            <div className="relative" ref={cartRef}>
+              <button
+                onClick={() => setCartOpen(!cartOpen)}
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-300 relative"
+                title="Shopping Cart"
+              >
+                <FiShoppingCart className="w-5 h-5" />
+                {cartItems.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {cartItems.length}
+                  </span>
+                )}
+              </button>
+
+              {cartOpen && (
+                <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-2xl z-50 py-2 border border-gray-100 dark:border-gray-700 max-h-96 overflow-y-auto">
+                  <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
+                    <h3 className="font-bold text-gray-900 dark:text-white">Shopping Cart</h3>
+                  </div>
+
+                  {cartItems.length === 0 ? (
+                    <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                      <FiShoppingCart className="w-8 h-8 mx-auto mb-2" />
+                      <p>Your cart is empty</p>
+                    </div>
+                  ) : (
+                    <div className="px-4 py-2 space-y-2">
+                      {cartItems.map((item, index) => (
+                        <div key={index} className="flex items-center space-x-3 py-2">
+                          <img src={item.image} alt={item.name} className="w-10 h-10 object-cover rounded" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{item.name}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Qty: {item.quantity} • KSh {item.price}</p>
+                          </div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">KSh {(item.price * item.quantity).toFixed(2)}</p>
+                        </div>
+                      ))}
+                      <div className="border-t pt-2 mt-2">
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium text-gray-900 dark:text-white">Total:</span>
+                          <span className="font-bold text-gray-900 dark:text-white">
+                            KSh {cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {cartItems.length > 0 && (
+                    <div className="px-4 py-2 border-t border-gray-100 dark:border-gray-700">
+                      <button
+                        onClick={() => {
+                          setCartOpen(false);
+                          window.location.href = '/merchandise?checkout=true';
+                        }}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
+                      >
+                        Checkout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}

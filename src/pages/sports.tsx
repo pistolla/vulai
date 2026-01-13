@@ -263,19 +263,13 @@ const SportsPage: React.FC = () => {
           <h1 className="text-5xl md:text-6xl font-black mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
             Sports Programs
           </h1>
-          <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-            Discover comprehensive information about our diverse university sports programs, from team dynamics to individual excellence.
-          </p>
         </div>
       </section>
       
       {/* Sport Selection */}
-      <section className={`py-16 ${mounted && theme === 'light' ? 'bg-transparent' : ''}`}>
+      <section className={`py-4 ${mounted && theme === 'light' ? 'bg-transparent' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
-            <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent text-center">
-              Choose Your Sport
-            </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
               {data.sports.map((sport) => (
                 <button 
