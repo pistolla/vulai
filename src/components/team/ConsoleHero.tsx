@@ -145,7 +145,7 @@ export const ConsoleHero: React.FC<ConsoleHeroProps> = ({
                 </div>
 
                 {/* Bottom Section - Console Navigation */}
-                <div className="flex justify-center space-x-2">
+                <div className="flex justify-start md:justify-center overflow-x-auto space-x-2 px-4 pb-4 w-full no-scrollbar">
                     {tabs.map(tab => {
                         const Icon = tab.icon;
                         const isActive = activeTab === tab.id;
@@ -155,8 +155,8 @@ export const ConsoleHero: React.FC<ConsoleHeroProps> = ({
                                 key={tab.id}
                                 onClick={() => onTabChange(tab.id)}
                                 className={`group relative px-8 py-4 rounded-2xl font-black uppercase tracking-wider text-sm transition-all duration-300 ${isActive
-                                        ? 'text-white scale-105'
-                                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:scale-105'
+                                    ? 'text-white scale-105'
+                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:scale-105'
                                     }`}
                                 style={{
                                     background: isActive

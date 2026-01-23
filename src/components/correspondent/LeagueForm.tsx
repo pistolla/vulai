@@ -1,84 +1,109 @@
 import { useAppDispatch } from "@/hooks/redux";
-import { League, SportType } from "@/models";
+import { League, SportType, Sport } from "@/models";
 import { createLeague } from "@/store/correspondentThunk";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTheme } from "@/components/ThemeProvider";
+import { apiService } from "@/services/apiService";
 
 // --- LeagueForm ---
 export const LeagueForm: React.FC<{ onCreate?: (l: League) => void }> = ({ onCreate }) => {
-    const dispatch = useAppDispatch();
-    const { theme } = useTheme();
-    const [name, setName] = useState('');
-    const [sportType, setSportType] = useState<SportType>('team');
-    const [description, setDescription] = useState('');
-    const [creating, setCreating] = useState(false);
+  const dispatch = useAppDispatch();
+  const { theme } = useTheme();
+  const [name, setName] = useState('');
+  const [sportType, setSportType] = useState<SportType>('team');
+  const [description, setDescription] = useState('');
+  const [creating, setCreating] = useState(false);
 
-    const submit = async (e?: React.FormEvent) => {
-      e?.preventDefault();
-      if (!name.trim()) return alert('Please provide a league name');
+  // New states for sport selection
+  const [sports, setSports] = useState<Sport[]>([]);
+  const [selectedSportId, setSelectedSportId] = useState('');
 
-      setCreating(true);
-      try {
-        const res = await dispatch(createLeague({ name: name.trim(), sportType, description: description.trim() }));
-        if (res.type === createLeague.fulfilled.type && res.payload && onCreate) {
-          onCreate(res.payload as League);
-        }
-        setName('');
-        setDescription('');
-      } catch (error) {
-        console.error('Failed to create league:', error);
-        alert('Failed to create league. Please try again.');
-      } finally {
-        setCreating(false);
-      }
-    };
+  useEffect(() => {
+    apiService.getSports().then(setSports).catch(err => console.error("Failed to load sports", err));
+  }, []);
 
-    return (
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl shadow-black/5 border border-gray-100 dark:border-gray-700">
-        <h3 className="text-xl font-black dark:text-white mb-4">Create League</h3>
-        <form onSubmit={submit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">League Name</label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Enter league name"
-              className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-              disabled={creating}
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sport Type</label>
-            <select
-              value={sportType}
-              onChange={(e) => setSportType(e.target.value as SportType)}
-              className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 dark:text-white"
-              disabled={creating}
-            >
-              <option value="team">Team Sport</option>
-              <option value="individual">Individual Sport</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Optional description"
-              rows={3}
-              className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none"
-              disabled={creating}
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-xl font-bold shadow-lg shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-70"
-            disabled={creating || !name.trim()}
-          >
-            {creating ? 'Creating League...' : 'Create League'}
-          </button>
-        </form>
-      </div>
-    );
+  const handleSportChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const id = e.target.value;
+    setSelectedSportId(id);
+    const sport = sports.find(s => s.id === id);
+    if (sport) {
+      setSportType(sport.category as SportType);
+    }
   };
+
+  const submit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!name.trim()) return alert('Please provide a league name');
+    if (!selectedSportId) return alert('Please select a sport');
+
+    setCreating(true);
+    try {
+      const res = await dispatch(createLeague({ name: name.trim(), sportType, description: description.trim() }));
+      if (res.type === createLeague.fulfilled.type && res.payload && onCreate) {
+        onCreate(res.payload as League);
+      }
+      setName('');
+      setDescription('');
+      setSelectedSportId('');
+    } catch (error) {
+      console.error('Failed to create league:', error);
+      alert('Failed to create league. Please try again.');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl shadow-black/5 border border-gray-100 dark:border-gray-700">
+      <h3 className="text-xl font-black dark:text-white mb-4">Create League</h3>
+      <form onSubmit={submit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">League Name</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Enter league name"
+            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+            disabled={creating}
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sport</label>
+          <select
+            value={selectedSportId}
+            onChange={handleSportChange}
+            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 dark:text-white"
+            disabled={creating}
+          >
+            <option value="">Select a Sport</option>
+            {sports.map(sport => (
+              <option key={sport.id} value={sport.id}>{sport.name} ({sport.category})</option>
+            ))}
+          </select>
+          <div className="mt-1 text-xs text-gray-400 dark:text-gray-500 pl-1">
+            Type: {sportType === 'team' ? 'Team Sport' : 'Individual Sport'}
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Optional description"
+            rows={3}
+            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none"
+            disabled={creating}
+          />
+        </div>
+        <button
+          type="submit"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-xl font-bold shadow-lg shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-70"
+          disabled={creating || !name.trim() || !selectedSportId}
+        >
+          {creating ? 'Creating League...' : 'Create League'}
+        </button>
+      </form>
+    </div>
+  );
+};

@@ -22,7 +22,7 @@ type DisplayMatch = {
 
 const SchedulePage: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { leagues, loading: leaguesLoading } = useAppSelector((state) =>  state.leagues);
+  const { leagues, loading: leaguesLoading } = useAppSelector((state) => state.leagues);
   const user = useAppSelector(s => s.auth.user);
   const { theme, mounted: themeMounted } = useTheme();
   const [data, setData] = useState<ScheduleData | null>(null);
@@ -75,15 +75,15 @@ const SchedulePage: React.FC = () => {
         }
 
         // Load leagues data asynchronously (non-blocking)
-         if (isMounted) {
-           try {
-             console.log('Schedule page: Dispatching fetchLeagues');
-             await dispatch(fetchLeagues()).unwrap();
-           } catch (leaguesError) {
-             console.error('Failed to load leagues data:', leaguesError);
-             // Don't fail the whole page if leagues fail
-           }
-         }
+        if (isMounted) {
+          try {
+            console.log('Schedule page: Dispatching fetchLeagues');
+            await dispatch(fetchLeagues()).unwrap();
+          } catch (leaguesError) {
+            console.error('Failed to load leagues data:', leaguesError);
+            // Don't fail the whole page if leagues fail
+          }
+        }
 
         // Load fixtures for all users
         if (isMounted) {
@@ -155,7 +155,7 @@ const SchedulePage: React.FC = () => {
   }, [dispatch]);
 
   const updateLiveScores = () => {
-    setMatches(prevMatches => 
+    setMatches(prevMatches =>
       prevMatches.map(match => {
         if (match.status === 'live' && match.score) {
           // Simulate score updates only on client side
@@ -209,9 +209,9 @@ const SchedulePage: React.FC = () => {
     // Use fixtures if available, else static matches
     const matchesOnDay = fixtures.length > 0
       ? fixtures.filter(fixture => {
-          const fixtureDate = new Date(fixture.scheduledAt).toISOString().split('T')[0];
-          return fixtureDate === date;
-        })
+        const fixtureDate = new Date(fixture.scheduledAt).toISOString().split('T')[0];
+        return fixtureDate === date;
+      })
       : matches.filter(match => match.date === date);
 
     if (matchesOnDay.length === 0) return;
@@ -286,18 +286,17 @@ const SchedulePage: React.FC = () => {
         const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const matchesOnDay = fixtures.length > 0
           ? fixtures.filter(fixture => {
-              const fixtureDate = new Date(fixture.scheduledAt).toISOString().split('T')[0];
-              return fixtureDate === dateStr;
-            })
+            const fixtureDate = new Date(fixture.scheduledAt).toISOString().split('T')[0];
+            return fixtureDate === dateStr;
+          })
           : matches.filter(match => match.date === dateStr);
         const hasMatches = matchesOnDay.length > 0;
 
         dates.push(
           <div
             key={day}
-            className={`flex-shrink-0 w-20 h-20 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 flex flex-col items-center justify-center cursor-pointer hover:bg-unill-purple-500/20 transition-all ${
-              hasMatches ? 'bg-unill-yellow-500/20' : ''
-            }`}
+            className={`flex-shrink-0 w-20 h-20 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 flex flex-col items-center justify-center cursor-pointer hover:bg-unill-purple-500/20 transition-all ${hasMatches ? 'bg-unill-yellow-500/20' : ''
+              }`}
             onClick={() => showDayDetails(dateStr)}
           >
             <div className="font-semibold text-sm">{day}</div>
@@ -358,18 +357,17 @@ const SchedulePage: React.FC = () => {
         const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const matchesOnDay = fixtures.length > 0
           ? fixtures.filter(fixture => {
-              const fixtureDate = new Date(fixture.scheduledAt).toISOString().split('T')[0];
-              return fixtureDate === dateStr;
-            })
+            const fixtureDate = new Date(fixture.scheduledAt).toISOString().split('T')[0];
+            return fixtureDate === dateStr;
+          })
           : matches.filter(match => match.date === dateStr);
         const hasMatches = matchesOnDay.length > 0;
 
         days.push(
           <div
             key={day}
-            className={`calendar-day p-2 border border-white/10 min-h-20 cursor-pointer hover:bg-unill-purple-500/20 transition-all ${
-              hasMatches ? 'bg-unill-yellow-500/20' : ''
-            }`}
+            className={`calendar-day p-2 border border-white/10 min-h-20 cursor-pointer hover:bg-unill-purple-500/20 transition-all ${hasMatches ? 'bg-unill-yellow-500/20' : ''
+              }`}
             onClick={() => showDayDetails(dateStr)}
           >
             <div className="font-semibold">{day}</div>
@@ -522,12 +520,12 @@ const SchedulePage: React.FC = () => {
   };
 
   return (
-    <Layout title="Schedule & Results" description="View university sports schedules, match results, and upcoming fixtures. Stay updated with live scores and game statistics.">
+    <Layout title="Leagues & Fixtures" description="View university sports leagues, match results, and upcoming fixtures.">
       {/* Hero Section */}
       <section className={`pt-24 pb-2 bg-gradient-to-b from-black/30 to-transparent ${themeMounted && theme === 'light' ? 'bg-transparent' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl md:text-6xl font-black mb-6 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
-            Schedule & Results
+            Leagues & Fixtures
           </h1>
         </div>
       </section>
@@ -542,13 +540,11 @@ const SchedulePage: React.FC = () => {
 
           <div className="mt-0 flex overflow-x-auto gap-4 pb-4 horizontal-scroll">
             <button
-              className={`filter-btn active px-6 py-3 rounded-lg transition-all flex-shrink-0 ${
-                theme === 'dark'
-                  ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
-                  : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
-              } ${
-                currentFilter === 'all' ? 'active' : ''
-              }`}
+              className={`filter-btn active px-6 py-3 rounded-lg transition-all flex-shrink-0 ${theme === 'dark'
+                ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
+                : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
+                } ${currentFilter === 'all' ? 'active' : ''
+                }`}
               onClick={() => setCurrentFilter('all')}
             >
               All Sports
@@ -556,26 +552,22 @@ const SchedulePage: React.FC = () => {
             {sports.map(sport => (
               <button
                 key={sport.id}
-                className={`filter-btn px-6 py-3 rounded-lg transition-all flex-shrink-0 ${
-                  theme === 'dark'
-                    ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
-                    : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
-                } ${
-                  currentFilter === sport.name.toLowerCase() ? 'active' : ''
-                }`}
+                className={`filter-btn px-6 py-3 rounded-lg transition-all flex-shrink-0 ${theme === 'dark'
+                  ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
+                  : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
+                  } ${currentFilter === sport.name.toLowerCase() ? 'active' : ''
+                  }`}
                 onClick={() => setCurrentFilter(sport.name.toLowerCase())}
               >
                 {sport.name}
               </button>
             ))}
             <button
-              className={`filter-btn px-6 py-3 rounded-lg transition-all flex-shrink-0 ${
-                theme === 'dark'
-                  ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
-                  : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
-              } ${
-                currentFilter === 'live' ? 'active' : ''
-              }`}
+              className={`filter-btn px-6 py-3 rounded-lg transition-all flex-shrink-0 ${theme === 'dark'
+                ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
+                : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
+                } ${currentFilter === 'live' ? 'active' : ''
+                }`}
               onClick={() => setCurrentFilter('live')}
             >
               Live Now
@@ -592,11 +584,10 @@ const SchedulePage: React.FC = () => {
                   window.location.href = `/league/${leagueId}`;
                 }
               }}
-              className={`px-6 py-3 rounded-lg transition-all flex-shrink-0 ${
-                theme === 'dark'
-                  ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
-                  : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
-              }`}
+              className={`px-6 py-3 rounded-lg transition-all flex-shrink-0 ${theme === 'dark'
+                ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
+                : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
+                }`}
             >
               <option value="">Select League</option>
               {leagues
@@ -613,16 +604,15 @@ const SchedulePage: React.FC = () => {
               placeholder="Search leagues or teams..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className={`flex-1 px-6 py-3 rounded-lg transition-all ${
-                theme === 'dark'
-                  ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
-                  : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
-              }`}
+              className={`flex-1 px-6 py-3 rounded-lg transition-all ${theme === 'dark'
+                ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
+                : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
+                }`}
             />
           </div>
         </div>
       </section>
-      
+
       {/* Live Matches */}
       <section className={`py-8 bg-black/20 backdrop-blur-sm ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -632,23 +622,21 @@ const SchedulePage: React.FC = () => {
             </h2>
             <p className="text-lg text-gray-700 mt-2 sm:mt-0">Real-time updates from ongoing university sports events</p>
           </div>
-          
+
           <div id="matches-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredMatches.map((match) => (
-              <div 
+              <div
                 key={match.id}
-                className={`bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20 ${
-                  match.status === 'live' ? 'animate-pulse-live' : ''
-                }`}
+                className={`bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20 ${match.status === 'live' ? 'animate-pulse-live' : ''
+                  }`}
                 data-sport={match.sport}
                 data-status={match.status}
               >
                 <div className="flex items-center justify-between mb-4">
-                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                    match.status === 'live' ? 'bg-red-500 text-white' :
+                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${match.status === 'live' ? 'bg-red-500 text-white' :
                     match.status === 'upcoming' ? 'bg-blue-500 text-white' :
-                    'bg-green-500 text-white'
-                  }`}>
+                      'bg-green-500 text-white'
+                    }`}>
                     {match.status.toUpperCase()}
                   </span>
                   <span className="text-sm text-gray-700 capitalize">{match.sport}</span>
@@ -656,7 +644,7 @@ const SchedulePage: React.FC = () => {
                 <div className="text-center mb-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="text-center">
-                      <h4 className="font-bold text-lg mb-2">{match.homeTeam}</h4>
+                      <h4 className="font-bold text-lg mb-2 text-gray-900 dark:text-white">{match.homeTeam}</h4>
                       <div className="w-16 h-16 bg-gradient-to-br from-unill-yellow-400 to-unill-purple-500 rounded-full mx-auto mb-2"></div>
                       {match.score && (
                         <p className="text-3xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
@@ -666,7 +654,7 @@ const SchedulePage: React.FC = () => {
                     </div>
                     <div className="text-gray-400 text-xl font-bold">VS</div>
                     <div className="text-center">
-                      <h4 className="font-bold text-lg mb-2">{match.awayTeam}</h4>
+                      <h4 className="font-bold text-lg mb-2 text-gray-900 dark:text-white">{match.awayTeam}</h4>
                       <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full mx-auto mb-2"></div>
                       {match.score && (
                         <p className="text-3xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
@@ -712,7 +700,7 @@ const SchedulePage: React.FC = () => {
           </div>
         </div>
       </section>
-      
+
       {/* Active Leagues */}
       <section className={`py-8 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -722,7 +710,7 @@ const SchedulePage: React.FC = () => {
             </h2>
             <p className="text-lg text-gray-700 mt-2 sm:mt-0">Explore ongoing tournaments and competitions</p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {leagues && leagues.length > 0 ? (
               leagues.map((league: any) => (
@@ -734,12 +722,12 @@ const SchedulePage: React.FC = () => {
                   <div className="flex items-center mb-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center mr-4">
                       <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-white">{league.name}</h3>
-                      <p className="text-sm text-gray-700 capitalize">{league.sportType} Sport</p>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white">{league.name}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">{league.sportType} Sport</p>
                     </div>
                   </div>
                   <div className="space-y-2 text-sm text-gray-700">
@@ -781,7 +769,7 @@ const SchedulePage: React.FC = () => {
           </div>
         </div>
       </section>
-      
+
       {/* Quick Stats */}
       <section className={`py-16 bg-black/20 backdrop-blur-sm ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -791,7 +779,7 @@ const SchedulePage: React.FC = () => {
             </h2>
             <p className="text-xl text-gray-700">Quick overview of university sports activity</p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 text-center border border-white/20">
               <div className="text-5xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent mb-4">
@@ -844,19 +832,18 @@ const SchedulePage: React.FC = () => {
             <div className="space-y-4">
               {(fixtures.length > 0
                 ? fixtures.filter(fixture => {
-                    const fixtureDate = new Date(fixture.scheduledAt).toISOString().split('T')[0];
-                    return fixtureDate === selectedDate;
-                  })
+                  const fixtureDate = new Date(fixture.scheduledAt).toISOString().split('T')[0];
+                  return fixtureDate === selectedDate;
+                })
                 : matches.filter(match => match.date === selectedDate)
               ).map((match, index) => (
                 <div key={index} className="bg-gray-100 rounded-lg p-4">
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-semibold capitalize">{('sport' in match) ? match.sport : (match as Match).sport}</span>
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      match.status === 'live' ? 'bg-red-500 text-white' :
+                    <span className={`px-2 py-1 rounded text-xs ${match.status === 'live' ? 'bg-red-500 text-white' :
                       match.status === 'scheduled' ? 'bg-blue-500 text-white' :
-                      'bg-green-500 text-white'
-                    }`}>
+                        'bg-green-500 text-white'
+                      }`}>
                       {match.status === 'scheduled' ? 'UPCOMING' : match.status.toUpperCase()}
                     </span>
                   </div>

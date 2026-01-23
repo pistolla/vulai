@@ -2,9 +2,25 @@ import React, { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useTheme } from './ThemeProvider';
-import { useAppSelector } from '@/hooks/redux';
-import { signOut } from '@/services/firebase';
-import { FiShoppingCart } from 'react-icons/fi';
+import { useAppSelector } from '../hooks/redux';
+import { signOut } from '../services/firebase';
+import { FiShoppingCart, FiMenu, FiX, FiUser, FiLogOut, FiSettings } from 'react-icons/fi';
+import { RealtimeProvider, useRealtime } from '@/hooks/useRealtime';
+import { GameTicker } from '@/components/team/GameTicker';
+import { LiveEventPop } from '@/components/team/LiveEventPop';
+
+// Sub-component to consume the context and render UI
+const GlobalRealtimeUI = () => {
+  const { liveMatches, latestEvent } = useRealtime();
+
+  // Only show if we have data
+  return (
+    <>
+      {liveMatches.length > 0 && <GameTicker matches={liveMatches} />}
+      <LiveEventPop externalEvent={latestEvent} />
+    </>
+  );
+};
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -15,6 +31,7 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children, title, description = "University sports excellence at Unill" }) => {
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const user = useAppSelector(s => s.auth.user);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -27,17 +44,19 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
   const navigation = [
     { name: 'Home', href: '/', current: router.pathname === '/' },
     { name: 'Sports', href: '/sports', current: router.pathname === '/sports' },
-    { name: 'Schedule', href: '/schedule', current: router.pathname === '/schedule' },
+    { name: 'Leagues & Fixtures', href: '/schedule', current: router.pathname === '/schedule' },
     { name: 'Teams', href: '/teams', current: router.pathname === '/teams' },
     { name: 'About', href: '/about', current: router.pathname === '/about' },
     { name: 'Contact', href: '/contact', current: router.pathname === '/contact' },
   ];
 
+  // ... (keep helper functions: showComingSoon, handleSocialLink, handleLogout) ...
   const showComingSoon = () => {
     alert('Coming soon! This feature is under development.');
   };
 
   const handleSocialLink = (platform: string) => {
+    // ... existing implementation
     const urls = {
       twitter: 'https://twitter.com/unisports',
       facebook: 'https://facebook.com/unisports',
@@ -57,8 +76,9 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
   };
 
   useEffect(() => {
-    // Initialize particle background
+    // ... p5 init ...
     if (typeof window !== 'undefined') {
+      // ... (keep p5 script loading)
       const script = document.createElement('script');
       script.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js';
       script.onload = () => {
@@ -68,6 +88,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
     }
   }, []);
 
+  // ... (keep other useEffects for clicks and cart) ...
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -108,6 +129,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
   }, []);
 
   const initParticleBackground = () => {
+    // ... (keep p5 logic) ...
     if (typeof window === 'undefined' || !(window as any).p5) return;
 
     const sketch = (p: any) => {
@@ -137,7 +159,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
 
       p.draw = () => {
         p.clear();
-        
+
         particles.forEach((particle: any) => {
           particle.x += particle.vx;
           particle.y += particle.vy;
@@ -162,7 +184,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
   };
 
   return (
-    <>
+    <RealtimeProvider>
       <Head>
         <title>{title} - Uni Limelight Sports</title>
         <meta name="description" content={description} />
@@ -170,35 +192,37 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
         <link rel="icon" href="/images/logo.png" />
       </Head>
 
+      {/* Global Realtime Elements */}
+      <GlobalRealtimeUI />
+
       {/* Particle Background */}
       <div id="particle-bg" />
 
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-black/20 dark:bg-gray-900/80 backdrop-blur-md border-b border-white/10 dark:border-gray-700">
+        {/* ... existing nav content ... */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center space-x-3">
               <img src="/images/logo.png" alt="Uni Limelight Sports" className="h-10 w-20" />
               <a href="/"><span className="pb-0 text-3xl font-bold bg-gradient-to-r from-unill-purple-400 to-unill-yellow-500 bg-clip-text text-transparent">
-              Uni Limelight Sports
+                Uni Limelight Sports
               </span></a>
             </div>
-            
+
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
               {navigation.map((item) => (
                 <a
                   key={item.name}
                   href={item.href}
-                  className={`relative overflow-hidden px-3 py-2 text-white hover:text-unill-yellow-400 transition-colors ${
-                    item.current ? 'text-unill-yellow-400' : ''
-                  }`}
+                  className={`relative overflow-hidden px-3 py-2 text-white hover:text-unill-yellow-400 transition-colors ${item.current ? 'text-unill-yellow-400' : ''
+                    }`}
                 >
                   {item.name}
-                  <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-unill-yellow-400 transition-transform duration-300 ${
-                    item.current ? 'translate-x-0' : '-translate-x-full'
-                  }`} />
+                  <span className={`absolute bottom-0 left-0 w-full h-0.5 bg-unill-yellow-400 transition-transform duration-300 ${item.current ? 'translate-x-0' : '-translate-x-full'
+                    }`} />
                 </a>
               ))}
               {/* Theme Toggle */}
@@ -326,10 +350,10 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
                 </a>
               )}
             </div>
-            
+
             {/* Mobile Menu Button */}
             <div className="md:hidden">
-              <button 
+              <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="text-white hover:text-unill-yellow-400"
               >
@@ -339,7 +363,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
               </button>
             </div>
           </div>
-          
+
           {/* Mobile Menu */}
           {isMobileMenuOpen && (
             <div className="md:hidden bg-white/30 dark:bg-black/30 backdrop-blur-md">
@@ -348,9 +372,8 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
                   <a
                     key={item.name}
                     href={item.href}
-                    className={`block px-3 py-2 text-white hover:text-unill-yellow-400 ${
-                      item.current ? 'text-unill-yellow-400 font-semibold' : ''
-                    }`}
+                    className={`block px-3 py-2 text-white hover:text-unill-yellow-400 ${item.current ? 'text-unill-yellow-400 font-semibold' : ''
+                      }`}
                   >
                     {item.name}
                   </a>
@@ -491,19 +514,19 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
             </p>
           </div>
           <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <FooterColumn title="Navigation" links={[{label:'Home',href:'/'}, {label:'About',href:'/about'}, {label:'Contact',href:'/contact'}]} />
-            <FooterColumn title="Account" links={[{label:'Login',href:'/login'}, {label:'Register',href:'/register'}, {label:'Dashboard',href:'/admin'}]} />
-            <FooterColumn title="Legal" links={[{label:'Privacy',href:'/privacy'}, {label:'Terms',href:'/terms'}, {label:'Cookie Policy',href:'/cookies'}]} />
-            <FooterSocial onSocialClick={handleSocialLink} />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              <FooterColumn title="Navigation" links={[{ label: 'Home', href: '/' }, { label: 'About', href: '/about' }, { label: 'Contact', href: '/contact' }]} />
+              <FooterColumn title="Account" links={[{ label: 'Login', href: '/login' }, { label: 'Register', href: '/register' }, { label: 'Dashboard', href: '/admin' }]} />
+              <FooterColumn title="Legal" links={[{ label: 'Privacy', href: '/privacy' }, { label: 'Terms', href: '/terms' }, { label: 'Cookie Policy', href: '/cookies' }]} />
+              <FooterSocial onSocialClick={handleSocialLink} />
+            </div>
+            <div className="mt-12 border-t border-gray-300 dark:border-gray-700 pt-8">
+              <p className="text-base text-gray-600 dark:text-gray-400 text-center">&copy; 2023 UniSports Live. All rights reserved.</p>
+            </div>
           </div>
-          <div className="mt-12 border-t border-gray-300 dark:border-gray-700 pt-8">
-            <p className="text-base text-gray-600 dark:text-gray-400 text-center">&copy; 2023 UniSports Live. All rights reserved.</p>
-          </div>
-        </div>
         </div>
       </footer>
-    </>
+    </RealtimeProvider>
   );
 };
 

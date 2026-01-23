@@ -11,17 +11,19 @@ import { ChatMessage } from '@/services/firestoreFan';
 import UserHeader from '@/components/UserHeader';
 import { apiService } from '@/services/apiService';
 import { useTheme } from '@/components/ThemeProvider';
+import { TeamTheme } from '@/types';
 
-/* ---------- types ---------- */
-export type TeamTheme = 'crimson' | 'blue' | 'cardinal' | 'gold';
+
+
+import { configThemes, useTeamData } from '@/hooks/useTeamData';
+import { GameTicker } from '@/components/team/GameTicker';
+import { LiveEventPop } from '@/components/team/LiveEventPop';
+import { MerchQuickView } from '@/components/merch/MerchQuickView';
+
 
 /* ---------- styles ---------- */
-const themes: Record<TeamTheme, Record<string, string>> = {
-  crimson: { primary: '#990000', secondary: '#ffffff', accent: '#13294b' },
-  blue:    { primary: '#003366', secondary: '#ffffff', accent: '#990000' },
-  cardinal:{ primary: '#8C1515', secondary: '#ffffff', accent: '#4D4D4D' },
-  gold:    { primary: '#FFB81C', secondary: '#000000', accent: '#00539B' },
-};
+// Removed local themes, using configThemes
+
 
 /* ---------- shimmer components ---------- */
 function ShimmerStatCard() {
@@ -99,7 +101,7 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
   const [teamTheme, setTeamTheme] = useState<TeamTheme>('crimson');
   const [chatMsg, setChatMsg] = useState('');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [onlineUsers, setOnlineUsers] = useState<Array<{name: string; avatar?: string}>>([]);
+  const [onlineUsers, setOnlineUsers] = useState<Array<{ name: string; avatar?: string }>>([]);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const selectedFixture = upcoming.find((game: any) => game.homeTeamId === slug || game.awayTeamId === slug) || upcoming[0]; // Find game for this team or default to first
@@ -140,13 +142,13 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
             import('aos'),
             import('feather-icons')
           ]);
-          
+
           // Dynamically add AOS CSS
           const link = document.createElement('link');
           link.rel = 'stylesheet';
           link.href = 'https://unpkg.com/aos@2.3.1/dist/aos.css';
           document.head.appendChild(link);
-          
+
           AOS.init({ once: true });
           feather.replace();
         } catch (error) {
@@ -204,7 +206,8 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
   /* ---------- theme css vars ---------- */
   useEffect(() => {
     const root = document.documentElement;
-    const t = themes[teamTheme];
+    // content of configThemes is { primary, secondary, accent }
+    const t = configThemes[teamTheme] || configThemes.crimson;
     root.style.setProperty('--primary-color', t.primary);
     root.style.setProperty('--secondary-color', t.secondary);
     root.style.setProperty('--accent-color', t.accent);
@@ -245,15 +248,30 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
   /* ---------- helpers ---------- */
   const isFollowed = (teamId: string) => followedTeams.includes(teamId);
 
-  // Show UI immediately, even if data is still loading
-  // This provides better UX by showing content progressively
+  // Merch Quick View State
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
-  // Show UI immediately, even if data is still loading
-  // This provides better UX by showing content progressively
+  // Use hook just for the simulated ticker data
+  const { upcomingMatches } = useTeamData(typeof slug === 'string' ? slug : undefined);
+
 
   return (
     <FanGuard>
       <UserHeader theme={teamTheme} />
+
+      {/* Realtime Components */}
+      <GameTicker matches={upcomingMatches} />
+      <LiveEventPop />
+
+      {/* Merch Modal */}
+      <MerchQuickView
+        isOpen={!!selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+        product={selectedProduct}
+        addToCart={() => console.log('Added to cart', selectedProduct)}
+        accentColor={configThemes[teamTheme]?.accent || '#000'}
+      />
+
       <div className="relative">
         {/* Main Content */}
         <div className="lg:pr-80"> {/* Add padding for sidebar on large screens */}
@@ -339,21 +357,32 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
                   </>
                 ) : merch.length > 0 ? (
                   merch.filter((item: any) => item.name.toLowerCase().includes(teamData?.name?.toLowerCase() || '')).slice(0, 3).map((item: any, index: number) => (
-                    <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden merch-item transition-all duration-300" data-aos="fade-up" data-aos-delay={index * 200}>
-                      <img src={item.image} alt={item.name} className="w-full h-48 object-cover" />
+                    <div
+                      key={item.id}
+                      className="bg-white rounded-lg shadow-md overflow-hidden merch-item transition-all duration-300 cursor-pointer group"
+                      data-aos="fade-up"
+                      data-aos-delay={index * 200}
+                      onClick={() => setSelectedProduct(item)}
+                    >
+                      <div className="relative h-48 overflow-hidden">
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <span className="bg-white text-black px-4 py-2 rounded-full font-bold text-sm">Quick View</span>
+                        </div>
+                      </div>
                       <div className="p-6">
                         <h3 className="text-xl font-semibold mb-2 team-text">{item.name}</h3>
-                        <p className="text-gray-600 mb-4">{item.description}</p>
+                        <p className="text-gray-600 mb-4 line-clamp-2">{item.description}</p>
                         <div className="flex justify-between items-center">
                           <span className="text-2xl font-bold team-text">KSh {item.price}</span>
                           {user ? (
-                            <button className="team-theme text-white px-4 py-2 rounded hover:opacity-90">Add to Cart</button>
+                            <button className="team-theme text-white px-4 py-2 rounded hover:opacity-90" onClick={(e) => { e.stopPropagation(); console.log('Add to cart') }}>Add to Cart</button>
                           ) : (
                             <button
-                              onClick={() => router.push(`/login?redirect=/team/fan/${slug}`)}
+                              onClick={(e) => { e.stopPropagation(); router.push(`/login?redirect=/team/fan/${slug}`) }}
                               className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                             >
-                              Login to Buy
+                              Login
                             </button>
                           )}
                         </div>

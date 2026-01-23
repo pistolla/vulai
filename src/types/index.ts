@@ -1,4 +1,4 @@
-import { TeamTheme } from "@/pages/team/fan/[slug]";
+export type TeamTheme = 'quantum' | 'crimson' | 'blue' | 'cardinal' | 'gold' | 'neon' | 'cyber';
 
 export interface Sport {
   id: string;

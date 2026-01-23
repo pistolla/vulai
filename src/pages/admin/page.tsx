@@ -3,9 +3,8 @@ import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import AdminGuard from '@/guards/AdminGuard';
 import UserHeader from '@/components/UserHeader';
 import { apiService, AdminData } from '../../services/apiService';
-import { FiGrid, FiUsers, FiMap, FiAward, FiTarget, FiBox, FiCheckCircle, FiCalendar, FiPlus, FiX, FiPackage, FiUser } from 'react-icons/fi';
-
-// Import all tab components
+import { FiGrid, FiUsers, FiMap, FiAward, FiTarget, FiBox, FiCheckCircle, FiCalendar, FiPlus, FiX, FiPackage, FiUser, FiAlertCircle } from 'react-icons/fi';
+import { Modal } from '@/components/common/Modal';
 import DashboardTab from '../../components/admin/DashboardTab';
 import UsersTab from '../../components/admin/UsersTab';
 import UniversitiesTab from '../../components/admin/UniversitiesTab';
@@ -189,55 +188,61 @@ export default function AdminDashboardPage() {
       showNotification('Failed to end game', 'error');
     }
   };
-  
+
   const createUniversity = async (uni: any) => {
     try {
       await dispatch(createUniversityT(uni)).unwrap();
+      dispatch(fetchUniversities());
       showNotification('University created successfully', 'success');
     } catch {
       showNotification('Failed to create university', 'error');
     }
   };
-  
+
   const updateUniversity = async (id: string, data: any) => {
     try {
       await dispatch(saveUniversityT({ id, data })).unwrap();
+      dispatch(fetchUniversities());
       showNotification('University updated successfully', 'success');
     } catch {
       showNotification('Failed to update university', 'error');
     }
   };
-  
+
   const deleteUniversity = async (id: string) => {
     try {
       await dispatch(removeUniversityT(id)).unwrap();
+      dispatch(fetchUniversities());
       showNotification('University deleted successfully', 'success');
     } catch {
       showNotification('Failed to delete university', 'error');
     }
   };
-  
+
   const createTeam = async (team: any) => {
     try {
       await dispatch(createTeamT(team)).unwrap();
+      dispatch(fetchTeams());
       showNotification('Team created successfully', 'success');
     } catch {
       showNotification('Failed to create team', 'error');
     }
   };
-  
+
   const updateTeam = async (id: string, data: any) => {
     try {
       await dispatch(saveTeamT({ id, data })).unwrap();
+      dispatch(fetchTeams());
       showNotification('Team updated successfully', 'success');
     } catch {
       showNotification('Failed to update team', 'error');
     }
   };
-  
+
   const deleteTeam = async (id: string) => {
     try {
       await dispatch(removeTeamT(id)).unwrap();
+      dispatch(fetchTeams());
       showNotification('Team deleted successfully', 'success');
     } catch {
       showNotification('Failed to delete team', 'error');
@@ -247,6 +252,7 @@ export default function AdminDashboardPage() {
   const addPlayerToTeam = async (teamId: string, player: any) => {
     try {
       await dispatch(addPlayerToTeamT({ teamId, player })).unwrap();
+      dispatch(fetchTeams());
       showNotification('Player added successfully', 'success');
     } catch {
       showNotification('Failed to add player', 'error');
@@ -256,6 +262,7 @@ export default function AdminDashboardPage() {
   const updatePlayerInTeam = async (teamId: string, playerId: string, playerData: any) => {
     try {
       await dispatch(updatePlayerInTeamT({ teamId, playerId, playerData })).unwrap();
+      dispatch(fetchTeams());
       showNotification('Player updated successfully', 'success');
     } catch {
       showNotification('Failed to update player', 'error');
@@ -265,12 +272,13 @@ export default function AdminDashboardPage() {
   const deletePlayerFromTeam = async (teamId: string, playerId: string) => {
     try {
       await dispatch(deletePlayerFromTeamT({ teamId, playerId })).unwrap();
+      dispatch(fetchTeams());
       showNotification('Player deleted successfully', 'success');
     } catch {
       showNotification('Failed to delete player', 'error');
     }
   };
-  
+
   const open = (k: keyof typeof modals, v: any = true) => setModals(p => ({ ...p, [k]: v }));
   const close = (k: keyof typeof modals) => setModals(p => ({ ...p, [k]: k === 'gameDetails' ? null : false }));
 
@@ -316,8 +324,8 @@ export default function AdminDashboardPage() {
           {/* Notification Overlay */}
           {notification && (
             <div className={`fixed top-20 right-4 z-50 p-4 rounded-xl shadow-2xl transform transition-all animate-in slide-in-from-right duration-300 ${notification.type === 'success'
-                ? 'bg-green-600 text-white'
-                : 'bg-red-600 text-white'
+              ? 'bg-green-600 text-white'
+              : 'bg-red-600 text-white'
               }`}>
               <div className="flex items-center space-x-3">
                 {notification.type === 'success' ? <FiCheckCircle /> : <FiAlertCircle />}
@@ -338,8 +346,8 @@ export default function AdminDashboardPage() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === tab.id
-                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 active:scale-95'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white'
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 active:scale-95'
+                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white'
                     }`}
                 >
                   <tab.icon className={activeTab === tab.id ? 'w-5 h-5' : 'w-5 h-5 opacity-70'} />
@@ -355,18 +363,24 @@ export default function AdminDashboardPage() {
         </main>
       </div>
 
-      {modals.addUser && <AddUserModal close={() => close('addUser')} showNotification={showNotification} universities={universities} dispatch={dispatch} />}
-      {modals.gameDetails && <GameDetailsModal data={modals.gameDetails} close={() => close('gameDetails')} />}
-      {modals.profileModal && <ProfileModal data={modals.profileModal} close={() => close('profileModal')} />}
+      <Modal isOpen={modals.addUser} title="Add New User" onClose={() => close('addUser')}>
+        <AddUserForm close={() => close('addUser')} showNotification={showNotification} universities={universities} dispatch={dispatch} />
+      </Modal>
+
+      <Modal isOpen={!!modals.gameDetails} title="Game Details" onClose={() => close('gameDetails')}>
+        {modals.gameDetails && <GameDetailsContent data={modals.gameDetails} />}
+      </Modal>
+
+      <Modal isOpen={!!modals.profileModal} title="Correspondent Profile" onClose={() => close('profileModal')}>
+        {modals.profileModal && <ProfileContent data={modals.profileModal} />}
+      </Modal>
     </AdminGuard>
   );
 }
 
-function FiAlertCircle() {
-  return <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
-}
 
-function AddUserModal({ close, showNotification, universities, dispatch }: any) {
+
+function AddUserForm({ close, showNotification, universities, dispatch }: any) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -392,118 +406,109 @@ function AddUserModal({ close, showNotification, universities, dispatch }: any) 
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-950/80 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-2xl w-full max-w-md p-8 border border-gray-100 dark:border-gray-800 animate-in zoom-in-95 duration-300">
-        <div className="flex justify-between items-center mb-8">
-          <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Add New User</h3>
-          <button onClick={close} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400"><FiX className="w-6 h-6" /></button>
+    <div className="w-full">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Full Name</label>
+          <input
+            type="text"
+            required
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold"
+            placeholder="e.g. John Doe"
+          />
         </div>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Email Address</label>
+          <input
+            type="email"
+            required
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold"
+            placeholder="name@university.edu"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Password</label>
+          <input
+            type="password"
+            required
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold"
+            placeholder="Enter a temporary password"
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Full Name</label>
-            <input
-              type="text"
+            <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Role</label>
+            <select
               required
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold"
-              placeholder="e.g. John Doe"
-            />
+              value={formData.role}
+              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+              className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold appearance-none"
+            >
+              <option value="fan">Fan</option>
+              <option value="correspondent">Correspondent</option>
+              <option value="admin">Admin</option>
+            </select>
           </div>
           <div>
-            <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Email Address</label>
-            <input
-              type="email"
-              required
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold"
-              placeholder="name@university.edu"
-            />
+            <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">University</label>
+            <select
+              value={formData.university}
+              onChange={(e) => setFormData({ ...formData, university: e.target.value })}
+              className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold appearance-none"
+            >
+              <option value="">Select University</option>
+              {universities.map((uni: any) => (
+                <option key={uni.id} value={uni.id}>{uni.name}</option>
+              ))}
+            </select>
           </div>
-          <div>
-            <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Password</label>
-            <input
-              type="password"
-              required
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold"
-              placeholder="Enter a temporary password"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Role</label>
-              <select
-                required
-                value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold appearance-none"
-              >
-                <option value="fan">Fan</option>
-                <option value="correspondent">Correspondent</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">University</label>
-              <select
-                value={formData.university}
-                onChange={(e) => setFormData({ ...formData, university: e.target.value })}
-                className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold appearance-none"
-              >
-                <option value="">Select University</option>
-                {universities.map((uni: any) => (
-                  <option key={uni.id} value={uni.id}>{uni.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="flex space-x-4 pt-4">
-            <button type="button" onClick={close} className="flex-1 py-4 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Cancel</button>
-            <button type="submit" className="flex-[2] py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black shadow-lg shadow-blue-500/30 transition-all active:scale-95">Create User</button>
-          </div>
-        </form>
-      </div>
+        </div>
+        <div className="flex space-x-4 pt-4">
+          <button type="button" onClick={close} className="flex-1 py-4 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Cancel</button>
+          <button type="submit" className="flex-[2] py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black shadow-lg shadow-blue-500/30 transition-all active:scale-95">Create User</button>
+        </div>
+      </form>
     </div>
   );
 }
 
-function GameDetailsModal({ data, close }: any) {
+function GameDetailsContent({ data }: any) {
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-950/80 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="bg-white dark:bg-gray-900 rounded-[3rem] shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-        <div className="relative h-48 bg-blue-600 flex items-center justify-center">
-          <button onClick={close} className="absolute top-6 right-6 p-2 rounded-full bg-black/20 hover:bg-black/40 text-white transition-colors"><FiX className="w-6 h-6" /></button>
-          <div className="flex items-center space-x-8">
-            <div className="text-center">
-              <div className="w-20 h-20 bg-white/20 rounded-full mb-2 mx-auto" />
-              <p className="text-white font-black uppercase tracking-widest text-xs">Home</p>
-            </div>
-            <div className="text-white text-6xl font-black">VS</div>
-            <div className="text-center">
-              <div className="w-20 h-20 bg-white/20 rounded-full mb-2 mx-auto" />
-              <p className="text-white font-black uppercase tracking-widest text-xs">Away</p>
-            </div>
+    <div className="w-full overflow-hidden">
+      <div className="relative h-48 bg-blue-600 flex items-center justify-center -mx-6 -mt-6 mb-6">
+        <div className="flex items-center space-x-8">
+          <div className="text-center">
+            <div className="w-20 h-20 bg-white/20 rounded-full mb-2 mx-auto" />
+            <p className="text-white font-black uppercase tracking-widest text-xs">Home</p>
+          </div>
+          <div className="text-white text-6xl font-black">VS</div>
+          <div className="text-center">
+            <div className="w-20 h-20 bg-white/20 rounded-full mb-2 mx-auto" />
+            <p className="text-white font-black uppercase tracking-widest text-xs">Away</p>
           </div>
         </div>
-        <div className="p-10 text-center">
-          <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-2">{data.teams}</h3>
-          <p className="text-blue-600 dark:text-blue-400 font-black text-5xl my-6">{data.score}</p>
-          <div className="inline-flex items-center space-x-4 text-gray-500 dark:text-gray-400 font-medium bg-gray-50 dark:bg-gray-800 px-6 py-3 rounded-full mb-8">
-            <span>{data.details}</span>
-            <span className="w-1.5 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full" />
-            <span>{data.location}</span>
-          </div>
-          <a href="#" target="_blank" className="block w-full text-center bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-8 py-5 rounded-[1.5rem] hover:scale-[1.02] transition-all font-black shadow-xl">Enter Commentary Booth</a>
+      </div>
+      <div className="p-10 text-center">
+        <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-2">{data.teams}</h3>
+        <p className="text-blue-600 dark:text-blue-400 font-black text-5xl my-6">{data.score}</p>
+        <div className="inline-flex items-center space-x-4 text-gray-500 dark:text-gray-400 font-medium bg-gray-50 dark:bg-gray-800 px-6 py-3 rounded-full mb-8">
+          <span>{data.details}</span>
+          <span className="w-1.5 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full" />
+          <span>{data.location}</span>
         </div>
+        <a href="#" target="_blank" className="block w-full text-center bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-8 py-5 rounded-[1.5rem] hover:scale-[1.02] transition-all font-black shadow-xl">Enter Commentary Booth</a>
       </div>
     </div>
   );
 }
 
-function ProfileModal({ data, close }: any) {
+function ProfileContent({ data }: any) {
   const { uid } = data;
   const [profileData, setProfileData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -534,10 +539,8 @@ function ProfileModal({ data, close }: any) {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-950/80 backdrop-blur-md">
-        <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-2xl w-full max-w-md p-8 border border-gray-100 dark:border-gray-800 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -545,62 +548,56 @@ function ProfileModal({ data, close }: any) {
   if (!profileData) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-950/80 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-2xl w-full max-w-lg p-8 border border-gray-100 dark:border-gray-800 animate-in zoom-in-95 duration-300">
-        <div className="flex justify-between items-center mb-8">
-          <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Correspondent Profile</h3>
-          <button onClick={close} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400"><FiX className="w-6 h-6" /></button>
-        </div>
-        <div className="text-center mb-6">
-          <div className="w-24 h-24 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center overflow-hidden">
-            {profileData.avatar ? (
-              <img src={profileData.avatar} alt="Avatar" className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-2xl font-bold text-gray-600 dark:text-gray-300">{profileData.displayName?.slice(0,2).toUpperCase() || 'CO'}</span>
-            )}
-          </div>
-          <h4 className="text-xl font-bold text-gray-900 dark:text-white">{profileData.displayName || 'N/A'}</h4>
-          <p className="text-gray-500 dark:text-gray-400">{profileData.email}</p>
-        </div>
-        <div className="space-y-4">
-          <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Role:</span>
-            <span className="font-medium text-gray-900 dark:text-white">{profileData.role}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-400">Status:</span>
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${profileData.status === true ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{profileData.status === true ? 'Active' : 'Pending'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600 dark:text-gray-400">University:</span>
-            <span className="font-medium text-gray-900 dark:text-white">{profileData.universityName}</span>
-          </div>
-          {profileData.lastLogin && (
-            <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">Last Login:</span>
-              <span className="font-medium text-gray-900 dark:text-white">{new Date(profileData.lastLogin).toLocaleString()}</span>
-            </div>
+    <div className="w-full">
+      <div className="text-center mb-6">
+        <div className="w-24 h-24 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center overflow-hidden">
+          {profileData.avatar ? (
+            <img src={profileData.avatar} alt="Avatar" className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-2xl font-bold text-gray-600 dark:text-gray-300">{profileData.displayName?.slice(0, 2).toUpperCase() || 'CO'}</span>
           )}
-          <div className="border-t pt-4">
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Consent Details</h4>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Consent Signed:</span>
-                <span className={`font-medium ${profileData.consentSigned ? 'text-green-600' : 'text-red-600'}`}>{profileData.consentSigned ? 'Yes' : 'No'}</span>
-              </div>
-              {profileData.consentData && (
-                <>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Gmail:</span>
-                    <span className="font-medium text-gray-900 dark:text-white">{profileData.consentData.gmailAccount || 'N/A'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Phone:</span>
-                    <span className="font-medium text-gray-900 dark:text-white">{profileData.consentData.phoneNumber || 'N/A'}</span>
-                  </div>
-                </>
-              )}
+        </div>
+        <h4 className="text-xl font-bold text-gray-900 dark:text-white">{profileData.displayName || 'N/A'}</h4>
+        <p className="text-gray-500 dark:text-gray-400">{profileData.email}</p>
+      </div>
+      <div className="space-y-4">
+        <div className="flex justify-between">
+          <span className="text-gray-600 dark:text-gray-400">Role:</span>
+          <span className="font-medium text-gray-900 dark:text-white">{profileData.role}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-gray-600 dark:text-gray-400">Status:</span>
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${profileData.status === true ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{profileData.status === true ? 'Active' : 'Pending'}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-gray-600 dark:text-gray-400">University:</span>
+          <span className="font-medium text-gray-900 dark:text-white">{profileData.universityName}</span>
+        </div>
+        {profileData.lastLogin && (
+          <div className="flex justify-between">
+            <span className="text-gray-600 dark:text-gray-400">Last Login:</span>
+            <span className="font-medium text-gray-900 dark:text-white">{new Date(profileData.lastLogin).toLocaleString()}</span>
+          </div>
+        )}
+        <div className="border-t pt-4">
+          <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Consent Details</h4>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-600 dark:text-gray-400">Consent Signed:</span>
+              <span className={`font-medium ${profileData.consentSigned ? 'text-green-600' : 'text-red-600'}`}>{profileData.consentSigned ? 'Yes' : 'No'}</span>
             </div>
+            {profileData.consentData && (
+              <>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Gmail:</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{profileData.consentData.gmailAccount || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Phone:</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{profileData.consentData.phoneNumber || 'N/A'}</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

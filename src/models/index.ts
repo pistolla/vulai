@@ -4,6 +4,10 @@ export interface University {
   id: string;
   name: string;
   logoURL?: string;
+  location?: string;
+  established?: number;
+  website?: string;
+  description?: string;
 }
 
 export interface Team {
@@ -12,7 +16,14 @@ export interface Team {
   name: string;
   sport: string;
   logoURL?: string;
-  foundedYear: number;
+  foundedYear?: number;
+  coach?: string;
+  league?: string;
+  record?: string;
+  championships?: string;
+  season?: string;
+  stats?: any;
+  players?: any[];
 }
 
 export interface Athlete {
@@ -26,30 +37,30 @@ export interface Athlete {
 }
 
 export interface Fixture {
-   homeTeamName: string;
-   awayTeamName: string;
-   id: string;
-   correspondentId?: string;
-   homeTeamId: string;
-   awayTeamId: string;
-   sport: string;
-   scheduledAt: string; // ISO
-   venue: string;
-   status: 'scheduled' | 'live' | 'completed' | 'postponed';
-   score?: { home: number; away: number };
-   stats?: {
-     homeGoals: number;
-     awayGoals: number;
-     homeAssists: number;
-     awayAssists: number;
-     possession: { home: number; away: number };
-     shots: { home: number; away: number };
-   };
-   type: 'league' | 'friendly';
-   matchId?: string; // for league fixtures, links to Match
-   blogContent?: string;
-   approved?: boolean;
- }
+  homeTeamName: string;
+  awayTeamName: string;
+  id: string;
+  correspondentId?: string;
+  homeTeamId: string;
+  awayTeamId: string;
+  sport: string;
+  scheduledAt: string; // ISO
+  venue: string;
+  status: 'scheduled' | 'live' | 'completed' | 'postponed';
+  score?: { home: number; away: number };
+  stats?: {
+    homeGoals: number;
+    awayGoals: number;
+    homeAssists: number;
+    awayAssists: number;
+    possession: { home: number; away: number };
+    shots: { home: number; away: number };
+  };
+  type: 'league' | 'friendly';
+  matchId?: string; // for league fixtures, links to Match
+  blogContent?: string;
+  approved?: boolean;
+}
 
 export interface News {
   id: string;
@@ -136,7 +147,7 @@ export interface CsvAthleteRow {
 }
 
 export type SportType = 'team' | 'individual';
-export type MatchStatus = 'pending' | 'ongoing' | 'completed';
+export type MatchStatus = 'pending' | 'ongoing' | 'completed' | 'scheduled' | 'postponed';
 export type StageType = 'round_robin' | 'knockout';
 
 export interface Participant {
@@ -161,6 +172,7 @@ export interface Match {
   id?: string;
   matchNumber: number;
   date: string; // ISO
+  time?: string;
   venue?: string;
   status: MatchStatus;
   participants: Participant[];
@@ -185,6 +197,7 @@ export interface Group {
   name: string;
   description?: string;
   stages?: Stage[];
+  subGroups?: Group[]; // recursive nesting
   createdAt?: string
 }
 

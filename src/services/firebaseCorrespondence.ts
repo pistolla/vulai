@@ -94,6 +94,29 @@ class FirebaseLeagueService {
     return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Stage));
   }
 
+  async updateStage(leagueId: string, groupId: string, stageId: string, data: Partial<Stage>) {
+    await updateDoc(doc(db, `leagues/${leagueId}/groups/${groupId}/stages/${stageId}`), {
+      ...data,
+      updatedAt: Timestamp.now(),
+    });
+  }
+
+  // ---------------- SUBGROUP CRUD ---------------- //
+
+  async createSubGroup(leagueId: string, groupId: string, subGroup: Omit<Group, 'id'>): Promise<string> {
+    const ref = await addDoc(collection(db, `leagues/${leagueId}/groups/${groupId}/subgroups`), {
+      ...subGroup,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    });
+    return ref.id;
+  }
+
+  async listSubGroups(leagueId: string, groupId: string): Promise<Group[]> {
+    const snap = await getDocs(collection(db, `leagues/${leagueId}/groups/${groupId}/subgroups`));
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Group));
+  }
+
   // ---------------- MATCH CRUD ---------------- //
 
   async createMatch(leagueId: string, groupId: string, stageId: string, match: Omit<Match, 'id'>): Promise<string> {

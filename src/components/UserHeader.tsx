@@ -3,14 +3,16 @@ import { useAppSelector } from '@/hooks/redux';
 import { signOut } from '@/services/firebase';
 import { useTheme } from './ThemeProvider';
 import { FiSun, FiMoon, FiShoppingCart } from 'react-icons/fi';
+import { TeamTheme } from '@/types';
 
-type TeamTheme = 'crimson' | 'blue' | 'cardinal' | 'gold';
-
-const themes: Record<TeamTheme, Record<string, string>> = {
+const themes: Record<string, Record<string, string>> = {
   crimson: { primary: '#990000', secondary: '#ffffff', accent: '#13294b' },
   blue: { primary: '#003366', secondary: '#ffffff', accent: '#990000' },
   cardinal: { primary: '#8C1515', secondary: '#ffffff', accent: '#4D4D4D' },
   gold: { primary: '#FFB81C', secondary: '#000000', accent: '#00539B' },
+  quantum: { primary: '#6a11cb', secondary: '#2575fc', accent: '#00d4ff' },
+  neon: { primary: '#ff416c', secondary: '#ff4b2b', accent: '#ffcc00' },
+  cyber: { primary: '#11998e', secondary: '#38ef7d', accent: '#00ffcc' },
 };
 
 interface UserHeaderProps {

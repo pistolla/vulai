@@ -20,12 +20,12 @@ export const loadAdminDashboard = async () => {
   ]);
   return {
     universities: uniSnap.docs.map(d => ({ id: d.id, ...d.data() } as University)),
-    teams:        teamSnap.docs.map(d => ({ id: d.id, ...d.data() } as Team)),
-    fixtures:     fixSnap.docs.map(d => ({ id: d.id, ...d.data() } as Fixture)),
-    stats:        {
-      users:          userSnap.size,
-      liveGames:      fixSnap.docs.filter(d => d.data().status === 'live').length,
-      merchSales:     merchSnap.docs.filter(d => (d.data().sold || 0) > 0).length,
+    teams: teamSnap.docs.map(d => ({ id: d.id, ...d.data() } as Team)),
+    fixtures: fixSnap.docs.map(d => ({ id: d.id, ...d.data() } as Fixture)),
+    stats: {
+      users: userSnap.size,
+      liveGames: fixSnap.docs.filter(d => d.data().status === 'live').length,
+      merchSales: merchSnap.docs.filter(d => (d.data().sold || 0) > 0).length,
       pendingReviews: reviewSnap.size,
     },
   };
@@ -37,10 +37,10 @@ export const loadUsers = async (): Promise<AdminUserRow[]> => {
   return snap.docs.map(d => {
     const data = d.data();
     return {
-      uid:   d.id,
-      name:  data.displayName || '',
+      uid: d.id,
+      name: data.displayName || '',
       email: data.email,
-      role:  data.role,
+      role: data.role,
       status: data.role === 'correspondent' && data.status !== true ? 'pending' : 'active',
       university: data.universityId || '',
     };
@@ -48,13 +48,20 @@ export const loadUsers = async (): Promise<AdminUserRow[]> => {
 };
 
 export const approveUser = async (uid: string) =>
-   updateDoc(doc(db, 'users', uid), { status: true });
+  updateDoc(doc(db, 'users', uid), { status: true });
 
 export const disapproveUser = async (uid: string) =>
-   updateDoc(doc(db, 'users', uid), { status: false });
+  updateDoc(doc(db, 'users', uid), { status: false });
 
-export const deleteUserDoc = async (uid: string) =>
-   deleteDoc(doc(db, 'users', uid));
+export const deleteUserDoc = async (uid: string) => {
+  const response = await fetch(`/api/admin/delete-user?uid=${uid}`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Failed to delete user');
+  }
+};
 
 /* ---------- merchandise ---------- */
 export const loadMerch = async (): Promise<MerchItem[]> => {
@@ -77,10 +84,10 @@ export const loadReviews = async (): Promise<ReviewRow[]> => {
   return snap.docs.map(d => {
     const data = d.data();
     return {
-      id:          d.id,
-      title:       data.title,
+      id: d.id,
+      title: data.title,
       correspondent: data.correspondentName,
-      type:        data.type,
+      type: data.type,
       submittedAt: (data.submittedAt as Timestamp).toDate().toISOString(),
     };
   });
@@ -89,7 +96,7 @@ export const loadReviews = async (): Promise<ReviewRow[]> => {
 export const approveReview = async (id: string) =>
   updateDoc(doc(db, 'reviews', id), { status: 'approved', reviewedAt: serverTimestamp() });
 
-export const rejectReview  = async (id: string) =>
+export const rejectReview = async (id: string) =>
   updateDoc(doc(db, 'reviews', id), { status: 'rejected', reviewedAt: serverTimestamp() });
 
 /* ---------- universities ---------- */
@@ -242,7 +249,7 @@ export const loadGames = async () => {
   const fixSnap = await getDocs(collection(db, 'fixtures'));
   const all = fixSnap.docs.map(d => ({ id: d.id, ...d.data() } as Fixture));
   return {
-    live:     all.filter(f => f.status === 'live'),
+    live: all.filter(f => f.status === 'live'),
     upcoming: all.filter(f => f.status === 'scheduled'),
   };
 };
@@ -340,10 +347,10 @@ export const syncAdminGameCollections = async () => {
 export const updateFixtureScore = async (id: string, home: number, away: number) =>
   updateDoc(doc(db, 'fixtures', id), { score: { home, away } });
 
-export const startGame  = async (id: string) =>
+export const startGame = async (id: string) =>
   updateDoc(doc(db, 'fixtures', id), { status: 'live' });
 
-export const endGame    = async (id: string) =>
+export const endGame = async (id: string) =>
   updateDoc(doc(db, 'fixtures', id), { status: 'completed' });
 
 /* ---------- imported data ---------- */
