@@ -67,7 +67,7 @@ export const LeagueVisualizer: React.FC<LeagueVisualizerProps> = ({ league }) =>
               },
             });
 
-            // Add match nodes
+            // Connect stage to matches
             matches.forEach((match, index) => {
               const matchNodeId = `match-${match.id}`;
               allNodes.push({
@@ -75,7 +75,7 @@ export const LeagueVisualizer: React.FC<LeagueVisualizerProps> = ({ league }) =>
                 type: 'default',
                 position: {
                   x: 100 + (stages.indexOf(stage) * 300) + (index % 2) * 150,
-                  y: 200 + (groups.indexOf(group) * 200) + Math.floor(index / 2) * 100
+                  y: 200 + (groups.indexOf(group) * 300) + Math.floor(index / 2) * 100
                 },
                 data: {
                   label: `Match #${match.matchNumber}`,
@@ -87,18 +87,31 @@ export const LeagueVisualizer: React.FC<LeagueVisualizerProps> = ({ league }) =>
                   borderRadius: '8px',
                   padding: '8px',
                   cursor: 'pointer',
+                  fontSize: '10px'
                 },
               });
 
-              // Connect stage to matches
               allEdges.push({
                 id: `edge-${stage.id}-${match.id}`,
                 source: `stage-${stage.id}`,
                 target: matchNodeId,
                 type: 'smoothstep',
-                style: { stroke: '#666' },
+                style: { stroke: '#666', strokeDasharray: '5,5' },
               });
             });
+
+            // Connect stages based on parentStageId
+            if (stage.parentStageId) {
+              allEdges.push({
+                id: `stage-edge-${stage.parentStageId}-${stage.id}`,
+                source: `stage-${stage.parentStageId}`,
+                target: `stage-${stage.id}`,
+                type: 'bezier',
+                label: 'leads to',
+                animated: true,
+                style: { stroke: '#2196f3', strokeWidth: 3 },
+              });
+            }
           }
         }
 

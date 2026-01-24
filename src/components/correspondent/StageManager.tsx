@@ -15,6 +15,7 @@ export const StageManager: React.FC<{ league: League; group: Group }> = ({ leagu
   const { theme } = useTheme();
   const [name, setName] = useState('');
   const [type, setType] = useState<StageType>('knockout');
+  const [parentStageId, setParentStageId] = useState<string>('');
   const [order, setOrder] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -39,11 +40,21 @@ export const StageManager: React.FC<{ league: League; group: Group }> = ({ leagu
 
     setLoading(true);
     try {
-      const res = await dispatch(createStage({ leagueId: league.id!, groupId: group.id!, stage: { name: name.trim(), order, type } }));
+      const res = await dispatch(createStage({
+        leagueId: league.id!,
+        groupId: group.id!,
+        stage: {
+          name: name.trim(),
+          order,
+          type,
+          parentStageId: parentStageId || undefined
+        }
+      }));
       // refresh
       const list = await firebaseLeagueService.listStages(league.id!, group.id!);
       dispatch(setStages({ leagueId: league.id!, groupId: group.id!, stages: list }));
       setName('');
+      setParentStageId('');
       setOrder(prev => prev + 1);
     } catch (error) {
       console.error('Failed to create stage:', error);
@@ -125,6 +136,20 @@ export const StageManager: React.FC<{ league: League; group: Group }> = ({ leagu
                   <option value="round_robin">Round Robin</option>
                 </select>
               </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest mb-1">Parent Stage (Optional)</label>
+                <select
+                  value={parentStageId}
+                  onChange={(e) => setParentStageId(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+                  disabled={loading}
+                >
+                  <option value="">None (Top Level)</option>
+                  {stages.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
               <div className="flex items-end">
                 <button
                   type="submit"
@@ -164,7 +189,14 @@ export const StageManager: React.FC<{ league: League; group: Group }> = ({ leagu
                           <button onClick={() => startEditing(s)} className="opacity-0 group-hover:opacity-100 text-xs text-blue-500">Edit</button>
                         </div>
                       )}
-                      <div className="text-sm text-gray-600 dark:text-gray-300">{s.type.replace('_', ' ')} • Order {s.order}</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300">
+                        {s.type.replace('_', ' ')} • Order {s.order}
+                        {s.parentStageId && (
+                          <span className="ml-2 px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-xs">
+                            ↳ Parent: {stages.find(ps => ps.id === s.parentStageId)?.name || 'Unknown'}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="flex-shrink-0">
                       <MatchManager league={league} group={group} stage={s} />

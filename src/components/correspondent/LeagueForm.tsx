@@ -12,6 +12,7 @@ export const LeagueForm: React.FC<{ onCreate?: (l: League) => void }> = ({ onCre
   const [name, setName] = useState('');
   const [sportType, setSportType] = useState<SportType>('team');
   const [description, setDescription] = useState('');
+  const [hasGroups, setHasGroups] = useState(true);
   const [creating, setCreating] = useState(false);
 
   // New states for sport selection
@@ -38,7 +39,12 @@ export const LeagueForm: React.FC<{ onCreate?: (l: League) => void }> = ({ onCre
 
     setCreating(true);
     try {
-      const res = await dispatch(createLeague({ name: name.trim(), sportType, description: description.trim() }));
+      const res = await dispatch(createLeague({
+        name: name.trim(),
+        sportType,
+        description: description.trim(),
+        hasGroups
+      }));
       if (res.type === createLeague.fulfilled.type && res.payload && onCreate) {
         onCreate(res.payload as League);
       }
@@ -87,6 +93,20 @@ export const LeagueForm: React.FC<{ onCreate?: (l: League) => void }> = ({ onCre
             </div>
           </div>
         </div>
+        <div className="flex items-center space-x-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
+          <input
+            id="hasGroups"
+            type="checkbox"
+            checked={hasGroups}
+            onChange={(e) => setHasGroups(e.target.checked)}
+            className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+          />
+          <label htmlFor="hasGroups" className="flex-1 cursor-pointer">
+            <span className="block text-sm font-bold text-gray-900 dark:text-white">Enable Groups / Divisions</span>
+            <span className="block text-xs text-gray-500 dark:text-gray-400">If disabled, stages will be created directly under the league.</span>
+          </label>
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
           <textarea

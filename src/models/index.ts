@@ -189,6 +189,7 @@ export interface Stage {
   order: number;
   type: StageType;
   matches?: Match[];
+  parentStageId?: string; // For tournament brackets
   createdAt?: any;
 }
 
@@ -206,6 +207,7 @@ export interface League {
   name: string;
   sportType: SportType;
   description?: string;
+  hasGroups: boolean; // Toggle for groups/divisions
   createdAt?: any;
   updatedAt?: any;
   groups?: Group[]; // array, optional for creation

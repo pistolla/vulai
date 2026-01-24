@@ -9,9 +9,11 @@ import { GameLiveCommentaryTab } from '@/components/correspondent/GameLiveCommen
 import { ManageLeagueTab } from '@/components/correspondent/ManageLeagueTab';
 import { ManageFixtureTab } from '@/components/correspondent/ManageFixtureTab';
 import { TeamsCatalogTab } from '../components/correspondent/TeamsCatalogTab';
+import { QuickFixtureModal } from '../components/correspondent/QuickFixtureModal';
 import { useClientSideLibs } from '@/utils/clientLibs';
 import { fetchLeagues } from '@/store/correspondentThunk';
 import { FiUser, FiFileText, FiVideo, FiRadio, FiAward, FiArrowRight, FiShoppingCart, FiPackage } from 'react-icons/fi';
+import { League } from '@/models';
 
 type TabType = 'profile' | 'excel' | 'video' | 'commentary' | 'league' | 'fixtures' | 'catalog';
 
@@ -21,6 +23,8 @@ export default function CorrespondentDashboardPage() {
   const [activeTab, setActiveTab] = useState<TabType>('profile');
   const [loading, setLoading] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [showQuickFixture, setShowQuickFixture] = useState(false);
+  const [selectedLeagueForQuick, setSelectedLeagueForQuick] = useState<League | null>(null);
 
   /* ---------- feather + AOS ---------- */
   const mounted = useClientSideLibs();
@@ -134,9 +138,17 @@ export default function CorrespondentDashboardPage() {
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
             <div data-aos="fade-right">
               <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">Reporter Central</h1>
-              <p className="text-gray-500 dark:text-gray-400 font-medium mt-1">
-                Active coverage for <span className="text-blue-600 dark:text-blue-400 underline decoration-blue-500/30 underline-offset-4">{user?.displayName || 'Correspondent'}</span>
-              </p>
+              <div className="flex items-center gap-4 mt-1">
+                <p className="text-gray-500 dark:text-gray-400 font-medium">
+                  Active coverage for <span className="text-blue-600 dark:text-blue-400 underline decoration-blue-500/30 underline-offset-4">{user?.displayName || 'Correspondent'}</span>
+                </p>
+                <button
+                  onClick={() => setShowQuickFixture(true)}
+                  className="px-3 py-1 bg-blue-600/10 text-blue-600 dark:text-blue-400 text-xs font-bold rounded-full hover:bg-blue-600 hover:text-white transition-all border border-blue-600/20"
+                >
+                  ⚡ Quick Fixture
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center space-x-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md p-1.5 rounded-[2rem] shadow-xl shadow-black/5 border border-white/20 dark:border-gray-700 overflow-x-auto no-scrollbar">
@@ -197,6 +209,12 @@ export default function CorrespondentDashboardPage() {
             </div>
           )}
         </main>
+
+        <QuickFixtureModal
+          isOpen={showQuickFixture}
+          onClose={() => setShowQuickFixture(false)}
+          league={useAppSelector(s => s.correspondent.leagues[0]) || null}
+        />
       </div>
     </CorrespondentGuard>
   );

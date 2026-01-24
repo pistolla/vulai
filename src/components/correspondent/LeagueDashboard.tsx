@@ -20,14 +20,25 @@ export const LeagueDashboard: React.FC = () => {
   const steps = [
     { id: 'leagues', label: 'Leagues', icon: '🏆' },
     { id: 'groups', label: 'Groups', icon: '👥' },
-    { id: 'stages', label: 'Stages & Matches', icon: '🏅' },
+    { id: 'stages', label: 'Stages', icon: '🏅' },
     { id: 'visualize', label: 'Visualize', icon: '📊' }
   ];
 
+  const handleLeagueSelect = (l: League) => {
+    setSelectedLeague(l);
+    if (l.hasGroups === false) {
+      // Create/Select a virtual group for ungrouped stage management
+      setSelectedGroup({ id: '_general', name: 'General', createdAt: new Date().toISOString() });
+      setCurrentStep('stages');
+    } else {
+      setCurrentStep('groups');
+    }
+  };
+
   const canAccessStep = (step: string) => {
     if (step === 'leagues') return true;
-    if (step === 'groups') return !!selectedLeague;
-    if (step === 'stages') return !!selectedGroup;
+    if (step === 'groups') return !!selectedLeague && selectedLeague.hasGroups !== false;
+    if (step === 'stages') return !!selectedGroup || (!!selectedLeague && selectedLeague.hasGroups === false);
     if (step === 'visualize') return !!selectedLeague;
     return false;
   };
@@ -37,8 +48,8 @@ export const LeagueDashboard: React.FC = () => {
       case 'leagues':
         return (
           <div className="space-y-6">
-            <LeagueForm onCreate={(l) => { setSelectedLeague(l); setCurrentStep('groups'); }} />
-            <LeagueList onSelect={(l) => { setSelectedLeague(l); setCurrentStep('groups'); }} />
+            <LeagueForm onCreate={handleLeagueSelect} />
+            <LeagueList onSelect={handleLeagueSelect} />
           </div>
         );
       case 'groups':
@@ -85,13 +96,13 @@ export const LeagueDashboard: React.FC = () => {
           </div>
         ) : null;
       case 'stages':
-        return selectedGroup ? (
+        return (selectedGroup || (selectedLeague && selectedLeague.hasGroups === false)) ? (
           <div className="space-y-6">
             <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl shadow-black/5 border border-gray-100 dark:border-gray-700">
-              <h3 className="text-xl font-black dark:text-white mb-2">{selectedGroup.name}</h3>
-              <p className="text-gray-600 dark:text-gray-300">Manage stages and matches for this group</p>
+              <h3 className="text-xl font-black dark:text-white mb-2">{selectedGroup?.name || selectedLeague?.name}</h3>
+              <p className="text-gray-600 dark:text-gray-300">Manage stages and matches for this league</p>
             </div>
-            <StageManager league={selectedLeague!} group={selectedGroup!} />
+            <StageManager league={selectedLeague!} group={selectedGroup || { id: '_general', name: 'General' }} />
           </div>
         ) : null;
       case 'visualize':
@@ -124,6 +135,7 @@ export const LeagueDashboard: React.FC = () => {
             const isActive = step.id === currentStep;
             const isCompleted = steps.findIndex(s => s.id === currentStep) > index;
             const isAccessible = canAccessStep(step.id);
+            if (step.id === 'groups' && selectedLeague && selectedLeague.hasGroups === false) return null;
 
             return (
               <div key={step.id} className="flex items-center">
@@ -162,7 +174,11 @@ export const LeagueDashboard: React.FC = () => {
           onClick={() => {
             const currentIndex = steps.findIndex(s => s.id === currentStep);
             if (currentIndex > 0) {
-              const prevStep = steps[currentIndex - 1].id as any;
+              let prevStepIndex = currentIndex - 1;
+              if (steps[prevStepIndex].id === 'groups' && selectedLeague && selectedLeague.hasGroups === false) {
+                prevStepIndex--;
+              }
+              const prevStep = steps[prevStepIndex].id as any;
               if (canAccessStep(prevStep)) setCurrentStep(prevStep);
             }
           }}
@@ -175,11 +191,19 @@ export const LeagueDashboard: React.FC = () => {
           onClick={() => {
             const currentIndex = steps.findIndex(s => s.id === currentStep);
             if (currentIndex < steps.length - 1) {
-              const nextStep = steps[currentIndex + 1].id as any;
+              let nextStepIndex = currentIndex + 1;
+              if (steps[nextStepIndex].id === 'groups' && selectedLeague && selectedLeague.hasGroups === false) {
+                nextStepIndex++;
+              }
+              const nextStep = steps[nextStepIndex].id as any;
               if (canAccessStep(nextStep)) setCurrentStep(nextStep);
             }
           }}
-          disabled={!canAccessStep(steps[steps.findIndex(s => s.id === currentStep) + 1]?.id)}
+          disabled={(() => {
+            const currentIndex = steps.findIndex(s => s.id === currentStep);
+            const targetStepIndex = steps[currentIndex + 1]?.id === 'groups' && selectedLeague?.hasGroups === false ? currentIndex + 2 : currentIndex + 1;
+            return !canAccessStep(steps[targetStepIndex]?.id);
+          })()}
           className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           Next
