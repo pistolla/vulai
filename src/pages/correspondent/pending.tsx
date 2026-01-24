@@ -56,9 +56,9 @@ export default function PendingApprovalPage() {
       });
       // Simulate sending email
       alert(`Consent document signed and sent to ${gmail}`);
-      setSuccess('Consent signed successfully! Your correspondent account is now active.');
-      // Perhaps redirect to dashboard
-      setTimeout(() => router.push('/correspondent'), 2000);
+      setSuccess('Consent signed successfully! Your application is now being reviewed by our team.');
+      // Redirect to wait-approval instead of main dashboard
+      setTimeout(() => router.push('/correspondent/wait-approval'), 2000);
     } catch (err: any) {
       setError('Failed to sign consent: ' + err.message);
     } finally {
@@ -120,10 +120,20 @@ export default function PendingApprovalPage() {
       return;
     }
 
-    if (user.status === 'active') {
+    if (user.status === 'active' || (user.status as any) === true) {
       router.replace('/correspondent');
       return;
     }
+
+    // Check if consent is already signed (fetch from firestore or wait for live prop if available)
+    // For now, let the guard handle the initial entry, but if they get here while signed, push them out
+    const checkStatus = async () => {
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (userDoc.exists() && userDoc.data().consentSigned === true) {
+        router.replace('/correspondent/wait-approval');
+      }
+    };
+    checkStatus();
 
     // If correspondent and pending, show alert
     alert('Your correspondent account is pending verification. Please complete the setup process.');

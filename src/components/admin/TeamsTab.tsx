@@ -226,8 +226,6 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
     });
   };
 
-  // Removed local data fetching useEffect as data is provided via Redux in parent or store
-
   const handleAddTeam = async () => {
     await create({
       name: newTeam.name,
@@ -326,19 +324,19 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
         </div>
 
         {showPlayersModal && selectedTeam && (
-          <div className="bg-gray-50 p-4 rounded-lg mb-6">
+          <div className="bg-gray-50 dark:bg-gray-900 p-2 sm:p-4 rounded-lg mb-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Players for {selectedTeam.name}</h3>
-              <button onClick={() => setShowPlayersModal(false)} className="text-gray-600 hover:text-gray-900">Close</button>
+              <h3 className="text-lg font-semibold dark:text-white">Players for {selectedTeam.name}</h3>
+              <button onClick={() => setShowPlayersModal(false)} className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">Close</button>
             </div>
 
             <div className="mb-4">
               <button onClick={() => setShowAddPlayerModal(true)} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Add New Player</button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+            <div className="overflow-x-auto custom-scrollbar">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-800">
                   <tr>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Name</th>
                     <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Position</th>
@@ -349,7 +347,7 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
                     <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {selectedTeam.players && selectedTeam.players.map((player: any, index: number) => (
                     <tr key={index}>
                       <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">{player.name}</td>
@@ -370,7 +368,7 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
           </div>
         )}
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-2 sm:p-6">
           {teams.length > 0 && <ExportButtons data={exportData} headers={exportHeaders} filename="teams" />}
           {teams.length === 0 ? (
             <div className="text-center py-20">
@@ -378,42 +376,44 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
             </div>
           ) : (
             <>
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Logo</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Sport</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">University</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Coach</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Players</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {paginatedTeams.map((team: any) => (
-                    <tr key={team.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {team.logoURL ? (
-                          <img src={team.logoURL} alt={`${team.name} logo`} className="w-12 h-12 object-cover rounded" />
-                        ) : (
-                          <div className="w-12 h-12 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center text-gray-500 dark:text-gray-400 text-xs">No Logo</div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm font-medium text-gray-900 dark:text-white">{team.name}</div></td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{team.sport}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{universities.find((u: University) => u.id === team.universityId)?.name || 'N/A'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{team.coach}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{team.players?.length || 0} players</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button onClick={() => { setSelectedTeam(team); setShowPlayersModal(true); }} className="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 mr-2">Players</button>
-                        <button onClick={() => { setEditingTeam(team); setShowEditModal(true); }} className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 mr-2">Edit</button>
-                        <button onClick={() => handleDeleteTeam(team.id)} className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">Delete</button>
-                      </td>
+              <div className="overflow-x-auto custom-scrollbar">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Logo</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Sport</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">University</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Coach</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Players</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    {paginatedTeams.map((team: any) => (
+                      <tr key={team.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {team.logoURL ? (
+                            <img src={team.logoURL} alt={`${team.name} logo`} className="w-12 h-12 object-cover rounded" />
+                          ) : (
+                            <div className="w-12 h-12 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center text-gray-500 dark:text-gray-400 text-xs">No Logo</div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm font-medium text-gray-900 dark:text-white">{team.name}</div></td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{team.sport}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{universities.find((u: University) => u.id === team.universityId)?.name || 'N/A'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{team.coach}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{team.players?.length || 0} players</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button onClick={() => { setSelectedTeam(team); setShowPlayersModal(true); }} className="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 mr-2">Players</button>
+                          <button onClick={() => { setEditingTeam(team); setShowEditModal(true); }} className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 mr-2">Edit</button>
+                          <button onClick={() => handleDeleteTeam(team.id)} className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">Delete</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
               <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
             </>
           )}
@@ -421,7 +421,7 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
       </div>
 
       {/* Add Team Modal */}
-      <Modal isOpen={showAddModal} title="Add New Team" onClose={() => { setShowAddModal(false); resetNewTeam(); }}>
+      <Modal isOpen={showAddModal} title="Add New Team" onClose={() => { setShowAddModal(false); resetNewTeam(); }} fullScreen={true}>
         <TeamForm
           formData={newTeam}
           setFormData={setNewTeam}
@@ -432,7 +432,7 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
       </Modal>
 
       {/* Edit Team Modal */}
-      <Modal isOpen={showEditModal && !!editingTeam} title="Edit Team" onClose={() => { setShowEditModal(false); setEditingTeam(null); }}>
+      <Modal isOpen={showEditModal && !!editingTeam} title="Edit Team" onClose={() => { setShowEditModal(false); setEditingTeam(null); }} fullScreen={true}>
         {editingTeam && (
           <TeamForm
             formData={editingTeam}
@@ -445,7 +445,7 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
       </Modal>
 
       {/* Add Player Modal */}
-      <Modal isOpen={showAddPlayerModal} title="Add New Player" onClose={() => { setShowAddPlayerModal(false); resetNewPlayer(); }}>
+      <Modal isOpen={showAddPlayerModal} title="Add New Player" onClose={() => { setShowAddPlayerModal(false); resetNewPlayer(); }} fullScreen={true}>
         <form onSubmit={(e) => { e.preventDefault(); handleAddPlayer(); }} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -557,7 +557,7 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
       </Modal>
 
       {/* Edit Player Modal */}
-      <Modal isOpen={showEditPlayerModal && !!editingPlayer} title="Edit Player" onClose={() => { setShowEditPlayerModal(false); setEditingPlayer(null); }}>
+      <Modal isOpen={showEditPlayerModal && !!editingPlayer} title="Edit Player" onClose={() => { setShowEditPlayerModal(false); setEditingPlayer(null); }} fullScreen={true}>
         {editingPlayer && (
           <form onSubmit={(e) => { e.preventDefault(); handleEditPlayer(); }} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

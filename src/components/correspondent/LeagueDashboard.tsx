@@ -110,7 +110,7 @@ export const LeagueDashboard: React.FC = () => {
   };
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
+    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-2 sm:p-6">
       {/* Step Navigation */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
@@ -119,7 +119,7 @@ export const LeagueDashboard: React.FC = () => {
             Step {steps.findIndex(s => s.id === currentStep) + 1} of {steps.length}
           </div>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-2 sm:space-x-2">
           {steps.map((step, index) => {
             const isActive = step.id === currentStep;
             const isCompleted = steps.findIndex(s => s.id === currentStep) > index;
@@ -130,7 +130,7 @@ export const LeagueDashboard: React.FC = () => {
                 <button
                   onClick={() => isAccessible && setCurrentStep(step.id as any)}
                   disabled={!isAccessible}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${isActive
+                  className={`flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-sm sm:text-base ${isActive
                     ? 'bg-blue-600 text-white shadow-lg'
                     : isCompleted
                       ? 'bg-green-600 text-white'
@@ -140,10 +140,10 @@ export const LeagueDashboard: React.FC = () => {
                     }`}
                 >
                   <span>{step.icon}</span>
-                  <span className="hidden sm:inline">{step.label}</span>
+                  <span className={`${isActive ? 'inline' : 'hidden md:inline'}`}>{step.label}</span>
                 </button>
                 {index < steps.length - 1 && (
-                  <div className={`w-8 h-0.5 ${isCompleted ? 'bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                  <div className={`hidden sm:block w-4 md:w-8 h-0.5 ${isCompleted ? 'bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`} />
                 )}
               </div>
             );

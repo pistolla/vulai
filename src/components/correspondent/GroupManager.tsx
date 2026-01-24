@@ -59,12 +59,12 @@ const SubGroupManager: React.FC<{ league: League; parentGroup: Group }> = ({ lea
 
       {expanded && (
         <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
-          <form onSubmit={addSubGroup} className="flex gap-2">
+          <form onSubmit={addSubGroup} className="flex flex-col sm:flex-row gap-2">
             <input
               value={name}
               onChange={e => setName(e.target.value)}
               placeholder="New Sub-group"
-              className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              className="flex-1 px-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             />
             <button
               type="submit"

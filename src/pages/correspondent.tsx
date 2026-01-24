@@ -130,7 +130,7 @@ export default function CorrespondentDashboardPage() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-500">
         <UserHeader />
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <main className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
             <div data-aos="fade-right">
               <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">Reporter Central</h1>
@@ -145,8 +145,8 @@ export default function CorrespondentDashboardPage() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center space-x-2 px-5 py-3 rounded-[1.5rem] text-sm font-bold transition-all whitespace-nowrap ${activeTab === tab.id
-                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 ring-4 ring-blue-500/10'
-                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-gray-950 dark:hover:text-white'
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 ring-4 ring-blue-500/10'
+                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-gray-950 dark:hover:text-white'
                     }`}
                 >
                   <tab.icon className="w-5 h-5" />
@@ -156,7 +156,7 @@ export default function CorrespondentDashboardPage() {
             </div>
           </div>
 
-          <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-3xl rounded-[3rem] border border-gray-100/50 dark:border-gray-800/50 p-8 shadow-2xl shadow-black/5 min-h-[500px]" data-aos="zoom-in-up">
+          <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-3xl rounded-[3rem] border border-gray-100/50 dark:border-gray-800/50 p-4 sm:p-8 shadow-2xl shadow-black/5 min-h-[500px]" data-aos="zoom-in-up">
             {renderTabContent()}
           </div>
 
@@ -178,9 +178,9 @@ export default function CorrespondentDashboardPage() {
                     <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-gray-100 to-transparent dark:from-gray-700/30 opacity-0 group-hover:opacity-100 transition-opacity rounded-bl-full" />
 
                     <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 group-hover:rotate-6 ${tab.color === 'green' ? 'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400' :
-                        tab.color === 'red' ? 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
-                          tab.color === 'purple' ? 'bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400' :
-                            'bg-yellow-50 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400'
+                      tab.color === 'red' ? 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
+                        tab.color === 'purple' ? 'bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400' :
+                          'bg-yellow-50 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400'
                       }`}>
                       <tab.icon className="w-7 h-7" />
                     </div>

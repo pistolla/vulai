@@ -22,7 +22,9 @@ export const LiveEventPop = ({ externalEvent }: { externalEvent?: any }) => {
                 icon: FiActivity,
                 color: 'text-blue-500'
             });
-            const timer = setTimeout(() => setEvent(null), 5000);
+            const timer = setTimeout(() => {
+                setEvent(null);
+            }, 5000);
             return () => clearTimeout(timer);
         }
     }, [externalEvent]);

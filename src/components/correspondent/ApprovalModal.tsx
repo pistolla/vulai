@@ -35,9 +35,9 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full mx-4">
-        <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-0 sm:p-4">
+      <div className="bg-white dark:bg-gray-800 shadow-xl w-full max-w-2xl flex flex-col min-h-screen sm:min-h-0 sm:max-h-[90vh] sm:rounded-2xl border border-gray-100 dark:border-gray-700">
+        <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>
           <button
             onClick={onClose}
@@ -47,7 +47,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-4 sm:p-6 overflow-y-auto">
           <p className="text-gray-600 dark:text-gray-400 mb-4">{message}</p>
 
           <div className="mb-4">

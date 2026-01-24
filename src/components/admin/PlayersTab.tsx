@@ -4,6 +4,7 @@ import { useAppDispatch } from '@/hooks/redux';
 import { fetchPlayers, fetchUniversities, fetchTeams, createPlayerT, savePlayerT, removePlayerT, addPlayerHighlightT, fetchPlayerAvatars, createPlayerAvatarT, savePlayerAvatarT, removePlayerAvatarT } from '@/store/adminThunk';
 import { RootState } from '@/store';
 import { Player, PlayerSocial } from '@/types';
+import { Modal } from '@/components/common/Modal';
 
 interface PlayerFormData {
   name: string;
@@ -304,8 +305,8 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
       </div>
 
       {/* Responsive Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-2 sm:p-6 overflow-hidden">
+        <div className="overflow-x-auto custom-scrollbar">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
@@ -369,56 +370,48 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
       </div>
 
       {/* Create Player Modal */}
-      {showCreateModal && (
-        <Modal title="Add New Player" onClose={() => { setShowCreateModal(false); resetForm(); }}>
-          <PlayerForm
-            formData={formData}
-            setFormData={setFormData}
-            onSubmit={handleCreatePlayer}
-            submitLabel="Add Player"
-            universities={universities}
-            teams={teams}
-          />
-        </Modal>
-      )}
+      <Modal isOpen={showCreateModal} title="Add New Player" onClose={() => { setShowCreateModal(false); resetForm(); }} fullScreen={true}>
+        <PlayerForm
+          formData={formData}
+          setFormData={setFormData}
+          onSubmit={handleCreatePlayer}
+          submitLabel="Add Player"
+          universities={universities}
+          teams={teams}
+        />
+      </Modal>
 
       {/* Edit Player Modal */}
-      {showEditModal && selectedPlayer && (
-        <Modal title="Edit Player" onClose={() => { setShowEditModal(false); setSelectedPlayer(null); resetForm(); }}>
-          <PlayerForm
-            formData={formData}
-            setFormData={setFormData}
-            onSubmit={handleEditPlayer}
-            submitLabel="Update Player"
-            universities={universities}
-            teams={teams}
-          />
-        </Modal>
-      )}
+      <Modal isOpen={showEditModal && !!selectedPlayer} title="Edit Player" onClose={() => { setShowEditModal(false); setSelectedPlayer(null); resetForm(); }} fullScreen={true}>
+        <PlayerForm
+          formData={formData}
+          setFormData={setFormData}
+          onSubmit={handleEditPlayer}
+          submitLabel="Update Player"
+          universities={universities}
+          teams={teams}
+        />
+      </Modal>
 
       {/* Highlights Modal */}
-      {showHighlightsModal && selectedPlayer && (
-        <Modal title={`Update Highlights - ${selectedPlayer.name}`} onClose={() => { setShowHighlightsModal(false); setSelectedPlayer(null); resetHighlightsForm(); }}>
-          <HighlightsForm
-            highlightsData={highlightsData}
-            setHighlightsData={setHighlightsData}
-            onSubmit={handleUpdateHighlights}
-          />
-        </Modal>
-      )}
+      <Modal isOpen={showHighlightsModal && !!selectedPlayer} title={selectedPlayer ? `Update Highlights - ${selectedPlayer.name}` : "Update Highlights"} onClose={() => { setShowHighlightsModal(false); setSelectedPlayer(null); resetHighlightsForm(); }} fullScreen={true}>
+        <HighlightsForm
+          highlightsData={highlightsData}
+          setHighlightsData={setHighlightsData}
+          onSubmit={handleUpdateHighlights}
+        />
+      </Modal>
 
       {/* Avatar Modal */}
-      {showAvatarModal && selectedPlayer && (
-        <Modal title={`${avatarData.id ? 'Edit' : 'Create'} Avatar - ${selectedPlayer.name}`} onClose={() => { setShowAvatarModal(false); setSelectedPlayer(null); resetAvatarForm(); }}>
-          <AvatarForm
-            avatarData={avatarData}
-            setAvatarData={setAvatarData}
-            onSubmit={avatarData.id ? handleUpdateAvatar : handleCreateAvatar}
-            onDelete={avatarData.id ? () => handleDeleteAvatar(avatarData.id) : undefined}
-            submitLabel={avatarData.id ? 'Update Avatar' : 'Create Avatar'}
-          />
-        </Modal>
-      )}
+      <Modal isOpen={showAvatarModal && !!selectedPlayer} title={selectedPlayer ? `${avatarData.id ? 'Edit' : 'Create'} Avatar - ${selectedPlayer.name}` : "Avatar Management"} onClose={() => { setShowAvatarModal(false); setSelectedPlayer(null); resetAvatarForm(); }} fullScreen={true}>
+        <AvatarForm
+          avatarData={avatarData}
+          setAvatarData={setAvatarData}
+          onSubmit={avatarData.id ? handleUpdateAvatar : handleCreateAvatar}
+          onDelete={avatarData.id ? () => handleDeleteAvatar(avatarData.id) : undefined}
+          submitLabel={avatarData.id ? 'Update Avatar' : 'Create Avatar'}
+        />
+      </Modal>
     </div>
   );
 }
@@ -434,7 +427,7 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
             type="text"
             required
             value={formData.name}
-            onChange={(e) => setFormData({...formData, name: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -444,7 +437,7 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
             type="text"
             required
             value={formData.position}
-            onChange={(e) => setFormData({...formData, position: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, position: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -452,7 +445,7 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Year</label>
           <select
             value={formData.year}
-            onChange={(e) => setFormData({...formData, year: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, year: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           >
             <option value="">Select Year</option>
@@ -467,7 +460,7 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
           <input
             type="text"
             value={formData.number}
-            onChange={(e) => setFormData({...formData, number: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, number: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -476,7 +469,7 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
           <input
             type="text"
             value={formData.height}
-            onChange={(e) => setFormData({...formData, height: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, height: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -485,42 +478,42 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
           <input
             type="text"
             value={formData.weight}
-            onChange={(e) => setFormData({...formData, weight: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
         <div>
-           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Sport</label>
-           <select
-             value={formData.sportId}
-             onChange={(e) => setFormData({...formData, sportId: e.target.value})}
-             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-           >
-             <option value="">Select Sport</option>
-             {/* Assuming sports are available, but for now placeholder */}
-             <option value="football">Football</option>
-             <option value="basketball">Basketball</option>
-           </select>
-         </div>
-         <div>
-           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">University</label>
-           <select
-             value={formData.universityId}
-             onChange={(e) => setFormData({...formData, universityId: e.target.value})}
-             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-           >
-             <option value="">Select University</option>
-             {universities.map((university: any) => (
-               <option key={university.id} value={university.id}>{university.name}</option>
-             ))}
-           </select>
-         </div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Sport</label>
+          <select
+            value={formData.sportId}
+            onChange={(e) => setFormData({ ...formData, sportId: e.target.value })}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          >
+            <option value="">Select Sport</option>
+            {/* Assuming sports are available, but for now placeholder */}
+            <option value="football">Football</option>
+            <option value="basketball">Basketball</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">University</label>
+          <select
+            value={formData.universityId}
+            onChange={(e) => setFormData({ ...formData, universityId: e.target.value })}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          >
+            <option value="">Select University</option>
+            {universities.map((university: any) => (
+              <option key={university.id} value={university.id}>{university.name}</option>
+            ))}
+          </select>
+        </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Avatar</label>
           <input
             type="text"
             value={formData.avatar}
-            onChange={(e) => setFormData({...formData, avatar: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -530,7 +523,7 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
             type="number"
             step="0.1"
             value={formData.bodyFat || ''}
-            onChange={(e) => setFormData({...formData, bodyFat: +e.target.value})}
+            onChange={(e) => setFormData({ ...formData, bodyFat: +e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -538,7 +531,7 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
           <select
             value={formData.status || 'active'}
-            onChange={(e) => setFormData({...formData, status: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           >
             <option value="active">Active</option>
@@ -551,7 +544,7 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
           <input
             type="text"
             value={formData.injuryNote || ''}
-            onChange={(e) => setFormData({...formData, injuryNote: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, injuryNote: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -560,7 +553,7 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
           <input
             type="date"
             value={formData.joinedAt || ''}
-            onChange={(e) => setFormData({...formData, joinedAt: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, joinedAt: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -569,7 +562,7 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
           <input
             type="number"
             value={formData.kitNumber || ''}
-            onChange={(e) => setFormData({...formData, kitNumber: +e.target.value})}
+            onChange={(e) => setFormData({ ...formData, kitNumber: +e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -578,7 +571,7 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
           <textarea
             rows={3}
             value={formData.bio || ''}
-            onChange={(e) => setFormData({...formData, bio: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -587,7 +580,7 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
           <input
             type="text"
             value={formData.socialLinks?.instagram || ''}
-            onChange={(e) => setFormData({...formData, socialLinks: {...formData.socialLinks, instagram: e.target.value}})}
+            onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, instagram: e.target.value } })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -596,7 +589,7 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
           <input
             type="text"
             value={formData.socialLinks?.twitter || ''}
-            onChange={(e) => setFormData({...formData, socialLinks: {...formData.socialLinks, twitter: e.target.value}})}
+            onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, twitter: e.target.value } })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -605,7 +598,7 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
           <input
             type="number"
             value={formData.social?.level || ''}
-            onChange={(e) => setFormData({...formData, social: {...formData.social, level: +e.target.value}})}
+            onChange={(e) => setFormData({ ...formData, social: { ...formData.social, level: +e.target.value } })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -614,7 +607,7 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
           <input
             type="number"
             value={formData.social?.xp || ''}
-            onChange={(e) => setFormData({...formData, social: {...formData.social, xp: +e.target.value}})}
+            onChange={(e) => setFormData({ ...formData, social: { ...formData.social, xp: +e.target.value } })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -623,7 +616,7 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
           <input
             type="number"
             value={formData.social?.nextLevelXp || ''}
-            onChange={(e) => setFormData({...formData, social: {...formData.social, nextLevelXp: +e.target.value}})}
+            onChange={(e) => setFormData({ ...formData, social: { ...formData.social, nextLevelXp: +e.target.value } })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -632,7 +625,7 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
           <input
             type="text"
             value={formData.social?.followers || ''}
-            onChange={(e) => setFormData({...formData, social: {...formData.social, followers: e.target.value}})}
+            onChange={(e) => setFormData({ ...formData, social: { ...formData.social, followers: e.target.value } })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -641,7 +634,7 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
           <textarea
             rows={2}
             value={formData.social?.badges ? formData.social.badges.map((b: { name: string }) => b.name).join(', ') : ''}
-            onChange={(e) => setFormData({...formData, social: {...formData.social, badges: e.target.value.split(',').map(s => ({ id: s.trim(), name: s.trim(), icon: '🏆' }))}})}
+            onChange={(e) => setFormData({ ...formData, social: { ...formData.social, badges: e.target.value.split(',').map(s => ({ id: s.trim(), name: s.trim(), icon: '🏆' })) } })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -650,7 +643,7 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
           <input
             type="number"
             value={formData.stats?.gamesPlayed || ''}
-            onChange={(e) => setFormData({...formData, stats: {...formData.stats, gamesPlayed: +e.target.value}})}
+            onChange={(e) => setFormData({ ...formData, stats: { ...formData.stats, gamesPlayed: +e.target.value } })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -659,7 +652,7 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
           <input
             type="number"
             value={formData.stats?.points || ''}
-            onChange={(e) => setFormData({...formData, stats: {...formData.stats, points: +e.target.value}})}
+            onChange={(e) => setFormData({ ...formData, stats: { ...formData.stats, points: +e.target.value } })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -688,7 +681,7 @@ function HighlightsForm({ highlightsData, setHighlightsData, onSubmit }: any) {
             required
             placeholder="e.g., 2023-2024"
             value={highlightsData.season}
-            onChange={(e) => setHighlightsData({...highlightsData, season: e.target.value})}
+            onChange={(e) => setHighlightsData({ ...highlightsData, season: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -698,7 +691,7 @@ function HighlightsForm({ highlightsData, setHighlightsData, onSubmit }: any) {
             type="number"
             required
             value={highlightsData.age}
-            onChange={(e) => setHighlightsData({...highlightsData, age: e.target.value})}
+            onChange={(e) => setHighlightsData({ ...highlightsData, age: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -710,7 +703,7 @@ function HighlightsForm({ highlightsData, setHighlightsData, onSubmit }: any) {
           type="text"
           placeholder="e.g., Top Scorer, Player of the Month"
           value={highlightsData.achievements}
-          onChange={(e) => setHighlightsData({...highlightsData, achievements: e.target.value})}
+          onChange={(e) => setHighlightsData({ ...highlightsData, achievements: e.target.value })}
           className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
         />
       </div>
@@ -721,7 +714,7 @@ function HighlightsForm({ highlightsData, setHighlightsData, onSubmit }: any) {
           <input
             type="number"
             value={highlightsData.goals}
-            onChange={(e) => setHighlightsData({...highlightsData, goals: e.target.value})}
+            onChange={(e) => setHighlightsData({ ...highlightsData, goals: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -730,7 +723,7 @@ function HighlightsForm({ highlightsData, setHighlightsData, onSubmit }: any) {
           <input
             type="number"
             value={highlightsData.assists}
-            onChange={(e) => setHighlightsData({...highlightsData, assists: e.target.value})}
+            onChange={(e) => setHighlightsData({ ...highlightsData, assists: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -739,7 +732,7 @@ function HighlightsForm({ highlightsData, setHighlightsData, onSubmit }: any) {
           <input
             type="number"
             value={highlightsData.matches}
-            onChange={(e) => setHighlightsData({...highlightsData, matches: e.target.value})}
+            onChange={(e) => setHighlightsData({ ...highlightsData, matches: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -749,7 +742,7 @@ function HighlightsForm({ highlightsData, setHighlightsData, onSubmit }: any) {
             type="number"
             step="0.1"
             value={highlightsData.rating}
-            onChange={(e) => setHighlightsData({...highlightsData, rating: e.target.value})}
+            onChange={(e) => setHighlightsData({ ...highlightsData, rating: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
@@ -761,7 +754,7 @@ function HighlightsForm({ highlightsData, setHighlightsData, onSubmit }: any) {
           rows={4}
           placeholder="Enter key highlights, one per line"
           value={highlightsData.highlights}
-          onChange={(e) => setHighlightsData({...highlightsData, highlights: e.target.value})}
+          onChange={(e) => setHighlightsData({ ...highlightsData, highlights: e.target.value })}
           className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
         />
       </div>
@@ -788,7 +781,7 @@ function AvatarForm({ avatarData, setAvatarData, onSubmit, onDelete, submitLabel
           rows={4}
           placeholder="Paste base64 encoded image"
           value={avatarData.base64Image}
-          onChange={(e) => setAvatarData({...avatarData, base64Image: e.target.value})}
+          onChange={(e) => setAvatarData({ ...avatarData, base64Image: e.target.value })}
           className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
         />
       </div>
@@ -799,7 +792,7 @@ function AvatarForm({ avatarData, setAvatarData, onSubmit, onDelete, submitLabel
           type="text"
           placeholder="URL to full size image"
           value={avatarData.fullSizeImage}
-          onChange={(e) => setAvatarData({...avatarData, fullSizeImage: e.target.value})}
+          onChange={(e) => setAvatarData({ ...avatarData, fullSizeImage: e.target.value })}
           className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
         />
       </div>
@@ -810,7 +803,7 @@ function AvatarForm({ avatarData, setAvatarData, onSubmit, onDelete, submitLabel
           rows={4}
           placeholder="JSON data for 3D assets"
           value={avatarData.threeDAssets}
-          onChange={(e) => setAvatarData({...avatarData, threeDAssets: e.target.value})}
+          onChange={(e) => setAvatarData({ ...avatarData, threeDAssets: e.target.value })}
           className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
         />
       </div>
@@ -821,7 +814,7 @@ function AvatarForm({ avatarData, setAvatarData, onSubmit, onDelete, submitLabel
           rows={4}
           placeholder="JSON data for Three.js movement details"
           value={avatarData.movementDetails}
-          onChange={(e) => setAvatarData({...avatarData, movementDetails: e.target.value})}
+          onChange={(e) => setAvatarData({ ...avatarData, movementDetails: e.target.value })}
           className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
         />
       </div>
@@ -847,25 +840,3 @@ function AvatarForm({ avatarData, setAvatarData, onSubmit, onDelete, submitLabel
   );
 }
 
-// Modal Component
-function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen px-4 modal-backdrop backdrop-blur-md">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-          <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">{title}</h3>
-            <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <div className="p-6">
-            {children}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}

@@ -320,7 +320,7 @@ export default function AdminDashboardPage() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-500">
         <UserHeader />
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
           {/* Notification Overlay */}
           {notification && (
             <div className={`fixed top-20 right-4 z-50 p-4 rounded-xl shadow-2xl transform transition-all animate-in slide-in-from-right duration-300 ${notification.type === 'success'
@@ -357,21 +357,21 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl rounded-[2.5rem] border border-gray-100 dark:border-gray-800 p-8 min-h-[600px] shadow-sm">
+          <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl rounded-[2.5rem] border border-gray-100 dark:border-gray-800 p-4 sm:p-8 min-h-[600px] shadow-sm">
             {renderContent()}
           </div>
         </main>
       </div>
 
-      <Modal isOpen={modals.addUser} title="Add New User" onClose={() => close('addUser')}>
+      <Modal isOpen={modals.addUser} title="Add New User" onClose={() => close('addUser')} fullScreen={true}>
         <AddUserForm close={() => close('addUser')} showNotification={showNotification} universities={universities} dispatch={dispatch} />
       </Modal>
 
-      <Modal isOpen={!!modals.gameDetails} title="Game Details" onClose={() => close('gameDetails')}>
+      <Modal isOpen={!!modals.gameDetails} title="Game Details" onClose={() => close('gameDetails')} fullScreen={true}>
         {modals.gameDetails && <GameDetailsContent data={modals.gameDetails} />}
       </Modal>
 
-      <Modal isOpen={!!modals.profileModal} title="Correspondent Profile" onClose={() => close('profileModal')}>
+      <Modal isOpen={!!modals.profileModal} title="Correspondent Profile" onClose={() => close('profileModal')} fullScreen={true}>
         {modals.profileModal && <ProfileContent data={modals.profileModal} />}
       </Modal>
     </AdminGuard>

@@ -52,7 +52,7 @@ export const UploadTeamVideoTab: React.FC = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl shadow-black/5 border border-gray-100 dark:border-gray-700 p-8">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl shadow-black/5 border border-gray-100 dark:border-gray-700 p-4 sm:p-8">
       <h2 className="text-3xl font-black dark:text-white mb-8">Import Data Files</h2>
 
       <div className="mb-8">
@@ -186,11 +186,10 @@ export const UploadTeamVideoTab: React.FC = () => {
         <button
           type="submit"
           disabled={isSubmitting}
-          className={`w-full px-8 py-4 rounded-xl font-bold shadow-lg transition-all active:scale-95 ${
-            isSubmitting
+          className={`w-full px-8 py-4 rounded-xl font-bold shadow-lg transition-all active:scale-95 ${isSubmitting
               ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed'
               : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/30'
-          }`}
+            }`}
         >
           {isSubmitting ? 'Submitting...' : 'Submit Data Import Request'}
         </button>

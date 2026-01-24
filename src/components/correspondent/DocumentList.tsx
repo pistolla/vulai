@@ -45,12 +45,12 @@ export const DocumentList: React.FC<DocumentListProps> = ({
   const documentTypes: DocumentType[] = ['order', 'invoice', 'stock_record', 'transport_document', 'return_of_goods', 'purchase_order', 'delivery_notes'];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Merchandise Documents</h2>
-          <p className="text-gray-600 dark:text-gray-400">Manage orders, invoices, and records</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Merchandise Documents</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Manage orders, invoices, and records</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {documentTypes.map(type => (

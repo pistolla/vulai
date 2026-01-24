@@ -29,17 +29,17 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
       // Initialize based on type
       switch (type) {
         case 'order':
-           setFormData({
-             customerName: '',
-             customerEmail: '',
-             customerPhone: '',
-             shippingAddress: '',
-             items: [],
-             total: 0,
-             paymentMethod: 'pay_on_delivery',
-             notes: '',
-           } as OrderData);
-           break;
+          setFormData({
+            customerName: '',
+            customerEmail: '',
+            customerPhone: '',
+            shippingAddress: '',
+            items: [],
+            total: 0,
+            paymentMethod: 'pay_on_delivery',
+            notes: '',
+          } as OrderData);
+          break;
         case 'invoice':
           setFormData({
             orderId: '',
@@ -165,15 +165,15 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
     switch (type) {
       case 'order':
         return (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-4 bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl shadow-lg">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Customer Name</label>
                 <input
                   type="text"
                   value={formData.customerName || ''}
                   onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  className="mt-1 block w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm p-2"
                   required
                 />
               </div>
@@ -183,7 +183,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                   type="email"
                   value={formData.customerEmail || ''}
                   onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  className="mt-1 block w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm p-2"
                   required
                 />
               </div>
@@ -193,7 +193,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                   type="tel"
                   value={formData.customerPhone || ''}
                   onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  className="mt-1 block w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm p-2"
                 />
               </div>
               <div>
@@ -201,7 +201,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
                 <textarea
                   value={formData.shippingAddress || ''}
                   onChange={(e) => setFormData({ ...formData, shippingAddress: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  className="mt-1 block w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm p-2"
                   rows={3}
                   required
                 />

@@ -6,28 +6,7 @@ import { addDoc, collection, updateDoc, deleteDoc, doc, getDocs } from 'firebase
 import { loadLiveGames, loadUpcomingGames, addLiveGame, addUpcomingGame, updateLiveGame, updateUpcomingGame, deleteLiveGame, deleteUpcomingGame, syncAdminGameCollections } from '@/services/firestoreAdmin';
 import ExportButtons from './ExportButtons';
 
-// Modal Component
-function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen px-4 bg-black bg-opacity-50 dark:bg-opacity-70">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-          <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">{title}</h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:text-gray-700 dark:hover:text-gray-100">
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <div className="p-6">
-            {children}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+import { Modal } from '@/components/common/Modal';
 
 // Game Form Component
 function GameForm({ formData, setFormData, teams, players, sports, onSubmit, submitLabel, leagues }: any) {
@@ -81,7 +60,7 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Type</label>
           <select
             value={formData.type || 'friendly'}
-            onChange={(e) => setFormData({...formData, type: e.target.value, sport: e.target.value === 'league' ? '' : formData.sport, selectedLeague: '', selectedGroup: '', selectedStage: '', selectedMatch: ''})}
+            onChange={(e) => setFormData({ ...formData, type: e.target.value, sport: e.target.value === 'league' ? '' : formData.sport, selectedLeague: '', selectedGroup: '', selectedStage: '', selectedMatch: '' })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           >
             <option value="friendly">Friendly</option>
@@ -94,7 +73,7 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Sport</label>
               <select
                 value={formData.sport}
-                onChange={(e) => setFormData({...formData, sport: e.target.value, selectedLeague: '', selectedGroup: '', selectedStage: '', selectedMatch: ''})}
+                onChange={(e) => setFormData({ ...formData, sport: e.target.value, selectedLeague: '', selectedGroup: '', selectedStage: '', selectedMatch: '' })}
                 className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="">Select Sport</option>
@@ -109,7 +88,7 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">League</label>
               <select
                 value={formData.selectedLeague}
-                onChange={(e) => setFormData({...formData, selectedLeague: e.target.value, selectedGroup: '', selectedStage: '', selectedMatch: ''})}
+                onChange={(e) => setFormData({ ...formData, selectedLeague: e.target.value, selectedGroup: '', selectedStage: '', selectedMatch: '' })}
                 className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="">Select League</option>
@@ -122,7 +101,7 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Group</label>
               <select
                 value={formData.selectedGroup}
-                onChange={(e) => setFormData({...formData, selectedGroup: e.target.value, selectedStage: '', selectedMatch: ''})}
+                onChange={(e) => setFormData({ ...formData, selectedGroup: e.target.value, selectedStage: '', selectedMatch: '' })}
                 className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="">Select Group</option>
@@ -135,7 +114,7 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Stage</label>
               <select
                 value={formData.selectedStage}
-                onChange={(e) => setFormData({...formData, selectedStage: e.target.value, selectedMatch: ''})}
+                onChange={(e) => setFormData({ ...formData, selectedStage: e.target.value, selectedMatch: '' })}
                 className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="">Select Stage</option>
@@ -148,7 +127,7 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Match</label>
               <select
                 value={formData.selectedMatch}
-                onChange={(e) => setFormData({...formData, selectedMatch: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, selectedMatch: e.target.value })}
                 className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="">Select Match</option>
@@ -163,7 +142,7 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Sport</label>
             <select
               value={formData.sport}
-              onChange={(e) => setFormData({...formData, sport: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, sport: e.target.value })}
               className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
               <option value="football">Football</option>
@@ -180,7 +159,7 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
             type="text"
             required
             value={formData.homeTeam}
-            onChange={(e) => setFormData({...formData, homeTeam: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, homeTeam: e.target.value })}
             list="participants-list"
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             placeholder="Type or select home team"
@@ -192,24 +171,24 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
             type="text"
             required
             value={formData.awayTeam}
-            onChange={(e) => setFormData({...formData, awayTeam: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, awayTeam: e.target.value })}
             list="participants-list"
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             placeholder="Type or select away team"
           />
         </div>
         <datalist id="participants-list">
-           {participants.map((p: any) => (
-             <option key={p.id} value={p.name || `${p.firstName} ${p.lastName}`} />
-           ))}
-         </datalist>
+          {participants.map((p: any) => (
+            <option key={p.id} value={p.name || `${p.firstName} ${p.lastName}`} />
+          ))}
+        </datalist>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Date</label>
           <input
             type="date"
             required
             value={formData.date}
-            onChange={(e) => setFormData({...formData, date: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         </div>
@@ -219,7 +198,7 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
             type="time"
             required
             value={formData.time}
-            onChange={(e) => setFormData({...formData, time: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, time: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         </div>
@@ -229,7 +208,7 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
             type="text"
             required
             value={formData.venue}
-            onChange={(e) => setFormData({...formData, venue: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         </div>
@@ -630,15 +609,15 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
   // Filter games based on search and filters
   const filteredLive = live.filter((game: any) =>
     ((game.homeTeamName || game.homeTeam || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (game.awayTeamName || game.awayTeam || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (game.sport || '').toLowerCase().includes(searchQuery.toLowerCase())) &&
+      (game.awayTeamName || game.awayTeam || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (game.sport || '').toLowerCase().includes(searchQuery.toLowerCase())) &&
     (!sportFilter || game.sport === sportFilter) &&
     (!statusFilter || game.status === statusFilter)
   );
   const filteredUpcoming = upcoming.filter((game: any) =>
     ((game.homeTeamName || game.homeTeam || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (game.awayTeamName || game.awayTeam || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (game.sport || '').toLowerCase().includes(searchQuery.toLowerCase())) &&
+      (game.awayTeamName || game.awayTeam || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (game.sport || '').toLowerCase().includes(searchQuery.toLowerCase())) &&
     (!sportFilter || game.sport === sportFilter) &&
     (!statusFilter || game.status === statusFilter)
   );
@@ -721,7 +700,7 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
 
       {/* Add Game Modal */}
       {showAddModal && (
-        <Modal title="Add New Game" onClose={() => { setShowAddModal(false); resetNewGame(); }}>
+        <Modal isOpen={showAddModal} title="Add New Game" onClose={() => { setShowAddModal(false); resetNewGame(); }} fullScreen={true}>
           <GameForm
             formData={newGame}
             setFormData={setNewGame}
@@ -737,7 +716,7 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
 
       {/* Edit Game Modal */}
       {showEditModal && editingGame && (
-        <Modal title="Edit Game" onClose={() => { setShowEditModal(false); setEditingGame(null); }}>
+        <Modal isOpen={showEditModal} title="Edit Game" onClose={() => { setShowEditModal(false); setEditingGame(null); }} fullScreen={true}>
           <GameForm
             formData={editingGame}
             setFormData={setEditingGame}
@@ -753,13 +732,13 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
 
       {/* Prediction Modal */}
       {showPredictionModal && selectedGame && (
-        <Modal title="Game Predictions & Ranking" onClose={() => { setShowPredictionModal(false); setSelectedGame(null); }}>
+        <Modal isOpen={showPredictionModal} title="Game Predictions & Ranking" onClose={() => { setShowPredictionModal(false); setSelectedGame(null); }} fullScreen={true}>
           <PredictionForm game={selectedGame} onSave={handleSavePredictions} />
         </Modal>
       )}
       {allGames.length > 0 && <ExportButtons data={exportData} headers={exportHeaders} filename="games" />}
       <div className="space-y-6">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-2 sm:p-6">
           <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Live Games</h3>
           {isLoading ? (
             <div className="animate-pulse">
@@ -767,7 +746,7 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
               <div className="h-4 bg-gray-200 rounded w-3/4"></div>
             </div>
           ) : hasLiveGames ? (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto custom-scrollbar">
               <table className="min-w-full table-auto">
                 <thead>
                   <tr className="bg-gray-50 dark:bg-gray-700">
@@ -827,7 +806,7 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
               <div className="h-4 bg-gray-200 rounded w-3/4"></div>
             </div>
           ) : hasUpcomingGames ? (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto custom-scrollbar">
               <table className="min-w-full table-auto">
                 <thead>
                   <tr className="bg-gray-50 dark:bg-gray-700">

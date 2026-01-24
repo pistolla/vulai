@@ -6,16 +6,29 @@ interface GameTickerProps {
 
 export const GameTicker: React.FC<GameTickerProps> = ({ matches }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [isVisible, setIsVisible] = useState(true);
 
     useEffect(() => {
-        if (matches.length <= 1) return;
+        if (!matches || matches.length === 0) return;
+
+        setIsVisible(true);
+        const hideTimer = setTimeout(() => {
+            setIsVisible(false);
+        }, 10000); // Hide after 10 seconds
+
+        if (matches.length <= 1) return () => clearTimeout(hideTimer);
+
         const interval = setInterval(() => {
             setCurrentIndex((prev) => (prev + 1) % matches.length);
         }, 5000); // Rotate every 5 seconds
-        return () => clearInterval(interval);
+
+        return () => {
+            clearInterval(interval);
+            clearTimeout(hideTimer);
+        };
     }, [matches]);
 
-    if (!matches || matches.length === 0) return null;
+    if (!matches || matches.length === 0 || !isVisible) return null;
 
     const match = matches[currentIndex];
 

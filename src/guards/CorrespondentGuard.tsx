@@ -4,7 +4,7 @@ import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { auth, db } from '@/services/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { setUser } from '@/store/slices/authSlice';
 
 interface Props {
@@ -19,58 +19,59 @@ export default function CorrespondentGuard({ children }: Props) {
   const [hasChecked, setHasChecked] = useState(false);
 
   useEffect(() => {
-    if (hasChecked) return;
+    // Check if Firebase auth is still valid
+    const currentUser = auth.currentUser;
+    if (!currentUser && status !== 'loading') {
+      router.replace('/login');
+      return;
+    }
 
-    const checkAuth = async () => {
-      try {
-        // Check if Firebase auth is still valid
-        const currentUser = auth.currentUser;
-        if (!currentUser) {
-          router.replace('/login');
-          return;
-        }
+    if (!user || status === 'loading') return;
 
-        // Check cached user from Redux
-        if (status === 'loading') return;
+    if (user.role !== 'correspondent') {
+      router.replace('/403');
+      return;
+    }
 
-        if (!user) {
-          router.replace('/login');
-          return;
-        }
+    // Real-time listener for user status changes
+    const unsub = onSnapshot(doc(db, 'users', user.uid), (userDoc: any) => {
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const isActive = userData.status === true || userData.status === 'active';
+        const consentSigned = userData.consentSigned === true;
 
-        if (user.role !== 'correspondent') {
-          router.replace('/403'); // or any "access denied" page you have
-          return;
-        }
-
-        // Fetch user status from Firestore
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          const userStatus = userData.status === true ? 'active' : 'pending';
-
-          if (userStatus !== 'active') {
-            router.replace('/correspondent/pending');
-            setHasChecked(true);
-            return;
+        if (!isActive) {
+          if (consentSigned) {
+            if (router.pathname !== '/correspondent/wait-approval') {
+              router.replace('/correspondent/wait-approval');
+            }
+          } else {
+            if (router.pathname !== '/correspondent/pending') {
+              router.replace('/correspondent/pending');
+            }
           }
         } else {
-          // User not in Firestore, assume pending
-          router.replace('/correspondent/pending');
-          setHasChecked(true);
-          return;
+          // User is active! 
+          // If they were on a pending/wait page, bring them to dashboard
+          if (router.pathname === '/correspondent/pending' || router.pathname === '/correspondent/wait-approval') {
+            router.replace('/correspondent');
+          }
+          setIsChecking(false);
         }
-
-        setIsChecking(false);
-        setHasChecked(true);
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        router.replace('/login');
+      } else {
+        // User not in Firestore, assume pending
+        if (router.pathname !== '/correspondent/pending') {
+          router.replace('/correspondent/pending');
+        }
       }
-    };
+      setHasChecked(true);
+    }, (error: any) => {
+      console.error('Auth snapshot failed:', error);
+      router.replace('/login');
+    });
 
-    checkAuth();
-  }, [user, status, router, dispatch, hasChecked]);
+    return () => unsub();
+  }, [user, status, router, hasChecked]);
 
   // Show loading while checking authentication
   if (isChecking || status === 'loading') {

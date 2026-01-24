@@ -5,7 +5,7 @@ import { db } from '@/services/firebase';
 
 export const ProfileTab: React.FC = () => {
   const user = useAppSelector(s => s.auth.user);
-  
+
   // Initialize profile with user data or defaults
   const [profile, setProfile] = useState({
     firstName: user?.displayName?.split(' ')[0] || 'John',
@@ -62,7 +62,7 @@ export const ProfileTab: React.FC = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-8">
       <h2 className="text-2xl font-semibold mb-6 dark:text-white">Profile Management</h2>
 
       {/* Avatar Upload Section */}

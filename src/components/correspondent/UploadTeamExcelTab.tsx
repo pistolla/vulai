@@ -12,7 +12,7 @@ export const UploadTeamExcelTab: React.FC = () => {
   const onExcelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     if (user?.teamId) {
       dispatch(uploadAthleteCsv({ teamId: user.teamId, file }));
     } else {
@@ -28,7 +28,7 @@ export const UploadTeamExcelTab: React.FC = () => {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const files = e.dataTransfer.files;
     if (files.length > 0) {
       const file = files[0];
@@ -45,7 +45,7 @@ export const UploadTeamExcelTab: React.FC = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl shadow-black/5 border border-gray-100 dark:border-gray-700 p-8">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl shadow-black/5 border border-gray-100 dark:border-gray-700 p-4 sm:p-8">
       <h2 className="text-3xl font-black dark:text-white mb-8">Upload Team Roster</h2>
 
       <div className="mb-8">

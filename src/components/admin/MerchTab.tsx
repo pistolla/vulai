@@ -3,35 +3,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchMerch, fetchUniversities, fetchTeams, createMerchT, saveMerchT, removeMerchT } from '@/store/adminThunk';
 import { RootState } from '@/store';
 
-// Modal Component
-function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen px-4 bg-black bg-opacity-50 dark:bg-opacity-70 backdrop-blur-md">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-          <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">{title}</h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:text-gray-700 dark:hover:text-gray-100">
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <div className="p-6">
-            {children}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+import { Modal } from '@/components/common/Modal';
 
 // Merchandise Form Component
 function MerchandiseForm({ formData, setFormData, universities, teams, selectedUniversity, setSelectedUniversity, selectedTeam, setSelectedTeam, onSubmit, submitLabel }: any) {
   const filteredTeams = teams.filter((team: any) => !selectedUniversity || team.university === selectedUniversity);
 
   const handleTypeChange = (type: string) => {
-    setFormData({...formData, type, team: type === 'unil' ? '' : formData.team});
+    setFormData({ ...formData, type, team: type === 'unil' ? '' : formData.team });
     if (type === 'unil') {
       setSelectedTeam('');
     }
@@ -39,13 +18,13 @@ function MerchandiseForm({ formData, setFormData, universities, teams, selectedU
 
   const handleUniversityChange = (universityId: string) => {
     setSelectedUniversity(universityId);
-    setFormData({...formData, university: universityId, team: ''});
+    setFormData({ ...formData, university: universityId, team: '' });
     setSelectedTeam('');
   };
 
   const handleTeamChange = (teamId: string) => {
     setSelectedTeam(teamId);
-    setFormData({...formData, team: teamId});
+    setFormData({ ...formData, team: teamId });
   };
 
   return (
@@ -68,7 +47,7 @@ function MerchandiseForm({ formData, setFormData, universities, teams, selectedU
             type="text"
             required
             value={formData.name}
-            onChange={(e) => setFormData({...formData, name: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         </div>
@@ -78,7 +57,7 @@ function MerchandiseForm({ formData, setFormData, universities, teams, selectedU
             type="number"
             required
             value={formData.price}
-            onChange={(e) => setFormData({...formData, price: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         </div>
@@ -88,7 +67,7 @@ function MerchandiseForm({ formData, setFormData, universities, teams, selectedU
             type="text"
             required
             value={formData.description}
-            onChange={(e) => setFormData({...formData, description: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         </div>
@@ -97,7 +76,7 @@ function MerchandiseForm({ formData, setFormData, universities, teams, selectedU
           <input
             type="text"
             value={formData.image}
-            onChange={(e) => setFormData({...formData, image: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, image: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         </div>
@@ -106,7 +85,7 @@ function MerchandiseForm({ formData, setFormData, universities, teams, selectedU
           <textarea
             rows={3}
             value={formData.images ? formData.images.join(', ') : ''}
-            onChange={(e) => setFormData({...formData, images: e.target.value.split(',').map(s => s.trim()).filter(s => s)})}
+            onChange={(e) => setFormData({ ...formData, images: e.target.value.split(',').map(s => s.trim()).filter(s => s) })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         </div>
@@ -115,7 +94,7 @@ function MerchandiseForm({ formData, setFormData, universities, teams, selectedU
           <input
             type="text"
             value={formData.category}
-            onChange={(e) => setFormData({...formData, category: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         </div>
@@ -124,7 +103,7 @@ function MerchandiseForm({ formData, setFormData, universities, teams, selectedU
           <input
             type="text"
             value={formData.catalog}
-            onChange={(e) => setFormData({...formData, catalog: e.target.value})}
+            onChange={(e) => setFormData({ ...formData, catalog: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         </div>
@@ -253,13 +232,13 @@ export default function MerchTab({ adminData }: any) {
 
   const handleUniversityChange = (universityId: string) => {
     setSelectedUniversity(universityId);
-    setNewItem({...newItem, university: universityId, team: ''});
+    setNewItem({ ...newItem, university: universityId, team: '' });
     setSelectedTeam('');
   };
 
   const handleTeamChange = (teamId: string) => {
     setSelectedTeam(teamId);
-    setNewItem({...newItem, team: teamId});
+    setNewItem({ ...newItem, team: teamId });
   };
 
   const handleEditMerch = async () => {
@@ -282,34 +261,34 @@ export default function MerchTab({ adminData }: any) {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {isLoading ? (
-          <>
-            <ShimmerCard />
-            <ShimmerCard />
-            <ShimmerCard />
-            <ShimmerCard />
-            <ShimmerCard />
-            <ShimmerCard />
-          </>
-        ) : hasItems ? displayItems.map((m: any) => (
-          <div key={m.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 flex flex-col items-center text-center">
-            <img src={m.image} alt={m.name} className="rounded-lg mb-4" />
-            <div className="mb-2"><span className={`px-2 py-1 rounded-full text-xs font-medium ${m.type === 'unil' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'}`}>{m.type === 'unil' ? 'Unil' : 'Team'}</span></div>
-            <h3 className="font-bold text-lg text-gray-900 dark:text-white">{m.name}</h3><p className="text-sm text-gray-600 dark:text-gray-400">{m.description}</p>
-            <div className="flex items-center space-x-2 mt-2"><span className="text-2xl font-bold text-green-600 dark:text-green-400">KSh {m.price}</span></div>
-            <div className="flex space-x-2 mt-4"><button onClick={() => { setEditingItem(m); setShowEditModal(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">Edit</button><button onClick={() => dispatch(removeMerchT(m.id) as any)} className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm">Delete</button></div>
-          </div>
-        )) : (
-          <div className="col-span-full text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400">No merchandise found</p>
-          </div>
-        )}
+          {isLoading ? (
+            <>
+              <ShimmerCard />
+              <ShimmerCard />
+              <ShimmerCard />
+              <ShimmerCard />
+              <ShimmerCard />
+              <ShimmerCard />
+            </>
+          ) : hasItems ? displayItems.map((m: any) => (
+            <div key={m.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 flex flex-col items-center text-center">
+              <img src={m.image} alt={m.name} className="rounded-lg mb-4" />
+              <div className="mb-2"><span className={`px-2 py-1 rounded-full text-xs font-medium ${m.type === 'unil' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'}`}>{m.type === 'unil' ? 'Unil' : 'Team'}</span></div>
+              <h3 className="font-bold text-lg text-gray-900 dark:text-white">{m.name}</h3><p className="text-sm text-gray-600 dark:text-gray-400">{m.description}</p>
+              <div className="flex items-center space-x-2 mt-2"><span className="text-2xl font-bold text-green-600 dark:text-green-400">KSh {m.price}</span></div>
+              <div className="flex space-x-2 mt-4"><button onClick={() => { setEditingItem(m); setShowEditModal(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">Edit</button><button onClick={() => dispatch(removeMerchT(m.id) as any)} className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm">Delete</button></div>
+            </div>
+          )) : (
+            <div className="col-span-full text-center py-12">
+              <p className="text-gray-500 dark:text-gray-400">No merchandise found</p>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
 
-    {/* Add Merchandise Modal */}
-    {showAddModal && (
-      <Modal title="Add New Merchandise" onClose={() => { setShowAddModal(false); resetNewItem(); }}>
+      {/* Add Merchandise Modal */}
+      {showAddModal && (
+        <Modal isOpen={showAddModal} title="Add New Merchandise" onClose={() => { setShowAddModal(false); resetNewItem(); }} fullScreen={true}>
           <MerchandiseForm
             formData={newItem}
             setFormData={setNewItem}
@@ -322,26 +301,26 @@ export default function MerchTab({ adminData }: any) {
             onSubmit={handleAddMerch}
             submitLabel="Add Merchandise"
           />
-      </Modal>
-    )}
+        </Modal>
+      )}
 
-    {/* Edit Merchandise Modal */}
-    {showEditModal && editingItem && (
-      <Modal title="Edit Merchandise" onClose={() => { setShowEditModal(false); setEditingItem(null); }}>
+      {/* Edit Merchandise Modal */}
+      {showEditModal && editingItem && (
+        <Modal isOpen={showEditModal} title="Edit Merchandise" onClose={() => { setShowEditModal(false); setEditingItem(null); }} fullScreen={true}>
           <MerchandiseForm
-            formData={{...editingItem, images: editingItem.images || []}}
+            formData={{ ...editingItem, images: editingItem.images || [] }}
             setFormData={setEditingItem}
             universities={universities}
             teams={teams}
             selectedUniversity={editingItem.university || ''}
-            setSelectedUniversity={() => {}}
+            setSelectedUniversity={() => { }}
             selectedTeam={editingItem.team || ''}
-            setSelectedTeam={() => {}}
+            setSelectedTeam={() => { }}
             onSubmit={handleEditMerch}
             submitLabel="Update Merchandise"
           />
-      </Modal>
-    )}
-  </>
+        </Modal>
+      )}
+    </>
   );
 }

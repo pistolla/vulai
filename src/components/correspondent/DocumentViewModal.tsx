@@ -569,8 +569,8 @@ export const DocumentViewModal: React.FC<DocumentViewModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-0 sm:p-4">
+      <div className="bg-white dark:bg-gray-800 shadow-lg p-4 sm:p-6 w-full max-w-5xl flex flex-col min-h-screen sm:min-h-0 sm:max-h-[90vh] sm:rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-bold text-gray-900 dark:text-white">
             View {document.type.replace('_', ' ')}

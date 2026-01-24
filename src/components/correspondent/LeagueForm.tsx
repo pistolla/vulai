@@ -57,32 +57,34 @@ export const LeagueForm: React.FC<{ onCreate?: (l: League) => void }> = ({ onCre
     <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl shadow-black/5 border border-gray-100 dark:border-gray-700">
       <h3 className="text-xl font-black dark:text-white mb-4">Create League</h3>
       <form onSubmit={submit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">League Name</label>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Enter league name"
-            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-            disabled={creating}
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sport</label>
-          <select
-            value={selectedSportId}
-            onChange={handleSportChange}
-            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 dark:text-white"
-            disabled={creating}
-          >
-            <option value="">Select a Sport</option>
-            {sports.map(sport => (
-              <option key={sport.id} value={sport.id}>{sport.name} ({sport.category})</option>
-            ))}
-          </select>
-          <div className="mt-1 text-xs text-gray-400 dark:text-gray-500 pl-1">
-            Type: {sportType === 'team' ? 'Team Sport' : 'Individual Sport'}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">League Name</label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter league name"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              disabled={creating}
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sport</label>
+            <select
+              value={selectedSportId}
+              onChange={handleSportChange}
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 text-gray-900 dark:text-white"
+              disabled={creating}
+            >
+              <option value="">Select a Sport</option>
+              {sports.map(sport => (
+                <option key={sport.id} value={sport.id}>{sport.name} ({sport.category})</option>
+              ))}
+            </select>
+            <div className="mt-1 text-xs text-gray-400 dark:text-gray-500 pl-1">
+              Type: {sportType === 'team' ? 'Team Sport' : 'Individual Sport'}
+            </div>
           </div>
         </div>
         <div>
