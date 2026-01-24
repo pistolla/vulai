@@ -135,8 +135,8 @@ export const createStage = createAsyncThunk(
 
 export const createMatch = createAsyncThunk(
   'matches/create',
-  async ({ leagueId, groupId, stageId, match }: { leagueId: string; groupId: string; stageId: string; match: Omit<Match, 'id'> }) => {
-    const id = await firebaseLeagueService.createMatch(leagueId, groupId, stageId, match);
+  async ({ leagueId, groupId, stageId, match, seasonName }: { leagueId: string; groupId: string; stageId: string; match: Omit<Match, 'id'>, seasonName?: string }) => {
+    const id = await firebaseLeagueService.createMatch(leagueId, groupId, stageId, match, seasonName);
     return { leagueId, groupId, stageId, id, ...match } as any;
   },
 );

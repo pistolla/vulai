@@ -9,6 +9,8 @@ import {
   doc,
   collection,
   addDoc,
+  query,
+  collectionGroup
 } from "firebase/firestore";
 
 export interface HomeData {
@@ -65,7 +67,7 @@ export interface AdminData {
 
 
 export class ApiService {
- 
+
   private async fetchWithFallback<T>(endpoint: string, fallbackPath: string): Promise<T> {
     try {
       // Try Firebase first with timeout
@@ -149,8 +151,20 @@ export class ApiService {
       }
 
       case "/api/fixtures": {
-        const snap = await getDocs(collection(db, "fixture"));
-        result = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        // Query across all seasonal subcollections: fixtures/{seasonName}/matches
+        // To avoid conflicts with league matches, we look for matches that are children of 'fixtures'
+        // For now, we fetch all and filter or rely on the fact that public root fixtures are what we want.
+        const snap = await getDocs(collection(db, "fixtures"));
+        // This only gets legacy flat fixtures. 
+        // We also need seasonal ones.
+        const seasonalSnap = await getDocs(query(collectionGroup(db, 'matches')));
+
+        const legacy = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const seasonal = seasonalSnap.docs
+          .filter(d => d.ref.path.startsWith('fixtures/'))
+          .map(d => ({ id: d.id, ...d.data() }));
+
+        result = [...legacy, ...seasonal];
         break;
       }
 

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
-import { League, Group, Stage, Participant, Match } from '@/models';
+import { League, Group, Stage, Participant, Match, Season, Sport } from '@/models';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { createMatch, createStage, createGroup } from '@/store/correspondentThunk';
 import { setMatches, setStages, setGroups } from '@/store/slices/correspondentSlice';
 import { firebaseLeagueService } from '@/services/firebaseCorrespondence';
 import { toISO } from '@/utils/csvHelpers';
+import { apiService } from '@/services/apiService';
 
 interface QuickFixtureModalProps {
     isOpen: boolean;
@@ -19,6 +20,8 @@ export const QuickFixtureModal: React.FC<QuickFixtureModalProps> = ({ isOpen, on
     const [date, setDate] = useState(toISO());
     const [venue, setVenue] = useState('');
     const [stageName, setStageName] = useState('Regular Season');
+    const [seasons, setSeasons] = useState<Season[]>([]);
+    const [selectedSeasonId, setSelectedSeasonId] = useState<string>('');
     const [participants, setParticipants] = useState<Participant[]>([
         { refType: 'team', refId: 'Team A', name: 'Team A', score: 0 },
         { refType: 'team', refId: 'Team B', name: 'Team B', score: 0 }
@@ -68,10 +71,12 @@ export const QuickFixtureModal: React.FC<QuickFixtureModalProps> = ({ isOpen, on
                 date,
                 venue,
                 status: 'pending',
-                participants
+                participants,
+                seasonId: selectedSeasonId
             };
 
-            await dispatch(createMatch({ leagueId: league.id!, groupId, stageId, match }));
+            const seasonName = seasons.find(s => s.id === selectedSeasonId)?.name;
+            await dispatch(createMatch({ leagueId: league.id!, groupId, stageId, match, seasonName }));
 
             // Refresh matches
             const updatedMatches = await firebaseLeagueService.listMatches(league.id!, groupId, stageId);
@@ -115,6 +120,20 @@ export const QuickFixtureModal: React.FC<QuickFixtureModalProps> = ({ isOpen, on
                             className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 dark:text-white font-bold"
                             placeholder="Stadium name"
                         />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Season</label>
+                        <select
+                            value={selectedSeasonId}
+                            onChange={e => setSelectedSeasonId(e.target.value)}
+                            className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 dark:text-white font-bold"
+                            required
+                        >
+                            <option value="" disabled>Select Season</option>
+                            {seasons.map(s => (
+                                <option key={s.id} value={s.id}>{s.name}</option>
+                            ))}
+                        </select>
                     </div>
                     <div className="sm:col-span-2">
                         <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Date & Time</label>

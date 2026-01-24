@@ -60,6 +60,7 @@ export interface Fixture {
   matchId?: string; // for league fixtures, links to Match
   blogContent?: string;
   approved?: boolean;
+  seasonId?: string; // Links to Season 
 }
 
 export interface News {
@@ -179,6 +180,7 @@ export interface Match {
   players?: MatchPlayer[]; // Players participating in the match
   winnerId?: string | null;
   blogContent?: string;
+  seasonId?: string; // For season-based league matches
   createdAt?: any;
   updatedAt?: any;
 }
@@ -222,6 +224,15 @@ export interface PlayerAvatar {
   movementDetails: string; // JSON for Three.js movement data
 }
 
+export interface Season {
+  id: string;
+  name: string; // e.g. "2023/2024", "Season 1"
+  description?: string;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+}
+
 export interface Sport {
   id: string;
   name: string;
@@ -230,7 +241,8 @@ export interface Sport {
   image: string;
   base64Image?: string;
   players: number;
-  season: string;
+  season?: string; // Legacy field
+  seasons?: Season[]; // To be populated if needed
   positions: string[];
   stats?: {
     wins: number;

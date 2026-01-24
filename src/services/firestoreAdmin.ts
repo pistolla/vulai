@@ -1,9 +1,9 @@
 import { db } from './firebase';
 import {
   collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc,
-  query, where, serverTimestamp, Timestamp
+  query, where, serverTimestamp, Timestamp, collectionGroup, QueryDocumentSnapshot, DocumentData
 } from 'firebase/firestore';
-import { University, Team, Fixture, PlayerAvatar, Sport, ImportedData } from '@/models';
+import { University, Team, Fixture, PlayerAvatar, Sport, ImportedData, Season } from '@/models';
 import { AdminUserRow } from '@/store/slices/usersSlice';
 import { MerchItem } from '@/store/slices/merchSlice';
 import { ReviewRow } from '@/store/slices/reviewSlice';
@@ -19,13 +19,13 @@ export const loadAdminDashboard = async () => {
     getDocs(query(collection(db, 'reviews'), where('status', '==', 'pending'))),
   ]);
   return {
-    universities: uniSnap.docs.map(d => ({ id: d.id, ...d.data() } as University)),
-    teams: teamSnap.docs.map(d => ({ id: d.id, ...d.data() } as Team)),
-    fixtures: fixSnap.docs.map(d => ({ id: d.id, ...d.data() } as Fixture)),
+    universities: uniSnap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as University)),
+    teams: teamSnap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as Team)),
+    fixtures: fixSnap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as Fixture)),
     stats: {
       users: userSnap.size,
-      liveGames: fixSnap.docs.filter(d => d.data().status === 'live').length,
-      merchSales: merchSnap.docs.filter(d => (d.data().sold || 0) > 0).length,
+      liveGames: fixSnap.docs.filter((d: QueryDocumentSnapshot<DocumentData>) => d.data().status === 'live').length,
+      merchSales: merchSnap.docs.filter((d: QueryDocumentSnapshot<DocumentData>) => (d.data().sold || 0) > 0).length,
       pendingReviews: reviewSnap.size,
     },
   };
@@ -34,7 +34,7 @@ export const loadAdminDashboard = async () => {
 /* ---------- users ---------- */
 export const loadUsers = async (): Promise<AdminUserRow[]> => {
   const snap = await getDocs(collection(db, 'users'));
-  return snap.docs.map(d => {
+  return snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => {
     const data = d.data();
     return {
       uid: d.id,
@@ -66,7 +66,7 @@ export const deleteUserDoc = async (uid: string) => {
 /* ---------- merchandise ---------- */
 export const loadMerch = async (): Promise<MerchItem[]> => {
   const snap = await getDocs(collection(db, 'merchandise'));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() } as MerchItem));
+  return snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as MerchItem));
 };
 
 export const addMerch = async (item: Omit<MerchItem, 'id'>) =>
@@ -81,7 +81,7 @@ export const deleteMerch = async (id: string) =>
 /* ---------- reviews ---------- */
 export const loadReviews = async (): Promise<ReviewRow[]> => {
   const snap = await getDocs(query(collection(db, 'reviews'), where('status', '==', 'pending')));
-  return snap.docs.map(d => {
+  return snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => {
     const data = d.data();
     return {
       id: d.id,
@@ -102,7 +102,7 @@ export const rejectReview = async (id: string) =>
 /* ---------- universities ---------- */
 export const loadUniversities = async (): Promise<University[]> => {
   const snap = await getDocs(collection(db, 'universities'));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() } as University));
+  return snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as University));
 };
 
 export const addUniversity = async (uni: Omit<University, 'id'> & { logoURL?: string }) =>
@@ -117,7 +117,7 @@ export const deleteUniversity = async (id: string) =>
 /* ---------- teams ---------- */
 export const loadTeams = async (): Promise<Team[]> => {
   const snap = await getDocs(collection(db, 'teams'));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() } as Team));
+  return snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as Team));
 };
 
 export const addTeam = async (team: Omit<Team, 'id'> & { logoURL?: string }) =>
@@ -164,7 +164,7 @@ export const deletePlayerFromTeam = async (teamId: string, playerId: string) => 
 /* ---------- players ---------- */
 export const loadPlayers = async (): Promise<any[]> => {
   const snap = await getDocs(collection(db, 'players'));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() }));
 };
 
 export const addPlayer = async (player: any) => {
@@ -217,7 +217,7 @@ export const deletePlayerHighlight = async (playerId: string, highlightId: strin
 /* ---------- player avatars ---------- */
 export const loadPlayerAvatars = async (): Promise<PlayerAvatar[]> => {
   const snap = await getDocs(collection(db, 'playerAvatars'));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() } as PlayerAvatar));
+  return snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as PlayerAvatar));
 };
 
 export const addPlayerAvatar = async (avatar: Omit<PlayerAvatar, 'id'>) =>
@@ -232,7 +232,7 @@ export const deletePlayerAvatar = async (id: string) =>
 /* ---------- sports ---------- */
 export const loadSports = async (): Promise<Sport[]> => {
   const snap = await getDocs(collection(db, 'sports'));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() } as Sport));
+  return snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as Sport));
 };
 
 export const addSport = async (sport: Omit<Sport, 'id'>) =>
@@ -244,10 +244,27 @@ export const updateSport = async (id: string, data: Partial<Sport>) =>
 export const deleteSport = async (id: string) =>
   deleteDoc(doc(db, 'sports', id));
 
+export const addSeasonToSport = async (sportId: string, season: Omit<Season, 'id'>) =>
+  addDoc(collection(db, `sports/${sportId}/seasons`), { ...season, createdAt: serverTimestamp() });
+
+export const loadSeasons = async (sportId: string): Promise<Season[]> => {
+  const snap = await getDocs(collection(db, `sports/${sportId}/seasons`));
+  return snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as Season));
+};
+
 /* ---------- games ---------- */
 export const loadGames = async () => {
-  const fixSnap = await getDocs(collection(db, 'fixtures'));
-  const all = fixSnap.docs.map(d => ({ id: d.id, ...d.data() } as Fixture));
+  const [fixSnap, seasonalSnap] = await Promise.all([
+    getDocs(collection(db, 'fixtures')),
+    getDocs(query(collectionGroup(db, 'matches')))
+  ]);
+
+  const legacy = fixSnap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as Fixture));
+  const seasonal = seasonalSnap.docs
+    .filter((d: QueryDocumentSnapshot<DocumentData>) => d.ref.path.startsWith('fixtures/'))
+    .map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as Fixture));
+
+  const all = [...legacy, ...seasonal];
   return {
     live: all.filter(f => f.status === 'live'),
     upcoming: all.filter(f => f.status === 'scheduled'),
@@ -256,12 +273,12 @@ export const loadGames = async () => {
 
 export const loadLiveGames = async (): Promise<any[]> => {
   const liveSnap = await getDocs(collection(doc(db, 'admin'), 'liveGames'));
-  return liveSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return liveSnap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() }));
 };
 
 export const loadUpcomingGames = async (): Promise<any[]> => {
   const upcomingSnap = await getDocs(collection(doc(db, 'admin'), 'upcomingGames'));
-  return upcomingSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return upcomingSnap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() }));
 };
 
 export const addLiveGame = async (fixture: any) => {
@@ -303,12 +320,12 @@ export const deleteUpcomingGame = async (id: string) => {
 // Sync function to update admin collections based on fixtures
 export const syncAdminGameCollections = async () => {
   const fixturesSnap = await getDocs(collection(db, 'fixtures'));
-  const fixtures = fixturesSnap.docs.map(d => ({ id: d.id, ...d.data() } as Fixture));
+  const fixtures = fixturesSnap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as Fixture));
 
   // Sync live games
   const liveGamesSnap = await getDocs(collection(doc(db, 'admin'), 'liveGames'));
-  const existingLiveIds = liveGamesSnap.docs.map(d => d.data().fixtureId);
-  for (const f of fixtures.filter(f => f.status === 'live')) {
+  const existingLiveIds = liveGamesSnap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => d.data().fixtureId);
+  for (const f of fixtures.filter((f: Fixture) => f.status === 'live')) {
     if (!existingLiveIds.includes(f.id)) {
       await addLiveGame(f);
     }
@@ -316,9 +333,9 @@ export const syncAdminGameCollections = async () => {
 
   // Sync upcoming games
   const upcomingGamesSnap = await getDocs(collection(doc(db, 'admin'), 'upcomingGames'));
-  const existingUpcomingIds = upcomingGamesSnap.docs.map(d => d.data().fixtureId);
+  const existingUpcomingIds = upcomingGamesSnap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => d.data().fixtureId);
   const today = new Date().toDateString();
-  for (const f of fixtures.filter(f => new Date(f.scheduledAt).toDateString() === today && f.status === 'scheduled')) {
+  for (const f of fixtures.filter((f: Fixture) => new Date(f.scheduledAt).toDateString() === today && f.status === 'scheduled')) {
     if (!existingUpcomingIds.includes(f.id)) {
       await addUpcomingGame(f);
     }
@@ -328,7 +345,7 @@ export const syncAdminGameCollections = async () => {
   // For live, remove if fixture status is not live
   for (const doc of liveGamesSnap.docs) {
     const data = doc.data();
-    const fixture = fixtures.find(f => f.id === data.fixtureId);
+    const fixture = fixtures.find((f: Fixture) => f.id === data.fixtureId);
     if (!fixture || fixture.status !== 'live') {
       await deleteLiveGame(doc.id);
     }
@@ -337,7 +354,7 @@ export const syncAdminGameCollections = async () => {
   // For upcoming, remove if not today or status changed
   for (const doc of upcomingGamesSnap.docs) {
     const data = doc.data();
-    const fixture = fixtures.find(f => f.id === data.fixtureId);
+    const fixture = fixtures.find((f: Fixture) => f.id === data.fixtureId);
     if (!fixture || new Date(fixture.scheduledAt).toDateString() !== today || fixture.status !== 'scheduled') {
       await deleteUpcomingGame(doc.id);
     }
@@ -356,7 +373,7 @@ export const endGame = async (id: string) =>
 /* ---------- imported data ---------- */
 export const loadImportedData = async (): Promise<ImportedData[]> => {
   const snap = await getDocs(collection(db, 'imported_data'));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() } as ImportedData));
+  return snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as ImportedData));
 };
 
 export const processImportedData = async (id: string) =>

@@ -1,11 +1,101 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchSports, createSportT, saveSportT, removeSportT } from '@/store/adminThunk';
+import { fetchSports, createSportT, saveSportT, removeSportT, fetchSeasons, createSeasonT } from '@/store/adminThunk';
 import { RootState } from '@/store';
 import Pagination from './Pagination';
 import ExportButtons from './ExportButtons';
 
 import { Modal } from '@/components/common/Modal';
+
+// Season Form Component
+function SeasonForm({ formData, setFormData, onSubmit, submitLabel, sports }: any) {
+  useEffect(() => {
+    if (formData.sportId && formData.startDate && formData.endDate) {
+      const sportName = sports.find((s: any) => s.id === formData.sportId)?.name || '';
+      const yearStart = new Date(formData.startDate).getFullYear();
+      const yearEnd = new Date(formData.endDate).getFullYear();
+      if (sportName && !isNaN(yearStart) && !isNaN(yearEnd)) {
+        setFormData((prev: any) => ({ ...prev, name: `${sportName}${yearStart}-${yearEnd}` }));
+      }
+    }
+  }, [formData.sportId, formData.startDate, formData.endDate, sports, setFormData]);
+
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4">
+      <div className="grid grid-cols-1 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Select Sport</label>
+          <select
+            required
+            value={formData.sportId}
+            onChange={(e) => setFormData({ ...formData, sportId: e.target.value })}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white"
+          >
+            <option value="" disabled>Select a sport</option>
+            {sports.map((s: any) => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Season Name (Auto-generated)</label>
+          <input
+            type="text"
+            readOnly
+            placeholder="SportNameYear-Year"
+            value={formData.name}
+            className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 shadow-sm text-gray-500 cursor-not-allowed"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Description</label>
+          <textarea
+            rows={3}
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white"
+            placeholder="Brief description of the season"
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Start Date</label>
+            <input
+              type="date"
+              required
+              value={formData.startDate}
+              onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">End Date</label>
+            <input
+              type="date"
+              required
+              value={formData.endDate}
+              onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white"
+            />
+          </div>
+        </div>
+        <div className="flex items-center space-x-3">
+          <input
+            type="checkbox"
+            id="isActive"
+            checked={formData.isActive}
+            onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+            className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+          />
+          <label htmlFor="isActive" className="text-sm font-medium text-gray-700">Set as Active Season</label>
+        </div>
+      </div>
+      <div className="flex justify-end pt-4">
+        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">{submitLabel}</button>
+      </div>
+    </form>
+  );
+}
 
 // Sport Form Component
 function SportForm({ formData, setFormData, onSubmit, submitLabel }: any) {
@@ -61,19 +151,7 @@ function SportForm({ formData, setFormData, onSubmit, submitLabel }: any) {
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Season</label>
-          <select
-            value={formData.season}
-            onChange={(e) => setFormData({ ...formData, season: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-          >
-            <option value="Fall">Fall</option>
-            <option value="Winter">Winter</option>
-            <option value="Spring">Spring</option>
-            <option value="Year-round">Year-round</option>
-          </select>
-        </div>
+        {/* Season field removed from sport directly, now use seasons collection */}
         <div className="col-span-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Description</label>
           <textarea
@@ -140,6 +218,9 @@ export default function SportsTab({ adminData }: any) {
   }));
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showSeasonModal, setShowSeasonModal] = useState(false);
+  const [selectedSportForSeasons, setSelectedSportForSeasons] = useState<any>(null);
+  const [sportSeasons, setSportSeasons] = useState<any[]>([]);
   const [editingSport, setEditingSport] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -150,9 +231,17 @@ export default function SportsTab({ adminData }: any) {
     image: '',
     base64Image: '',
     players: 11,
-    season: 'Fall',
     positions: [] as string[],
     stats: { wins: 0, losses: 0, championships: 0 }
+  });
+
+  const [newSeason, setNewSeason] = useState({
+    sportId: '',
+    name: '',
+    description: '',
+    startDate: '',
+    endDate: '',
+    isActive: true
   });
 
   const resetNewSport = () => {
@@ -163,7 +252,6 @@ export default function SportsTab({ adminData }: any) {
       image: '',
       base64Image: '',
       players: 11,
-      season: 'Fall',
       positions: [],
       stats: { wins: 0, losses: 0, championships: 0 }
     });
@@ -201,6 +289,36 @@ export default function SportsTab({ adminData }: any) {
       } catch (error) {
         alert('Failed to delete sport: ' + (error as Error).message);
       }
+    }
+  };
+
+  const handleManageSeasons = async (sport: any) => {
+    setSelectedSportForSeasons(sport);
+    setNewSeason(prev => ({ ...prev, sportId: sport.id }));
+    setShowSeasonModal(true);
+    try {
+      const res = await dispatch(fetchSeasons(sport.id) as any);
+      setSportSeasons(res.payload);
+    } catch (error) {
+      console.error('Failed to fetch seasons:', error);
+    }
+  };
+
+  const handleAddSeason = async () => {
+    if (!newSeason.sportId) return alert('Please select a sport');
+
+    // Uniqueness check
+    const isDuplicate = sportSeasons.some(s => s.name === newSeason.name);
+    if (isDuplicate) return alert('A season with this name already exists for this sport');
+
+    try {
+      await dispatch(createSeasonT({ sportId: newSeason.sportId, season: newSeason }) as any);
+      // Refresh
+      const res = await dispatch(fetchSeasons(newSeason.sportId) as any);
+      setSportSeasons(res.payload);
+      setNewSeason({ sportId: newSeason.sportId, name: '', description: '', startDate: '', endDate: '', isActive: true });
+    } catch (error) {
+      alert('Failed to add season');
     }
   };
 
@@ -252,6 +370,44 @@ export default function SportsTab({ adminData }: any) {
         </Modal>
       )}
 
+      {/* Manage Seasons Modal */}
+      {showSeasonModal && selectedSportForSeasons && (
+        <Modal isOpen={showSeasonModal} title={`Manage Seasons - ${selectedSportForSeasons.name}`} onClose={() => setShowSeasonModal(false)}>
+          <div className="space-y-6">
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-bold text-gray-900 mb-2">Create New Season</h3>
+              <SeasonForm
+                formData={newSeason}
+                setFormData={setNewSeason}
+                onSubmit={handleAddSeason}
+                submitLabel="Add Season"
+                sports={sports}
+              />
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 mb-4">Existing Seasons</h3>
+              <div className="space-y-2">
+                {sportSeasons.length === 0 ? (
+                  <p className="text-gray-500 italic">No seasons defined yet.</p>
+                ) : (
+                  sportSeasons.map((s: any) => (
+                    <div key={s.id} className="flex items-center justify-between p-3 border rounded-lg bg-white">
+                      <div>
+                        <div className="font-bold">{s.name}</div>
+                        <div className="text-xs text-gray-500">{s.startDate} to {s.endDate}</div>
+                      </div>
+                      {s.isActive && (
+                        <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded-full">Active</span>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
+
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-2 sm:p-6">
         {sports.length > 0 && <ExportButtons data={exportData} headers={exportHeaders} filename="sports" />}
         {loading ? (
@@ -293,6 +449,7 @@ export default function SportsTab({ adminData }: any) {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{sport.season}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{sport.stats?.championships || 0}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button onClick={() => handleManageSeasons(sport)} className="text-green-600 hover:text-green-900 mr-2">Seasons</button>
                         <button onClick={() => { setEditingSport(sport); setShowEditModal(true); }} className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 mr-2">Edit</button>
                         <button onClick={() => handleDeleteSport(sport.id)} className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">Delete</button>
                       </td>

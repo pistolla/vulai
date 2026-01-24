@@ -12,14 +12,20 @@ import {
   runTransaction,
   Timestamp,
   DocumentData,
+  collectionGroup,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { League, Group, Stage, Match, Participant } from '@/models';
+import { League, Group, Stage, Match, Participant, Season } from '@/models';
 
 class FirebaseLeagueService {
   async listMatches(leagueId: string, groupId: string, stageId: string): Promise<Match[]> {
     const snap = await getDocs(collection(db, `leagues/${leagueId}/groups/${groupId}/stages/${stageId}/matches`));
     return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Match));
+  }
+
+  async listSeasons(sportId: string): Promise<Season[]> {
+    const snap = await getDocs(collection(db, `sports/${sportId}/seasons`));
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Season));
   }
   // ---------------- LEAGUE CRUD ---------------- //
 
@@ -119,12 +125,28 @@ class FirebaseLeagueService {
 
   // ---------------- MATCH CRUD ---------------- //
 
-  async createMatch(leagueId: string, groupId: string, stageId: string, match: Omit<Match, 'id'>): Promise<string> {
+  async createMatch(leagueId: string, groupId: string, stageId: string, match: Omit<Match, 'id'>, seasonName?: string): Promise<string> {
     const ref = await addDoc(collection(db, `leagues/${leagueId}/groups/${groupId}/stages/${stageId}/matches`), {
       ...match,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     });
+
+    // Also create a root fixture for public landing/schedule
+    // Use seasonal collection path: fixtures/{seasonName}/matches
+    const fixturePath = seasonName ? `fixtures/${seasonName}/matches` : 'fixtures';
+
+    await addDoc(collection(db, fixturePath), {
+      ...match,
+      matchId: ref.id,
+      leagueId,
+      groupId,
+      stageId,
+      approved: false,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    });
+
     return ref.id;
   }
 
