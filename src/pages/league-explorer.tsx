@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
-import { League, Match, Group, Stage } from '../models';
+import { League, Match, Group, Stage, Season } from '../models';
 import { firebaseLeagueService } from '../services/firebaseCorrespondence';
 import { useTheme } from '../components/ThemeProvider';
+import { apiService } from '../services/apiService';
 
 interface MatchWithContext extends Match {
   groupName?: string;
@@ -22,6 +23,8 @@ const LeagueExplorerPage: React.FC = () => {
   const [data, setData] = useState<LeagueExplorerData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [seasons, setSeasons] = useState<Season[]>([]);
+  const [selectedSeasonId, setSelectedSeasonId] = useState<string>('');
 
   useEffect(() => {
     if (!leagueId || typeof leagueId !== 'string') return;
@@ -61,6 +64,22 @@ const LeagueExplorerPage: React.FC = () => {
         // Sort matches by date (newest first for history view)
         allMatches.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
+        // Load seasons for the sport
+        try {
+          const sportsData: any[] = await apiService.getSports();
+          const sport = sportsData.find(s => s.name.toLowerCase() === league.sportType.toLowerCase());
+          if (sport) {
+            const leagueSeasons = await firebaseLeagueService.listSeasons(sport.id);
+            setSeasons(leagueSeasons);
+            if (!selectedSeasonId) {
+              const active = leagueSeasons.find(s => s.isActive);
+              if (active) setSelectedSeasonId(active.id);
+            }
+          }
+        } catch (sErr) {
+          console.error('Failed to load seasons for explorer:', sErr);
+        }
+
         setData({
           league,
           allMatches
@@ -74,7 +93,7 @@ const LeagueExplorerPage: React.FC = () => {
     };
 
     loadLeagueHistory();
-  }, [leagueId]);
+  }, [leagueId, selectedSeasonId]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -138,8 +157,13 @@ const LeagueExplorerPage: React.FC = () => {
 
   const { league, allMatches } = data;
 
+  const filteredMatches = allMatches.filter(m => {
+    if (!selectedSeasonId) return true;
+    return (m as any).seasonId === selectedSeasonId;
+  });
+
   // Group matches by date
-  const matchesByDate = allMatches.reduce((acc, match) => {
+  const matchesByDate = filteredMatches.reduce((acc, match) => {
     const date = formatDate(match.date);
     if (!acc[date]) acc[date] = [];
     acc[date].push(match);
@@ -152,9 +176,22 @@ const LeagueExplorerPage: React.FC = () => {
       <section className={`pt-32 pb-20 relative overflow-hidden ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-indigo-50 via-white to-purple-50' : 'bg-gray-900'}`}>
         <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <span className="inline-block px-4 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-bold text-sm mb-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {league.sportType === 'team' ? 'Team Sport' : 'Individual Sport'}
-          </span>
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-4">
+            <span className="px-4 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-bold text-sm">
+              {league.sportType === 'team' ? 'Team Sport' : 'Individual Sport'}
+            </span>
+            {seasons.length > 0 && (
+              <select
+                value={selectedSeasonId}
+                onChange={e => setSelectedSeasonId(e.target.value)}
+                className="px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-gray-900 dark:text-white font-bold text-sm focus:ring-2 focus:ring-blue-500"
+              >
+                {seasons.map(s => (
+                  <option key={s.id} value={s.id}>{s.name} {s.isActive ? '(Current)' : ''}</option>
+                ))}
+              </select>
+            )}
+          </div>
           <h1 className="text-6xl md:text-7xl font-black mb-8 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent tracking-tight animate-in fade-in slide-in-from-bottom-6 duration-700">
             {league.name}
           </h1>
@@ -164,13 +201,13 @@ const LeagueExplorerPage: React.FC = () => {
 
           <div className="mt-10 flex items-center justify-center gap-6 animate-in fade-in slide-in-from-bottom-10 duration-1000">
             <div className="text-center">
-              <div className="text-3xl font-black text-gray-900 dark:text-white">{allMatches.length}</div>
-              <div className="text-sm font-bold text-gray-500 uppercase tracking-widest">Matches Played</div>
+              <div className="text-3xl font-black text-gray-900 dark:text-white">{filteredMatches.length}</div>
+              <div className="text-sm font-bold text-gray-500 uppercase tracking-widest">Matches In Season</div>
             </div>
             <div className="w-px h-12 bg-gray-200 dark:bg-gray-700" />
             <div className="text-center">
               <div className="text-3xl font-black text-gray-900 dark:text-white">
-                {Array.from(new Set(allMatches.flatMap(m => m.participants?.map(p => p.refId) || []))).length}
+                {Array.from(new Set(filteredMatches.flatMap(m => m.participants?.map(p => p.refId) || []))).length}
               </div>
               <div className="text-sm font-bold text-gray-500 uppercase tracking-widest">Teams</div>
             </div>
@@ -200,13 +237,13 @@ const LeagueExplorerPage: React.FC = () => {
             <h2 className="text-3xl font-bold mb-8 text-gray-900 dark:text-white border-l-8 border-blue-600 pl-6">
               Upcoming Fixtures
             </h2>
-            {allMatches.filter(m => m.status === 'scheduled' || m.status === 'pending' || m.status === 'postponed').length === 0 ? (
+            {filteredMatches.filter(m => m.status === 'scheduled' || m.status === 'pending' || m.status === 'postponed').length === 0 ? (
               <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-12 text-center border border-dashed border-gray-300 dark:border-gray-700">
                 <p className="text-gray-500 text-lg">No upcoming fixtures scheduled yet.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {allMatches
+                {filteredMatches
                   .filter(m => m.status === 'scheduled' || m.status === 'pending' || m.status === 'postponed' || new Date(m.date) > new Date())
                   .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                   .slice(0, 6)
@@ -249,7 +286,7 @@ const LeagueExplorerPage: React.FC = () => {
             <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Recent Results</h2>
             {/* Fallback List View for Mobile or Recent */}
             <div className="space-y-4">
-              {allMatches.slice(0, 5).map((match) => (
+              {filteredMatches.slice(0, 5).map((match) => (
                 <div key={match.id} className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
                   <div className="flex items-center space-x-4">
                     <div className="text-sm text-gray-400">{new Date(match.date).toLocaleDateString()}</div>

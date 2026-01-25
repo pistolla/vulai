@@ -151,8 +151,8 @@ export const updateMatchScores = createAsyncThunk(
 
 export const fetchPointsTable = createAsyncThunk(
   'points/fetch',
-  async ({ leagueId, groupId }: { leagueId: string; groupId: string }) => {
-    return { leagueId, groupId, points: await firebaseLeagueService.getPointsTable(leagueId, groupId) } as any;
+  async ({ leagueId, groupId, seasonId }: { leagueId: string; groupId: string, seasonId?: string }) => {
+    return { leagueId, groupId, points: await firebaseLeagueService.getPointsTable(leagueId, groupId, seasonId) } as any;
   },
 );
 

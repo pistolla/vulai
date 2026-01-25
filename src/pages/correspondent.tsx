@@ -26,6 +26,8 @@ export default function CorrespondentDashboardPage() {
   const [showQuickFixture, setShowQuickFixture] = useState(false);
   const [selectedLeagueForQuick, setSelectedLeagueForQuick] = useState<League | null>(null);
 
+  const defaultLeague = useAppSelector(s => s.correspondent.leagues[0]) || null;
+
   /* ---------- feather + AOS ---------- */
   const mounted = useClientSideLibs();
 
@@ -213,7 +215,7 @@ export default function CorrespondentDashboardPage() {
         <QuickFixtureModal
           isOpen={showQuickFixture}
           onClose={() => setShowQuickFixture(false)}
-          league={useAppSelector(s => s.correspondent.leagues[0]) || null}
+          league={defaultLeague}
         />
       </div>
     </CorrespondentGuard>

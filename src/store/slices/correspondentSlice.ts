@@ -47,8 +47,9 @@ const correspondentSlice = createSlice({
     setMatches(state, action: PayloadAction<{ leagueId: string; groupId: string; stageId: string; matches: Match[] }>) {
       state.matches[`${action.payload.leagueId}_${action.payload.groupId}_${action.payload.stageId}`] = action.payload.matches;
     },
-    setPoints(state, action: PayloadAction<{ leagueId: string; groupId: string; points: PointsEntry[] }>) {
-      state.points[`${action.payload.leagueId}_${action.payload.groupId}`] = action.payload.points;
+    setPoints(state, action: PayloadAction<{ leagueId: string; groupId: string; seasonId?: string; points: PointsEntry[] }>) {
+      const key = `${action.payload.leagueId}_${action.payload.groupId}${action.payload.seasonId ? '_' + action.payload.seasonId : ''}`;
+      state.points[key] = action.payload.points;
     },
     setCorrespondentData: (_, action: PayloadAction<CorrespondentDashboard>) => ({
       myArticles: action.payload.myArticles || [],
@@ -108,8 +109,8 @@ const correspondentSlice = createSlice({
         }
       })
       .addCase(fetchPointsTable.fulfilled, (s, { payload }) => {
-        const { leagueId, groupId, points } = payload;
-        const key = `${leagueId}_${groupId}`;
+        const { leagueId, groupId, seasonId, points } = payload;
+        const key = `${leagueId}_${groupId}${seasonId ? '_' + seasonId : ''}`;
         s.points[key] = points;
       })
       .addCase(fetchFixtures.fulfilled, (s, { payload }) => {

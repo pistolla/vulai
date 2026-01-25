@@ -13,6 +13,7 @@ import {
   Timestamp,
   DocumentData,
   collectionGroup,
+  QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { League, Group, Stage, Match, Participant, Season } from '@/models';
@@ -222,9 +223,15 @@ class FirebaseLeagueService {
         updatedAt: Timestamp.now(),
       });
 
-      // Optionally update points table
+      // Update points table (with seasonal isolation)
+      // Path: leagues/{leagueId}/seasons/{seasonId}/groups/{groupId}/points
+      // Fallback (legacy): leagues/{leagueId}/groups/{groupId}/points
+      const pointsPath = (match.seasonId)
+        ? `leagues/${leagueId}/seasons/${match.seasonId}/groups/${groupId}/points`
+        : `leagues/${leagueId}/groups/${groupId}/points`;
+
       if (!isDraw) {
-        const pointsRef = doc(db, `leagues/${leagueId}/groups/${groupId}/points/${winner.refId}`);
+        const pointsRef = doc(db, `${pointsPath}/${winner.refId}`);
         const pointsSnap = await transaction.get(pointsRef);
         const newPoints = pointsSnap.exists()
           ? (pointsSnap.data().points || 0) + 3
@@ -233,7 +240,7 @@ class FirebaseLeagueService {
       } else {
         // draw => 1 point each
         for (const p of updatedParticipants) {
-          const pointsRef = doc(db, `leagues/${leagueId}/groups/${groupId}/points/${p.refId}`);
+          const pointsRef = doc(db, `${pointsPath}/${p.refId}`);
           const pointsSnap = await transaction.get(pointsRef);
           const newPoints = pointsSnap.exists()
             ? (pointsSnap.data().points || 0) + 1
@@ -246,9 +253,13 @@ class FirebaseLeagueService {
 
   // ---------------- POINTS ---------------- //
 
-  async getPointsTable(leagueId: string, groupId: string): Promise<{ refId: string; points: number }[]> {
-    const snap = await getDocs(collection(db, `leagues/${leagueId}/groups/${groupId}/points`));
-    return snap.docs.map((d) => ({ refId: d.id, ...d.data() })) as { refId: string; points: number }[];
+  async getPointsTable(leagueId: string, groupId: string, seasonId?: string): Promise<{ refId: string; points: number }[]> {
+    const pointsPath = (seasonId)
+      ? `leagues/${leagueId}/seasons/${seasonId}/groups/${groupId}/points`
+      : `leagues/${leagueId}/groups/${groupId}/points`;
+
+    const snap = await getDocs(collection(db, pointsPath));
+    return snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ refId: d.id, ...d.data() })) as { refId: string; points: number }[];
   }
 }
 

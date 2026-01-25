@@ -4,9 +4,10 @@ import { apiService, ScheduleData } from '../services/apiService';
 import { Match } from '../types';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { fetchLeagues } from '../store/correspondentThunk';
-import { League, Fixture } from '../models';
+import { League, Fixture, Season } from '../models';
 import { useTheme } from '../components/ThemeProvider';
 import { loadLiveGames, loadUpcomingGames } from '../services/firestoreAdmin';
+import { firebaseLeagueService } from '../services/firebaseCorrespondence';
 
 type DisplayMatch = {
   id: number;
@@ -39,6 +40,8 @@ const SchedulePage: React.FC = () => {
   const [displayFixtures, setDisplayFixtures] = useState<DisplayMatch[]>([]);
   const [sports, setSports] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [seasons, setSeasons] = useState<Season[]>([]);
+  const [selectedSeasonId, setSelectedSeasonId] = useState<string>('');
 
   useEffect(() => {
     let isMounted = true;
@@ -102,6 +105,16 @@ const SchedulePage: React.FC = () => {
               setCurrentDate(new Date(closest.scheduledAt));
             }
 
+            // Smart Navigation: If today has no matches, and a date hasn't been selected yet
+            const todayStr = new Date().toISOString().split('T')[0];
+            const hasMatchesToday = allFixtures.some(f => new Date(f.scheduledAt).toISOString().split('T')[0] === todayStr);
+            if (!hasMatchesToday && !selectedDate) {
+              const nextFixture = allFixtures.find(f => new Date(f.scheduledAt) > now);
+              if (nextFixture) {
+                setCurrentDate(new Date(nextFixture.scheduledAt));
+              }
+            }
+
             // Map to display format
             setDisplayFixtures(allFixtures.map(f => ({
               id: parseInt(f.id) || 0,
@@ -148,11 +161,35 @@ const SchedulePage: React.FC = () => {
       if (isMounted) updateLiveScores();
     }, 10000);
 
+    const fetchSeasonsForSport = async (sportName: string) => {
+      try {
+        const sportsData: any[] = await apiService.getSports();
+        const sport = sportsData.find(s => s.name.toLowerCase() === sportName.toLowerCase());
+        if (sport) {
+          const res = await firebaseLeagueService.listSeasons(sport.id);
+          if (isMounted) {
+            setSeasons(res);
+            const active = res.find((s: Season) => s.isActive);
+            if (active) setSelectedSeasonId(active.id);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch seasons for schedule:', error);
+      }
+    };
+
+    if (currentFilter !== 'all' && currentFilter !== 'live') {
+      fetchSeasonsForSport(currentFilter);
+    } else {
+      setSeasons([]);
+      setSelectedSeasonId('');
+    }
+
     return () => {
       isMounted = false;
       clearInterval(interval);
     };
-  }, [dispatch]);
+  }, [dispatch, currentFilter]);
 
   const updateLiveScores = () => {
     setMatches(prevMatches =>
@@ -250,28 +287,39 @@ const SchedulePage: React.FC = () => {
     ];
 
     const calendarButtons = (
-      <div className="flex gap-1">
+      <div className="flex gap-2 items-center">
         <button
-          onClick={() => setCalendarView('grid')}
-          className={`p-1 rounded transition-all ${calendarView === 'grid' ? 'bg-unill-yellow-400 text-gray-900' : 'hover:bg-gray-200'}`}
+          onClick={() => {
+            setCurrentDate(new Date());
+            setSelectedDate(new Date().toISOString().split('T')[0]);
+          }}
+          className="px-3 py-1 text-xs font-bold bg-unill-yellow-400 text-gray-900 rounded-full hover:bg-unill-yellow-500 transition-all shadow-lg shadow-unill-yellow-400/20"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="3" y="3" width="7" height="7"></rect>
-            <rect x="14" y="3" width="7" height="7"></rect>
-            <rect x="14" y="14" width="7" height="7"></rect>
-            <rect x="3" y="14" width="7" height="7"></rect>
-          </svg>
+          Today
         </button>
-        <button
-          onClick={() => setCalendarView('horizontal')}
-          className={`p-1 rounded transition-all ${calendarView === 'horizontal' ? 'bg-unill-yellow-400 text-gray-900' : 'hover:bg-gray-200'}`}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="3" y1="6" x2="21" y2="6"></line>
-            <line x1="3" y1="12" x2="21" y2="12"></line>
-            <line x1="3" y1="18" x2="21" y2="18"></line>
-          </svg>
-        </button>
+        <div className="flex gap-1 bg-black/20 p-1 rounded-lg backdrop-blur-md border border-white/10">
+          <button
+            onClick={() => setCalendarView('grid')}
+            className={`p-1.5 rounded transition-all ${calendarView === 'grid' ? 'bg-unill-yellow-400 text-gray-900' : 'text-gray-400 hover:text-white'}`}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+          </button>
+          <button
+            onClick={() => setCalendarView('horizontal')}
+            className={`p-1.5 rounded transition-all ${calendarView === 'horizontal' ? 'bg-unill-yellow-400 text-gray-900' : 'text-gray-400 hover:text-white'}`}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
       </div>
     );
 
@@ -284,6 +332,9 @@ const SchedulePage: React.FC = () => {
       for (let day = 1; day <= daysInMonth; day++) {
         const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
         const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const todayStr = new Date().toISOString().split('T')[0];
+        const isToday = dateStr === todayStr;
+
         const matchesOnDay = fixtures.length > 0
           ? fixtures.filter(fixture => {
             const fixtureDate = new Date(fixture.scheduledAt).toISOString().split('T')[0];
@@ -295,17 +346,24 @@ const SchedulePage: React.FC = () => {
         dates.push(
           <div
             key={day}
-            className={`flex-shrink-0 w-20 h-20 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 flex flex-col items-center justify-center cursor-pointer hover:bg-unill-purple-500/20 transition-all ${hasMatches ? 'bg-unill-yellow-500/20' : ''
-              }`}
+            className={`flex-shrink-0 w-20 h-20 rounded-2xl border flex flex-col items-center justify-center cursor-pointer transition-all duration-300 relative group
+              ${isToday
+                ? 'bg-unill-yellow-400 border-unill-yellow-500 shadow-lg shadow-unill-yellow-400/30 -translate-y-1'
+                : 'bg-white/5 border-white/10 hover:bg-white/10'
+              } 
+              ${hasMatches && !isToday ? 'bg-unill-purple-500/20 border-unill-purple-500/30' : ''}`}
             onClick={() => showDayDetails(dateStr)}
           >
-            <div className="font-semibold text-sm">{day}</div>
+            <div className={`font-black text-lg ${isToday ? 'text-gray-900' : 'text-white'}`}>{day}</div>
             {hasMatches ? (
-              <div className="text-xs text-unill-yellow-400 mt-1">
-                {window.innerWidth > 768 ? `${matchesOnDay.length} match${matchesOnDay.length > 1 ? 'es' : ''}` : '📅'}
+              <div className={`text-[10px] font-bold uppercase mt-1 ${isToday ? 'text-gray-900/60' : 'text-unill-yellow-400'}`}>
+                {matchesOnDay.length} Match{matchesOnDay.length > 1 ? 'es' : ''}
               </div>
             ) : (
-              <div className="text-xs text-gray-500 mt-1">-</div>
+              <div className={`text-[10px] font-medium opacity-40 ${isToday ? 'text-gray-900' : ''}`}>Empty</div>
+            )}
+            {isToday && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-unill-yellow-400 animate-pulse" />
             )}
           </div>
         );
@@ -355,6 +413,9 @@ const SchedulePage: React.FC = () => {
       // Days of the month
       for (let day = 1; day <= daysInMonth; day++) {
         const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const todayStr = new Date().toISOString().split('T')[0];
+        const isToday = dateStr === todayStr;
+
         const matchesOnDay = fixtures.length > 0
           ? fixtures.filter(fixture => {
             const fixtureDate = new Date(fixture.scheduledAt).toISOString().split('T')[0];
@@ -366,14 +427,21 @@ const SchedulePage: React.FC = () => {
         days.push(
           <div
             key={day}
-            className={`calendar-day p-2 border border-white/10 min-h-20 cursor-pointer hover:bg-unill-purple-500/20 transition-all ${hasMatches ? 'bg-unill-yellow-500/20' : ''
-              }`}
+            className={`calendar-day p-2 border border-white/10 min-h-24 cursor-pointer transition-all duration-300 relative
+              ${isToday ? 'bg-unill-yellow-400 border-unill-yellow-500 shadow-lg shadow-unill-yellow-400/20 z-10' : 'hover:bg-unill-purple-500/20'}
+              ${hasMatches && !isToday ? 'bg-unill-yellow-500/10' : ''}`}
             onClick={() => showDayDetails(dateStr)}
           >
-            <div className="font-semibold">{day}</div>
+            <div className={`font-black text-lg ${isToday ? 'text-gray-900' : 'text-white'}`}>{day}</div>
             {hasMatches && (
-              <div className="text-xs text-unill-yellow-400 mt-1">
-                {matchesOnDay.length} match{matchesOnDay.length > 1 ? 'es' : ''}
+              <div className={`text-[10px] font-bold uppercase mt-1 ${isToday ? 'text-gray-900/60' : 'text-unill-yellow-400'}`}>
+                {matchesOnDay.length} Match{matchesOnDay.length > 1 ? 'es' : ''}
+              </div>
+            )}
+            {isToday && (
+              <div className="absolute top-2 right-2 flex items-center gap-1">
+                <span className="text-[10px] font-black uppercase text-gray-900 leading-none">Today</span>
+                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
               </div>
             )}
           </div>
@@ -421,7 +489,15 @@ const SchedulePage: React.FC = () => {
   const filteredMatches = displayMatches.filter(match => {
     if (currentFilter === 'all') return true;
     if (currentFilter === 'live') return match.status === 'live';
-    return match.sport === currentFilter;
+
+    const sportMatch = match.sport.toLowerCase() === currentFilter.toLowerCase();
+    if (!sportMatch) return false;
+
+    if (selectedSeasonId) {
+      return (match as any).seasonId === selectedSeasonId;
+    }
+
+    return true;
   });
 
   const initScheduleCharts = () => {
@@ -538,77 +614,82 @@ const SchedulePage: React.FC = () => {
 
           {renderCalendar()}
 
-          <div className="mt-0 flex overflow-x-auto gap-4 pb-4 horizontal-scroll">
-            <button
-              className={`filter-btn active px-6 py-3 rounded-lg transition-all flex-shrink-0 ${theme === 'dark'
-                ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
-                : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
-                } ${currentFilter === 'all' ? 'active' : ''
-                }`}
-              onClick={() => setCurrentFilter('all')}
-            >
-              All Sports
-            </button>
-            {sports.map(sport => (
-              <button
-                key={sport.id}
-                className={`filter-btn px-6 py-3 rounded-lg transition-all flex-shrink-0 ${theme === 'dark'
-                  ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
-                  : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
-                  } ${currentFilter === sport.name.toLowerCase() ? 'active' : ''
-                  }`}
-                onClick={() => setCurrentFilter(sport.name.toLowerCase())}
-              >
-                {sport.name}
-              </button>
-            ))}
-            <button
-              className={`filter-btn px-6 py-3 rounded-lg transition-all flex-shrink-0 ${theme === 'dark'
-                ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
-                : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
-                } ${currentFilter === 'live' ? 'active' : ''
-                }`}
-              onClick={() => setCurrentFilter('live')}
-            >
-              Live Now
-            </button>
-          </div>
+          <div className="mt-8 p-1 bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-1">
+              {/* Search Field */}
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none group-focus-within:text-unill-yellow-400 transition-colors">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search sports, leagues, teams..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-transparent border-none focus:ring-0 text-white placeholder-gray-500 pl-12 pr-4 py-4 text-sm font-medium"
+                />
+              </div>
 
-          <div className="mt-0 flex flex-col md:flex-row gap-4 items-stretch md:items-center">
-            <select
-              value={selectedLeague}
-              onChange={(e) => {
-                const leagueId = e.target.value;
-                setSelectedLeague(leagueId);
-                if (leagueId) {
-                  window.location.href = `/league/${leagueId}`;
-                }
-              }}
-              className={`px-6 py-3 rounded-lg transition-all flex-shrink-0 ${theme === 'dark'
-                ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
-                : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
-                }`}
-            >
-              <option value="">Select League</option>
-              {leagues
-                .filter((league: any) => league.sportType === 'team' && league.name.toLowerCase().includes(searchQuery.toLowerCase()))
-                .map((league: any) => (
-                  <option key={league.id} value={league.id}>
-                    {league.name}
-                  </option>
-                ))
-              }
-            </select>
-            <input
-              type="text"
-              placeholder="Search leagues or teams..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={`flex-1 px-6 py-3 rounded-lg transition-all ${theme === 'dark'
-                ? 'bg-gray-800 text-white border border-gray-600 hover:bg-gray-700'
-                : 'bg-white text-gray-900 border border-gray-900 hover:bg-gray-100'
-                }`}
-            />
+              {/* Sport Selector */}
+              <div className="border-l border-white/10 relative">
+                <select
+                  value={currentFilter}
+                  onChange={(e) => setCurrentFilter(e.target.value)}
+                  className="w-full bg-transparent border-none focus:ring-0 text-white py-4 pl-4 pr-10 text-sm font-medium appearance-none cursor-pointer hover:bg-white/5 transition-colors"
+                >
+                  <option value="all" className="bg-gray-900">All Disciplines</option>
+                  <option value="live" className="bg-gray-900">🔥 Live Events</option>
+                  {sports.map(sport => (
+                    <option key={sport.id} value={sport.name.toLowerCase()} className="bg-gray-900">{sport.name}</option>
+                  ))}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </div>
+
+              {/* Season Selector */}
+              <div className="border-l border-white/10 relative">
+                <select
+                  value={selectedSeasonId}
+                  onChange={(e) => setSelectedSeasonId(e.target.value)}
+                  disabled={seasons.length === 0}
+                  className="w-full bg-transparent border-none focus:ring-0 text-white py-4 pl-4 pr-10 text-sm font-medium appearance-none cursor-pointer hover:bg-white/5 transition-colors disabled:opacity-30"
+                >
+                  <option value="" className="bg-gray-900">Select Season</option>
+                  {seasons.map(s => (
+                    <option key={s.id} value={s.id} className="bg-gray-900">{s.name}</option>
+                  ))}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                </div>
+              </div>
+
+              {/* League Quick Select */}
+              <div className="border-l border-white/10 relative">
+                <select
+                  value={selectedLeague}
+                  onChange={(e) => {
+                    const leagueId = e.target.value;
+                    setSelectedLeague(leagueId);
+                    if (leagueId) window.location.href = `/league/${leagueId}`;
+                  }}
+                  className="w-full bg-transparent border-none focus:ring-0 text-white py-4 pl-4 pr-10 text-sm font-medium appearance-none cursor-pointer hover:bg-white/5 transition-colors"
+                >
+                  <option value="" className="bg-gray-900">Jump to League</option>
+                  {leagues
+                    .filter((league: any) => league.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                    .map((league: any) => (
+                      <option key={league.id} value={league.id} className="bg-gray-900">{league.name}</option>
+                    ))
+                  }
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
