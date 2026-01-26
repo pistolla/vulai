@@ -29,6 +29,8 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
   const [type, setType] = useState<'league' | 'friendly'>(fixture?.type || (match ? 'league' : 'friendly'));
   const [selectedLeague, setSelectedLeague] = useState<string>(league?.id || '');
   const [selectedMatch, setSelectedMatch] = useState<string>(match?.id || '');
+  const [selectedGroupId, setSelectedGroupId] = useState<string>('');
+  const [selectedStageId, setSelectedStageId] = useState<string>('');
   const [matches, setMatches] = useState<Match[]>([]);
   const [homeTeamId, setHomeTeamId] = useState(fixture?.homeTeamId || '');
   const [awayTeamId, setAwayTeamId] = useState(fixture?.awayTeamId || '');
@@ -122,7 +124,13 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
         const stages = await firebaseLeagueService.listStages(leagueId, group.id!);
         for (const stage of stages) {
           const stageMatches = await firebaseLeagueService.listMatches(leagueId, group.id!, stage.id!);
-          allMatches.push(...stageMatches);
+          // Add groupId and stageId to each match for tracking
+          const matchesWithIds = stageMatches.map(m => ({
+            ...m,
+            groupId: group.id,
+            stageId: stage.id,
+          }));
+          allMatches.push(...matchesWithIds);
         }
       }
       setMatches(allMatches);
@@ -153,6 +161,9 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
         setHomeTeamId(homeTeam?.id || match.participants[0].refId);
         setAwayTeamId(awayTeam?.id || match.participants[1].refId);
         if (match.seasonId) setSelectedSeasonId(match.seasonId);
+        // Set groupId and stageId for bidirectional linking
+        if (match.groupId) setSelectedGroupId(match.groupId);
+        if (match.stageId) setSelectedStageId(match.stageId);
       }
     }
   }, [selectedMatch, matches, teams]);
@@ -216,6 +227,9 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
         status: 'scheduled',
         type,
         matchId: type === 'league' ? selectedMatch : undefined,
+        leagueId: type === 'league' ? selectedLeague : undefined,
+        groupId: type === 'league' ? selectedGroupId : undefined,
+        stageId: type === 'league' ? selectedStageId : undefined,
         blogContent: blogContent || undefined,
         seasonId: selectedSeasonId,
       };

@@ -352,6 +352,7 @@ class FirebaseLeagueService {
   /**
    * Create a standalone fixture in a seasonal path
    * Path: fixtures/{seasonId}/matches
+   * If matchId is provided (league match), create bidirectional linking with the match
    */
   async createFixture(seasonId: string, fixture: Omit<Fixture, 'id'>): Promise<string> {
     const ref = await addDoc(collection(db, `fixtures/${seasonId}/matches`), {
@@ -362,6 +363,20 @@ class FirebaseLeagueService {
     });
     // Ensure ID is inside the object
     await updateDoc(ref, { id: ref.id });
+
+    // If this is a league match with a matchId, create bidirectional linking
+    if (fixture.matchId && fixture.leagueId && fixture.groupId && fixture.stageId) {
+      try {
+        const matchRef = doc(db, `leagues/${fixture.leagueId}/groups/${fixture.groupId}/stages/${fixture.stageId}/matches/${fixture.matchId}`);
+        await updateDoc(matchRef, {
+          fixtureId: ref.id,
+          updatedAt: Timestamp.now(),
+        });
+      } catch (error) {
+        console.error('Failed to link fixture to match:', error);
+      }
+    }
+
     return ref.id;
   }
 

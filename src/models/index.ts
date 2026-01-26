@@ -65,9 +65,12 @@ export interface Fixture {
   };
   type: 'league' | 'friendly';
   matchId?: string; // for league fixtures, links to Match
+  leagueId?: string; // for league fixtures, links to League
+  groupId?: string; // for league fixtures, links to Group
+  stageId?: string; // for league fixtures, links to Stage
   blogContent?: string;
   approved?: boolean;
-  seasonId?: string; // Links to Season 
+  seasonId?: string; // Links to Season
   pointsAdded?: { home: number; away: number };
   pointsDeducted?: { home: number; away: number };
   goalTimings?: GoalTiming[];
@@ -191,6 +194,9 @@ export interface Match {
   winnerId?: string | null;
   blogContent?: string;
   seasonId?: string; // For season-based league matches
+  fixtureId?: string; // Links to Fixture for bidirectional query
+  groupId?: string; // Links to Group for bidirectional query
+  stageId?: string; // Links to Stage for bidirectional query
   createdAt?: any;
   updatedAt?: any;
   nextMatchId?: string; // ID of the match the winner advances to

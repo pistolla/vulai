@@ -533,6 +533,9 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
         ...newGame,
         type: newGame.type,
         matchId: newGame.type === 'league' ? newGame.selectedMatch : undefined,
+        leagueId: newGame.type === 'league' ? newGame.selectedLeague : undefined,
+        groupId: newGame.type === 'league' ? newGame.selectedGroup : undefined,
+        stageId: newGame.type === 'league' ? newGame.selectedStage : undefined,
         status: 'scheduled',
         createdAt: new Date().toISOString(),
         scheduledAt: `${newGame.date}T${newGame.time}:00`,
@@ -542,6 +545,18 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
       const fixtureRef = await addDoc(collection(db, `fixtures/${newGame.seasonId}/matches`), gameData);
       // Ensure ID is inside the object
       await updateDoc(fixtureRef, { id: fixtureRef.id });
+
+      // If this is a league match with a matchId, create bidirectional linking
+      if (newGame.type === 'league' && newGame.selectedMatch && newGame.selectedLeague && newGame.selectedGroup && newGame.selectedStage) {
+        try {
+          const matchRef = doc(db, `leagues/${newGame.selectedLeague}/groups/${newGame.selectedGroup}/stages/${newGame.selectedStage}/matches/${newGame.selectedMatch}`);
+          await updateDoc(matchRef, {
+            fixtureId: fixtureRef.id,
+          });
+        } catch (error) {
+          console.error('Failed to link fixture to match:', error);
+        }
+      }
       alert('Game added successfully');
       resetNewGame();
       setShowAddModal(false);
@@ -598,6 +613,18 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
       };
       // Use seasonal path: fixtures/{seasonId}/matches/{fixtureId}
       await updateDoc(doc(db, `fixtures/${editingGame.seasonId}/matches`, editingGame.fixtureId), gameData);
+
+      // If this is a league match with a matchId, update bidirectional linking
+      if (editingGame.type === 'league' && editingGame.matchId && editingGame.selectedLeague && editingGame.selectedGroup && editingGame.selectedStage) {
+        try {
+          const matchRef = doc(db, `leagues/${editingGame.selectedLeague}/groups/${editingGame.selectedGroup}/stages/${editingGame.selectedStage}/matches/${editingGame.matchId}`);
+          await updateDoc(matchRef, {
+            fixtureId: editingGame.fixtureId,
+          });
+        } catch (error) {
+          console.error('Failed to link fixture to match:', error);
+        }
+      }
       alert('Game updated successfully');
       setShowEditModal(false);
       setEditingGame(null);
