@@ -56,15 +56,11 @@ class FirebaseLeagueService {
   }
 
   async listLeagues(): Promise<League[]> {
-    console.log("📥 Fetching leagues...");
-
     try {
       const snap = await getDocs(collection(db, 'leagues'));
-      const leagues = snap.docs.map((d) => ({ id: d.id, ...d.data() } as League));
-      console.log(`✅ Fetched ${leagues.length} leagues`);
-      return leagues;
-    } catch (e: any) {
-      console.error("❌ Fetching leagues failed:", e.message || e);
+      return snap.docs.map((d) => ({ id: d.id, ...d.data() } as League));
+    } catch (e) {
+      console.warn("Firestore: 'leagues' collection missing or inaccessible.", e);
       return [];
     }
   }
@@ -261,13 +257,54 @@ class FirebaseLeagueService {
 
   // ---------------- POINTS ---------------- //
 
-  async getPointsTable(leagueId: string, groupId: string, seasonId?: string): Promise<{ refId: string; points: number }[]> {
+  async getPointsTable(leagueId: string, groupId: string, seasonId?: string): Promise<any[]> {
     const pointsPath = (seasonId)
       ? `leagues/${leagueId}/seasons/${seasonId}/groups/${groupId}/points`
       : `leagues/${leagueId}/groups/${groupId}/points`;
 
     const snap = await getDocs(collection(db, pointsPath));
-    return snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ refId: d.id, ...d.data() })) as { refId: string; points: number }[];
+    return snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ refId: d.id, ...d.data() })) as any[];
+  }
+
+  async updatePoints(leagueId: string, groupId: string, refId: string, stats: any, seasonId?: string) {
+    const pointsPath = (seasonId)
+      ? `leagues/${leagueId}/seasons/${seasonId}/groups/${groupId}/points`
+      : `leagues/${leagueId}/groups/${groupId}/points`;
+
+    await setDoc(doc(db, `${pointsPath}/${refId}`), stats, { merge: true });
+  }
+
+  async getCommentary(fixtureId: string): Promise<any | null> {
+    const snap = await getDoc(doc(db, 'commentaries', fixtureId));
+    return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  }
+
+  async advanceWinner(leagueId: string, winnerRefId: string, winnerName: string, nextMatchId: string, slot: number = 0) {
+    const leaguesSnap = await getDocs(collection(db, 'leagues'));
+    for (const leagueDoc of leaguesSnap.docs) {
+      if (leagueDoc.id !== leagueId) continue;
+      const groupsSnap = await getDocs(collection(db, `leagues/${leagueDoc.id}/groups`));
+      for (const groupDoc of groupsSnap.docs) {
+        const stagesSnap = await getDocs(collection(db, `leagues/${leagueDoc.id}/groups/${groupDoc.id}/stages`));
+        for (const stageDoc of stagesSnap.docs) {
+          const matchRef = doc(db, `leagues/${leagueDoc.id}/groups/${groupDoc.id}/stages/${stageDoc.id}/matches/${nextMatchId}`);
+          const matchSnap = await getDoc(matchRef);
+
+          if (matchSnap.exists()) {
+            const matchData = matchSnap.data() as Match;
+            const participants = [...(matchData.participants || [])];
+            participants[slot] = {
+              refType: 'team',
+              refId: winnerRefId,
+              name: winnerName,
+              score: 0
+            };
+            await updateDoc(matchRef, { participants });
+            return;
+          }
+        }
+      }
+    }
   }
 }
 

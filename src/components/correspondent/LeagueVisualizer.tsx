@@ -1,4 +1,4 @@
-import { League, Match } from "@/models";
+import { League, Match, Group } from "@/models";
 import { useState, useEffect, useCallback } from "react";
 import {
   ReactFlow,
@@ -38,7 +38,8 @@ export const LeagueVisualizer: React.FC<LeagueVisualizerProps> = ({ league }) =>
   useEffect(() => {
     const loadLeagueData = async () => {
       try {
-        const groups = await firebaseLeagueService.listGroups(league.id!);
+        const groupsRaw = await firebaseLeagueService.listGroups(league.id!);
+        const groups = groupsRaw.length > 0 ? groupsRaw : [{ id: '_general', name: 'General' } as Group];
         const allNodes: Node[] = [];
         const allEdges: Edge[] = [];
         let nodeId = 1;
@@ -109,9 +110,24 @@ export const LeagueVisualizer: React.FC<LeagueVisualizerProps> = ({ league }) =>
                 type: 'bezier',
                 label: 'leads to',
                 animated: true,
-                style: { stroke: '#2196f3', strokeWidth: 3 },
+                style: { stroke: '#2196f3', strokeWidth: 3, opacity: 0.3 },
               });
             }
+
+            // Advancement paths (Winners)
+            matches.forEach(match => {
+              if (match.nextMatchId) {
+                allEdges.push({
+                  id: `advancement-${match.id}-${match.nextMatchId}`,
+                  source: `match-${match.id}`,
+                  target: `match-${match.nextMatchId}`,
+                  type: 'smoothstep',
+                  label: 'winner',
+                  animated: match.status === 'completed',
+                  style: { stroke: '#4caf50', strokeWidth: 2 }
+                });
+              }
+            });
           }
         }
 

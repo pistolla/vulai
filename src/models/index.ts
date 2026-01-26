@@ -36,6 +36,13 @@ export interface Athlete {
   year: 'FR' | 'SO' | 'JR' | 'SR' | 'GR';
 }
 
+export interface GoalTiming {
+  teamId: string;
+  minute: number;
+  playerId?: string;
+  playerName?: string;
+}
+
 export interface Fixture {
   homeTeamName: string;
   awayTeamName: string;
@@ -61,6 +68,9 @@ export interface Fixture {
   blogContent?: string;
   approved?: boolean;
   seasonId?: string; // Links to Season 
+  pointsAdded?: { home: number; away: number };
+  pointsDeducted?: { home: number; away: number };
+  goalTimings?: GoalTiming[];
 }
 
 export interface News {
@@ -183,6 +193,8 @@ export interface Match {
   seasonId?: string; // For season-based league matches
   createdAt?: any;
   updatedAt?: any;
+  nextMatchId?: string; // ID of the match the winner advances to
+  targetSlot?: 0 | 1;  // Which participant slot (0 or 1) to fill in the next match
 }
 
 export interface Stage {

@@ -5,6 +5,7 @@ import { LeagueForm } from "./LeagueForm";
 import { LeagueList } from "./LeagueList";
 import { StageManager } from "./StageManager";
 import { MatchManager } from "./MatchManager";
+import { PointsTable } from "./PointsTable";
 import { LeagueVisualizer } from "./LeagueVisualizer.tsx";
 import { useTheme } from "@/components/ThemeProvider";
 
@@ -12,7 +13,7 @@ import { useTheme } from "@/components/ThemeProvider";
 export const LeagueDashboard: React.FC = () => {
   const [selectedLeague, setSelectedLeague] = useState<League | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
-  const [currentStep, setCurrentStep] = useState<'leagues' | 'groups' | 'stages' | 'visualize'>('leagues');
+  const [currentStep, setCurrentStep] = useState<'leagues' | 'groups' | 'stages' | 'visualize' | 'points'>('leagues');
   const [viewMode, setViewMode] = useState<'manage' | 'visualize'>('manage');
   const [isEditingDesc, setIsEditingDesc] = useState(false);
   const { theme } = useTheme();
@@ -21,7 +22,8 @@ export const LeagueDashboard: React.FC = () => {
     { id: 'leagues', label: 'Leagues', icon: '🏆' },
     { id: 'groups', label: 'Groups', icon: '👥' },
     { id: 'stages', label: 'Stages', icon: '🏅' },
-    { id: 'visualize', label: 'Visualize', icon: '📊' }
+    { id: 'visualize', label: 'Visualise', icon: '📈' },
+    { id: 'points', label: 'Points', icon: '📊' }
   ];
 
   const handleLeagueSelect = (l: League) => {
@@ -39,6 +41,7 @@ export const LeagueDashboard: React.FC = () => {
     if (step === 'leagues') return true;
     if (step === 'groups') return !!selectedLeague && selectedLeague.hasGroups !== false;
     if (step === 'stages') return !!selectedGroup || (!!selectedLeague && selectedLeague.hasGroups === false);
+    if (step === 'points') return !!selectedLeague;
     if (step === 'visualize') return !!selectedLeague;
     return false;
   };
@@ -99,10 +102,12 @@ export const LeagueDashboard: React.FC = () => {
         return (selectedGroup || (selectedLeague && selectedLeague.hasGroups === false)) ? (
           <div className="space-y-6">
             <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl shadow-black/5 border border-gray-100 dark:border-gray-700">
-              <h3 className="text-xl font-black dark:text-white mb-2">{selectedGroup?.name || selectedLeague?.name}</h3>
-              <p className="text-gray-600 dark:text-gray-300">Manage stages and matches for this league</p>
+              <h3 className="text-xl font-black dark:text-white mb-2">{selectedLeague?.hasGroups === false ? selectedLeague.name : selectedGroup?.name}</h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                {selectedLeague?.hasGroups === false ? 'Manage stages and matches for this league' : `Manage stages and matches for ${selectedGroup?.name}`}
+              </p>
             </div>
-            <StageManager league={selectedLeague!} group={selectedGroup || { id: '_general', name: 'General' }} />
+            <StageManager league={selectedLeague!} group={selectedGroup || { id: '_general', name: 'General', createdAt: '' }} />
           </div>
         ) : null;
       case 'visualize':
@@ -113,6 +118,18 @@ export const LeagueDashboard: React.FC = () => {
               <p className="text-gray-600 dark:text-gray-300">Click on match nodes to view details</p>
             </div>
             <LeagueVisualizer league={selectedLeague} />
+          </div>
+        ) : null;
+      case 'points':
+        return selectedLeague ? (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl shadow-black/5 border border-gray-100 dark:border-gray-700">
+              <h3 className="text-xl font-black dark:text-white mb-2">Points Table - {selectedLeague.name}</h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                {selectedLeague.hasGroups === false ? 'Tournament Leaderboard' : `Group Standings: ${selectedGroup?.name}`}
+              </p>
+            </div>
+            <PointsTable league={selectedLeague} group={selectedGroup || { id: '_general', name: 'General', createdAt: '' }} />
           </div>
         ) : null;
       default:

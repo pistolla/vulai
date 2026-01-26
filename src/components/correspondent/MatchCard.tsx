@@ -82,31 +82,19 @@ export const MatchCard: React.FC<{ league: League; group: Group | null; stage: S
               <div className="text-sm text-gray-600 dark:text-gray-300 truncate">{p.refType} • {p.refId}</div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Score:</label>
-              <input
-                type="number"
-                value={p.score}
-                onChange={(e) => updateScore(idx, Number(e.target.value))}
-                className="w-20 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white text-sm"
-                min="0"
-                disabled={saving}
-              />
+              <div className="bg-white dark:bg-gray-800 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 font-black text-lg text-blue-600 dark:text-blue-400">
+                {p.score}
+              </div>
             </div>
           </div>
         ))}
 
-        <button
-          onClick={saveScores}
-          disabled={saving}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-bold shadow-lg shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-70"
-        >
-          {saving ? 'Saving Scores...' : 'Save Scores & Compute Winner'}
-        </button>
-
         {match.winnerId && (
           <div className="text-center p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
             <div className="text-green-800 dark:text-green-400 font-bold">🏆 Winner</div>
-            <div className="text-green-700 dark:text-green-300 mt-1">{match.winnerId}</div>
+            <div className="text-green-700 dark:text-green-300 mt-1">
+              {match.participants.find(p => p.refId === match.winnerId)?.name || match.winnerId}
+            </div>
           </div>
         )}
       </div>

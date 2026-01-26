@@ -1,7 +1,9 @@
-import { Match, League, Group } from "@/models";
-import { useAppSelector } from "@/hooks/redux";
+import { useAppSelector, useAppDispatch } from "@/hooks/redux";
 import { useState, useEffect } from "react";
 import { firebaseLeagueService } from "@/services/firebaseCorrespondence";
+import { FixtureResultPopup } from "./FixtureResultPopup";
+import { Fixture, Match, League, Group } from "@/models";
+import { updateFixture } from "@/store/correspondentThunk";
 
 interface FixtureListProps {
   onSelect: (match: Match, league: League) => void;
@@ -12,6 +14,48 @@ export const FixtureList: React.FC<FixtureListProps> = ({ onSelect }) => {
   const [loading, setLoading] = useState(true);
   const fixtures = useAppSelector((state) => state.correspondent.fixtures) || [];
   const leagues = useAppSelector((state) => state.correspondent.leagues) || [];
+  const [selectedFixture, setSelectedFixture] = useState<Fixture | null>(null);
+  const [bulkProcessing, setBulkProcessing] = useState(false);
+  const dispatch = useAppDispatch();
+
+  const handleBulkUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setBulkProcessing(true);
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const text = event.target?.result as string;
+      const lines = text.split('\n').filter(l => l.trim());
+      let successCount = 0;
+
+      for (const line of lines) {
+        const [matchNum, hScore, aScore] = line.split(',').map(s => s.trim());
+        if (!matchNum || hScore === undefined || aScore === undefined) continue;
+
+        const target = unlinkedMatches.find(m => m.match.matchNumber?.toString() === matchNum);
+        const fixture = fixtures.find(f => f.matchId === target?.match.id);
+
+        if (fixture) {
+          try {
+            await dispatch(updateFixture({
+              id: fixture.id,
+              fixture: {
+                score: { home: parseInt(hScore), away: parseInt(aScore) },
+                status: 'completed'
+              }
+            })).unwrap();
+            successCount++;
+          } catch (err) {
+            console.error(`Failed to update match #${matchNum}`, err);
+          }
+        }
+      }
+      alert(`Bulk update complete. Successfully processed ${successCount} matches.`);
+      setBulkProcessing(false);
+    };
+    reader.readAsText(file);
+  };
 
   useEffect(() => {
     const loadUnlinkedMatches = async () => {
@@ -50,6 +94,30 @@ export const FixtureList: React.FC<FixtureListProps> = ({ onSelect }) => {
 
   return (
     <div className="space-y-4">
+      {/* Bulk Operations */}
+      <div className="bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-900/30 flex justify-between items-center">
+        <div>
+          <h4 className="text-sm font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Bulk Operations</h4>
+          <p className="text-[10px] text-indigo-400 dark:text-indigo-500 font-bold">Upload CSV (matchNumber, homeScore, awayScore)</p>
+        </div>
+        <div className="flex gap-2">
+          <input
+            type="file"
+            accept=".csv"
+            onChange={handleBulkUpload}
+            className="hidden"
+            id="bulk-csv"
+            disabled={bulkProcessing}
+          />
+          <label
+            htmlFor="bulk-csv"
+            className="cursor-pointer px-4 py-2 bg-indigo-600 text-white text-[10px] font-black uppercase rounded-xl hover:bg-indigo-700 transition-all flex items-center gap-2"
+          >
+            {bulkProcessing ? 'Processing...' : 'Upload CSV'}
+          </label>
+        </div>
+      </div>
+
       {loading ? (
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -80,7 +148,7 @@ export const FixtureList: React.FC<FixtureListProps> = ({ onSelect }) => {
                 <tr key={match.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" onClick={() => onSelect(match, league)}>
                   <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">#{match.matchNumber}</td>
                   <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{league.name}</td>
-                  <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{groupName}</td>
+                  <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{groupName === 'General' ? '-' : groupName}</td>
                   <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{stageName}</td>
                   <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
                     {(() => {
@@ -91,16 +159,34 @@ export const FixtureList: React.FC<FixtureListProps> = ({ onSelect }) => {
                   <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
                     {new Date(match.date).toLocaleDateString()}
                   </td>
-                  <td className="px-4 py-2 text-sm">
-                    <button className={`${fixtures.some(f => f.matchId === match.id) ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'} text-white px-3 py-1 rounded text-xs`}>
-                      {fixtures.some(f => f.matchId === match.id) ? 'Edit Fixture' : 'Create Fixture'}
+                  <td className="px-4 py-2 text-sm flex gap-2">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onSelect(match, league); }}
+                      className={`${fixtures.some(f => f.matchId === match.id) ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'} text-white px-3 py-1 rounded text-xs`}
+                    >
+                      {fixtures.some(f => f.matchId === match.id) ? 'Edit' : 'Fixture'}
                     </button>
+                    {fixtures.find(f => f.matchId === match.id) && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setSelectedFixture(fixtures.find(f => f.matchId === match.id)!); }}
+                        className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs"
+                      >
+                        Record
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+      )}
+
+      {selectedFixture && (
+        <FixtureResultPopup
+          fixture={selectedFixture}
+          onClose={() => setSelectedFixture(null)}
+        />
       )}
     </div>
   );
