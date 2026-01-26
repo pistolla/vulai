@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { CorrespondentDashboard, LiveCommentary, FixtureVideo, Group, Match, Stage, League, Fixture } from '@/models';
-import { pushCommentaryEvent, attachDriveVideo, createLeague, fetchLeagues, createGroup, createStage, createMatch, updateMatchScores, fetchPointsTable, fetchFixtures, createFixture, updateFixture, deleteStage, deleteMatch } from '@/store/correspondentThunk';
+import { pushCommentaryEvent, attachDriveVideo, createLeague, fetchLeagues, createGroup, createStage, createMatch, updateMatchScores, fetchPointsTable, fetchFixtures, createFixture, updateFixture, deleteStage, deleteMatch, updateStage } from '@/store/correspondentThunk';
 
 // Define proper type for points data
 interface PointsEntry {
@@ -109,6 +109,12 @@ const correspondentSlice = createSlice({
         const { leagueId, groupId, stageId } = payload;
         const key = `${leagueId}_${groupId}`;
         s.stages[key] = s.stages[key]?.filter(st => st.id !== stageId) || [];
+      })
+      .addCase(updateStage.fulfilled, (s, { payload }) => {
+        const { leagueId, groupId, stageId, data } = payload;
+        const key = `${leagueId}_${groupId}`;
+        const stage = s.stages[key]?.find(st => st.id === stageId);
+        if (stage) Object.assign(stage, data);
       })
       .addCase(updateMatchScores.fulfilled, (s, { payload }) => {
         const { leagueId, groupId, stageId, matchId, participants } = payload;

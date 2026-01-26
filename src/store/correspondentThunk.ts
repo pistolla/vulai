@@ -157,6 +157,14 @@ export const deleteStage = createAsyncThunk(
   },
 );
 
+export const updateStage = createAsyncThunk(
+  'stages/update',
+  async ({ leagueId, groupId, stageId, data }: { leagueId: string; groupId: string; stageId: string; data: Partial<Stage> }) => {
+    await firebaseLeagueService.updateStage(leagueId, groupId, stageId, data);
+    return { leagueId, groupId, stageId, data };
+  },
+);
+
 export const updateMatchScores = createAsyncThunk(
   'matches/updateScores',
   async ({ leagueId, groupId, stageId, matchId, participants }: { leagueId: string; groupId: string; stageId: string; matchId: string; participants: Participant[] }) => {

@@ -11,9 +11,10 @@ import { MatchCard } from "./MatchCard";
 import { useTheme } from "@/components/ThemeProvider";
 
 // --- MatchManager ---
-export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage }> = ({ league, group, stage }) => {
+export const MatchManager: React.FC<{ league: League; group?: Group | null; stage: Stage }> = ({ league, group, stage }) => {
   const dispatch = useAppDispatch();
-  const matches = useAppSelector((s: RootState) => s.correspondent.matches[`${league.id}_${group.id}_${stage.id}`] ?? []);
+  const effectiveGroupId = group?.id || '_general';
+  const matches = useAppSelector((s: RootState) => s.correspondent.matches[`${league.id}_${effectiveGroupId}_${stage.id}`] ?? []);
   const { theme } = useTheme();
   const [matchNumber, setMatchNumber] = useState(1);
   const [date, setDate] = useState(toISO());
@@ -29,8 +30,8 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
     (async () => {
       try {
         setIsLoading(true);
-        const list = await firebaseLeagueService.listMatches(league.id!, group.id!, stage.id!);
-        dispatch(setMatches({ leagueId: league.id!, groupId: group.id!, stageId: stage.id!, matches: list }));
+        const list = await firebaseLeagueService.listMatches(league.id!, effectiveGroupId, stage.id!);
+        dispatch(setMatches({ leagueId: league.id!, groupId: effectiveGroupId, stageId: stage.id!, matches: list }));
 
         // Fetch seasons for the sport
         const sports: Sport[] = await apiService.getSports();
@@ -46,10 +47,6 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
           setSeasons(leagueSeasons);
           const active = leagueSeasons.find(s => s.isActive);
           if (active) setSelectedSeasonId(active.id);
-        } else {
-          // Fallback: search by name directly if no sport match
-          console.warn('No direct sport match found, searching seasons for:', league.name);
-          // We could potentially list ALL seasons if no sport found, or just log
         }
       } catch (error) {
         console.error('Failed to load match manager data:', error);
@@ -57,7 +54,7 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
         setIsLoading(false);
       }
     })();
-  }, [league.id, group.id, stage.id, dispatch, league.sportType, league.name]);
+  }, [league.id, effectiveGroupId, stage.id, dispatch, league.sportType, league.name]);
 
 
   const addParticipant = () => {
@@ -92,11 +89,11 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
         seasonId: selectedSeasonId
       };
       const seasonName = seasons.find(s => s.id === selectedSeasonId)?.name;
-      await dispatch(createMatch({ leagueId: league.id!, groupId: group.id!, stageId: stage.id!, match, seasonName }));
+      await dispatch(createMatch({ leagueId: league.id!, groupId: effectiveGroupId, stageId: stage.id!, match, seasonName }));
 
       // refresh matches
-      const list = await firebaseLeagueService.listMatches(league.id!, group.id!, stage.id!);
-      dispatch(setMatches({ leagueId: league.id!, groupId: group.id!, stageId: stage.id!, matches: list }));
+      const list = await firebaseLeagueService.listMatches(league.id!, effectiveGroupId, stage.id!);
+      dispatch(setMatches({ leagueId: league.id!, groupId: effectiveGroupId, stageId: stage.id!, matches: list }));
       setParticipants([]);
 
       // Reset form
@@ -115,17 +112,12 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
     <div className="bg-gray-50 dark:bg-gray-700 p-3 sm:p-4 rounded-xl">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-sm transition-all active:scale-95"
       >
-        <h4 className="font-bold text-gray-900 dark:text-white text-sm sm:text-base">Matches ({matches.length})</h4>
-        <svg
-          className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-500 dark:text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
         </svg>
+        <span className="text-sm">Manage Matches ({matches.length})</span>
       </button>
 
       {isOpen && (
@@ -247,7 +239,7 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
               </div>
             ) : (
               matches.map((m: Match) => (
-                <MatchCard key={m.id} league={league} group={group} stage={stage} match={m} />
+                <MatchCard key={m.id} league={league} group={group ?? null} stage={stage} match={m} />
               ))
             )}
             {matches.length === 0 && !isLoading && (

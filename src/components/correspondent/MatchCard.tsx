@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { useTheme } from "@/components/ThemeProvider";
 
 // --- MatchCard (view + update scores) ---
-export const MatchCard: React.FC<{ league: League; group: Group; stage: Stage; match: Match }> = ({ league, group, stage, match }) => {
+export const MatchCard: React.FC<{ league: League; group: Group | null; stage: Stage; match: Match }> = ({ league, group, stage, match }) => {
   const dispatch = useAppDispatch();
   const { theme } = useTheme();
   const [local, setLocal] = useState<Match>(match);
@@ -26,10 +26,11 @@ export const MatchCard: React.FC<{ league: League; group: Group; stage: Stage; m
   const saveScores = async () => {
     try {
       setSaving(true);
-      await dispatch(updateMatchScores({ leagueId: league.id!, groupId: group.id!, stageId: stage.id!, matchId: match.id!, participants: local.participants }));
+      const effectiveGroupId = group?.id || '_general';
+      await dispatch(updateMatchScores({ leagueId: league.id!, groupId: effectiveGroupId, stageId: stage.id!, matchId: match.id!, participants: local.participants }));
       // optional: refresh points
-      const pts = await firebaseLeagueService.getPointsTable(league.id!, group.id!);
-      dispatch(setPoints({ leagueId: league.id!, groupId: group.id!, points: pts }));
+      const pts = await firebaseLeagueService.getPointsTable(league.id!, effectiveGroupId);
+      dispatch(setPoints({ leagueId: league.id!, groupId: effectiveGroupId, points: pts }));
     } catch (error) {
       console.error('Failed to save scores:', error);
       alert('Failed to save scores. Please try again.');
@@ -60,7 +61,7 @@ export const MatchCard: React.FC<{ league: League; group: Group; stage: Stage; m
           <button
             onClick={() => {
               if (confirm('Are you sure you want to delete this match?')) {
-                dispatch(deleteMatch({ leagueId: league.id!, groupId: group.id!, stageId: stage.id!, matchId: match.id! }));
+                dispatch(deleteMatch({ leagueId: league.id!, groupId: group?.id || '_general', stageId: stage.id!, matchId: match.id! }));
               }
             }}
             className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"

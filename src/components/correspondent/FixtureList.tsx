@@ -1,4 +1,4 @@
-import { Match, League } from "@/models";
+import { Match, League, Group } from "@/models";
 import { useAppSelector } from "@/hooks/redux";
 import { useState, useEffect } from "react";
 import { firebaseLeagueService } from "@/services/firebaseCorrespondence";
@@ -21,7 +21,9 @@ export const FixtureList: React.FC<FixtureListProps> = ({ onSelect }) => {
 
         for (const league of leagues) {
           const groups = await firebaseLeagueService.listGroups(league.id!);
-          for (const group of groups) {
+          const groupsToProcess = groups.length > 0 ? groups : [{ id: '_general', name: 'General' } as Group];
+
+          for (const group of groupsToProcess) {
             const stages = await firebaseLeagueService.listStages(league.id!, group.id!);
             for (const stage of stages) {
               const matches = await firebaseLeagueService.listMatches(league.id!, group.id!, stage.id!);

@@ -46,6 +46,7 @@ const LeagueExplorerPage: React.FC = () => {
 
         // Fetch all groups
         const groups = await firebaseLeagueService.listGroups(leagueId);
+        const groupsToProcess = groups.length > 0 ? groups : [{ id: '_general', name: 'General' } as Group];
 
         // Fetch all fixtures to link with matches
         const fixturesSnap = await getDocs(collection(db, 'fixtures'));
@@ -53,7 +54,7 @@ const LeagueExplorerPage: React.FC = () => {
 
         // Fetch all matches from all groups and stages
         const allMatches: MatchWithContext[] = [];
-        for (const group of groups) {
+        for (const group of groupsToProcess) {
           const stages = await firebaseLeagueService.listStages(leagueId, group.id!);
           for (const stage of stages) {
             const matches = await firebaseLeagueService.listMatches(leagueId, group.id!, stage.id!);
