@@ -75,8 +75,7 @@ export const QuickFixtureModal: React.FC<QuickFixtureModalProps> = ({ isOpen, on
                 seasonId: selectedSeasonId
             };
 
-            const seasonName = seasons.find(s => s.id === selectedSeasonId)?.name;
-            await dispatch(createMatch({ leagueId: league.id!, groupId, stageId, match, seasonName }));
+            await dispatch(createMatch({ leagueId: league.id!, groupId, stageId, match, seasonId: selectedSeasonId }));
 
             // Refresh matches
             const updatedMatches = await firebaseLeagueService.listMatches(league.id!, groupId, stageId);

@@ -1,4 +1,4 @@
-import { Fixture, League, Match, Team } from "@/models";
+import { Fixture, League, Match, Team, Season } from "@/models";
 import { useState, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "@/hooks/redux";
 import { fetchLeagues, fetchFixtures, createFixture, updateFixture } from "@/store/correspondentThunk";
@@ -38,13 +38,27 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
   const [venue, setVenue] = useState(fixture?.venue || match?.venue || '');
   const [blogContent, setBlogContent] = useState(fixture?.blogContent || '');
   const [teams, setTeams] = useState<any[]>([]);
+  const [selectedSeasonId, setSelectedSeasonId] = useState(fixture?.seasonId || '');
+  const [seasons, setSeasons] = useState<Season[]>([]);
+  const [selectedSportId, setSelectedSportId] = useState('');
+  const [sports, setSports] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     dispatch(fetchLeagues());
     dispatch(fetchFixtures());
     loadTeams();
+    loadSports();
   }, [dispatch]);
+
+  const loadSports = async () => {
+    try {
+      const allSports = await apiService.getSports();
+      setSports(allSports);
+    } catch (e) {
+      console.error('Failed to load sports:', e);
+    }
+  };
 
   const loadTeams = async () => {
     try {
@@ -54,6 +68,36 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
       console.error('Failed to load teams:', error);
     }
   };
+
+  const loadSeasonsForSport = async (sportId: string) => {
+    try {
+      const list = await firebaseLeagueService.listSeasons(sportId);
+      setSeasons(list);
+      if (!selectedSeasonId) {
+        const active = list.find(s => s.isActive);
+        if (active) setSelectedSeasonId(active.id);
+      }
+    } catch (e) {
+      console.error('Failed to load seasons:', e);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedLeague) {
+      const league = leagues.find(l => l.id === selectedLeague);
+      if (league) {
+        const sport = sports.find(s => s.name.toLowerCase() === league.sportType.toLowerCase());
+        if (sport) loadSeasonsForSport(sport.id);
+      }
+      loadMatches(selectedLeague);
+    }
+  }, [selectedLeague, sports]);
+
+  useEffect(() => {
+    if (type === 'friendly' && selectedSportId) {
+      loadSeasonsForSport(selectedSportId);
+    }
+  }, [type, selectedSportId]);
 
   const loadMatches = async (leagueId: string) => {
     try {
@@ -97,19 +141,25 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
         const awayTeam = teams.find(t => t.name === match.participants[1].name);
         setHomeTeamId(homeTeam?.id || match.participants[0].refId);
         setAwayTeamId(awayTeam?.id || match.participants[1].refId);
+        if (match.seasonId) setSelectedSeasonId(match.seasonId);
       }
     }
   }, [selectedMatch, matches, teams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedSeasonId) {
+      alert("Please select a season.");
+      return;
+    }
     setIsLoading(true);
 
     try {
       let homeId = homeTeamId;
       let awayId = awayTeamId;
 
-      if (type === 'league' && league) {
+      if (type === 'league') {
+        const leagueObj = leagues.find(l => l.id === selectedLeague);
         // Create teams if not exist
         const homeTeam = teams.find(t => t.name === homeTeamName);
         if (!homeTeam) {
@@ -117,7 +167,7 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
           const newTeam: Omit<Team, 'id'> = {
             universityId: state.auth.user!.universityId!,
             name: homeTeamName,
-            sport: league.name,
+            sport: leagueObj?.name || 'Unknown',
             foundedYear: new Date().getFullYear(),
           };
           await setDoc(doc(db, 'teams', teamId), newTeam);
@@ -132,7 +182,7 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
           const newTeam: Omit<Team, 'id'> = {
             universityId: state.auth.user!.universityId!,
             name: awayTeamName,
-            sport: league.name,
+            sport: leagueObj?.name || 'Unknown',
             foundedYear: new Date().getFullYear(),
           };
           await setDoc(doc(db, 'teams', teamId), newTeam);
@@ -140,8 +190,6 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
         } else {
           awayId = awayTeam.id;
         }
-
-        // TODO: Update match participants - need to find groupId and stageId
       }
 
       const fixtureData: Omit<Fixture, 'id' | 'correspondentId'> = {
@@ -149,13 +197,16 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
         awayTeamName,
         homeTeamId: homeId,
         awayTeamId: awayId,
-        sport: leagues.find((l: League) => l.id === selectedLeague)?.name || 'Unknown',
+        sport: type === 'league'
+          ? (leagues.find((l: League) => l.id === selectedLeague)?.name || 'Unknown')
+          : (sports.find(s => s.id === selectedSportId)?.name || 'Friendly'),
         scheduledAt,
         venue,
         status: 'scheduled',
         type,
         matchId: type === 'league' ? selectedMatch : undefined,
         blogContent: blogContent || undefined,
+        seasonId: selectedSeasonId,
       };
 
       if (fixture) {
@@ -201,6 +252,45 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
               <option value="league">League Match</option>
               <option value="friendly">Friendly Match</option>
             </select>
+          </div>
+
+          {type === 'friendly' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Select Sport
+              </label>
+              <select
+                value={selectedSportId}
+                onChange={(e) => setSelectedSportId(e.target.value)}
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+                required
+              >
+                <option value="">Choose Sport</option>
+                {sports.map((s: any) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Select Season
+            </label>
+            <select
+              value={selectedSeasonId}
+              onChange={(e) => setSelectedSeasonId(e.target.value)}
+              className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+              required
+            >
+              <option value="">Choose Season</option>
+              {seasons.map((s: Season) => (
+                <option key={s.id} value={s.id}>{s.name} {s.isActive ? '(Active)' : ''}</option>
+              ))}
+            </select>
+            {seasons.length === 0 && (selectedLeague || selectedSportId) && (
+              <p className="text-xs text-amber-500 mt-1 italic">No seasons found for this sport. Please create one in Admin Panel.</p>
+            )}
           </div>
 
           {type === 'league' && (

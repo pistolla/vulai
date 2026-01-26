@@ -11,7 +11,7 @@ import { ManageFixtureTab } from '@/components/correspondent/ManageFixtureTab';
 import { TeamsCatalogTab } from '../components/correspondent/TeamsCatalogTab';
 import { QuickFixtureModal } from '../components/correspondent/QuickFixtureModal';
 import { useClientSideLibs } from '@/utils/clientLibs';
-import { fetchLeagues } from '@/store/correspondentThunk';
+import { fetchLeagues, fetchFixtures } from '@/store/correspondentThunk';
 import { FiUser, FiFileText, FiVideo, FiRadio, FiAward, FiArrowRight, FiShoppingCart, FiPackage } from 'react-icons/fi';
 import { League } from '@/models';
 
@@ -34,7 +34,10 @@ export default function CorrespondentDashboardPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        await dispatch(fetchLeagues());
+        await Promise.all([
+          dispatch(fetchLeagues()),
+          dispatch(fetchFixtures())
+        ]);
         setDataLoaded(true);
       } catch (error) {
         console.error('Failed to load correspondent data:', error);

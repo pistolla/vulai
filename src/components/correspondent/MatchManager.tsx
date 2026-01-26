@@ -88,8 +88,7 @@ export const MatchManager: React.FC<{ league: League; group?: Group | null; stag
         participants,
         seasonId: selectedSeasonId
       };
-      const seasonName = seasons.find(s => s.id === selectedSeasonId)?.name;
-      await dispatch(createMatch({ leagueId: league.id!, groupId: effectiveGroupId, stageId: stage.id!, match, seasonName }));
+      await dispatch(createMatch({ leagueId: league.id!, groupId: effectiveGroupId, stageId: stage.id!, match, seasonId: selectedSeasonId }));
 
       // refresh matches
       const list = await firebaseLeagueService.listMatches(league.id!, effectiveGroupId, stage.id!);

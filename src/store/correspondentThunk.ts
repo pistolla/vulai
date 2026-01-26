@@ -135,8 +135,8 @@ export const createStage = createAsyncThunk(
 
 export const createMatch = createAsyncThunk(
   'matches/create',
-  async ({ leagueId, groupId, stageId, match, seasonName }: { leagueId: string; groupId: string; stageId: string; match: Omit<Match, 'id'>, seasonName?: string }) => {
-    const id = await firebaseLeagueService.createMatch(leagueId, groupId, stageId, match, seasonName);
+  async ({ leagueId, groupId, stageId, match, seasonId }: { leagueId: string; groupId: string; stageId: string; match: Omit<Match, 'id'>, seasonId?: string }) => {
+    const id = await firebaseLeagueService.createMatch(leagueId, groupId, stageId, match, seasonId);
     return { leagueId, groupId, stageId, id, ...match } as any;
   },
 );
@@ -194,22 +194,21 @@ export const submitImportedData = createAsyncThunk(
 /* ---------- fixtures ---------- */
 export const fetchFixtures = createAsyncThunk('fixtures/fetchAll', async (_, { getState }) => {
   const uid = (getState() as RootState).auth.user!.uid;
-  const q = query(collection(db, 'fixtures'), where('correspondentId', '==', uid));
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() } as Fixture));
+  return await firebaseLeagueService.listAllFixturesAcrossSeasons(uid);
 });
 
 export const createFixture = createAsyncThunk('fixtures/create', async (fixture: Omit<Fixture, 'id'>, { getState }) => {
   const uid = (getState() as RootState).auth.user!.uid;
-  const id = doc(collection(db, 'fixtures')).id;
-  const fullFixture: Fixture = { id, correspondentId: uid, ...fixture, approved: false };
-  await setDoc(doc(db, 'fixtures', id), fullFixture);
-  return fullFixture;
+  const seasonId = fixture.seasonId;
+  if (!seasonId) throw new Error("Season ID is required for seasonal fixtures.");
+
+  const id = await firebaseLeagueService.createFixture(seasonId, { ...fixture, correspondentId: uid, approved: false });
+  return { id, correspondentId: uid, ...fixture, approved: false } as Fixture;
 });
 
 export const updateFixture = createAsyncThunk('fixtures/update', async ({ id, fixture }: { id: string; fixture: Partial<Fixture> }) => {
-  // TODO: Implement Firebase service for fixtures
-  // await updateDoc(doc(db, 'fixtures', id), fixture);
+  const seasonId = fixture.seasonId;
+  await firebaseLeagueService.updateFixture(seasonId!, id, fixture);
   return { id, ...fixture } as Fixture;
 });
 

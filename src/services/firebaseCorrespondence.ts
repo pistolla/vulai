@@ -16,7 +16,7 @@ import {
   QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { League, Group, Stage, Match, Participant, Season } from '@/models';
+import { League, Group, Stage, Match, Participant, Season, Fixture } from '@/models';
 
 class FirebaseLeagueService {
   async listMatches(leagueId: string, groupId: string, stageId: string): Promise<Match[]> {
@@ -126,7 +126,12 @@ class FirebaseLeagueService {
 
   // ---------------- MATCH CRUD ---------------- //
 
-  async createMatch(leagueId: string, groupId: string, stageId: string, match: Omit<Match, 'id'>, seasonName?: string): Promise<string> {
+  /**
+   * Create a match in a league structure and also create a fixture in seasonal path
+   * League path: leagues/{leagueId}/groups/{groupId}/stages/{stageId}/matches/{matchId}
+   * Fixture path: fixtures/{seasonId}/matches/{matchId}
+   */
+  async createMatch(leagueId: string, groupId: string, stageId: string, match: Omit<Match, 'id'>, seasonId?: string): Promise<string> {
     const ref = await addDoc(collection(db, `leagues/${leagueId}/groups/${groupId}/stages/${stageId}/matches`), {
       ...match,
       createdAt: Timestamp.now(),
@@ -134,19 +139,24 @@ class FirebaseLeagueService {
     });
 
     // Also create a root fixture for public landing/schedule
-    // Use seasonal collection path: fixtures/{seasonName}/matches
-    const fixturePath = seasonName ? `fixtures/${seasonName}/matches` : 'fixtures';
-
-    await addDoc(collection(db, fixturePath), {
-      ...match,
-      matchId: ref.id,
-      leagueId,
-      groupId,
-      stageId,
-      approved: false,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now(),
-    });
+    // Use seasonal collection path: fixtures/{seasonId}/matches
+    const finalSeasonId = seasonId || match.seasonId;
+    
+    if (finalSeasonId) {
+      // Create fixture in seasonal path
+      await setDoc(doc(db, `fixtures/${finalSeasonId}/matches`, ref.id), {
+        ...match,
+        id: ref.id,
+        matchId: ref.id,
+        leagueId,
+        groupId,
+        stageId,
+        seasonId: finalSeasonId,
+        approved: false,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      });
+    }
 
     return ref.id;
   }
@@ -277,6 +287,94 @@ class FirebaseLeagueService {
   async getCommentary(fixtureId: string): Promise<any | null> {
     const snap = await getDoc(doc(db, 'commentaries', fixtureId));
     return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  }
+
+  // ---------------- FIXTURES (Seasonal) ---------------- //
+
+  /**
+   * List fixtures for a specific season
+   * Path: fixtures/{seasonId}/matches
+   */
+  async listFixtures(seasonId: string): Promise<Fixture[]> {
+    const snap = await getDocs(collection(db, `fixtures/${seasonId}/matches`));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() } as Fixture));
+  }
+
+  /**
+   * List all fixtures across all seasons for a correspondent
+   * Uses collectionGroup to fetch all fixtures from fixtures/{seasonId}/matches
+   */
+  async listAllFixturesAcrossSeasons(correspondentId: string): Promise<Fixture[]> {
+    // Use collectionGroup to query all 'matches' subcollections under 'fixtures'
+    const fixtures: Fixture[] = [];
+    
+    try {
+      // Query all matches subcollections under fixtures using collectionGroup
+      const fixturesQuery = query(
+        collectionGroup(db, 'matches'),
+        where('correspondentId', '==', correspondentId)
+      );
+      const snap = await getDocs(fixturesQuery);
+      
+      // Filter to only include documents from the fixtures/{seasonId}/matches path
+      // by checking if the parent collection is 'fixtures'
+      for (const doc of snap.docs) {
+        const pathParts = doc.ref.path.split('/');
+        if (pathParts[0] === 'fixtures' && pathParts.length >= 4) {
+          fixtures.push({ id: doc.id, ...doc.data() } as Fixture);
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to fetch fixtures using collectionGroup, falling back to iteration:', error);
+      
+      // Fallback: iterate over all sports and seasons
+      const sportsSnap = await getDocs(collection(db, 'sports'));
+      for (const sportDoc of sportsSnap.docs) {
+        const seasonsSnap = await getDocs(collection(db, `sports/${sportDoc.id}/seasons`));
+        for (const seasonDoc of seasonsSnap.docs) {
+          const seasonFixtures = await this.listFixtures(seasonDoc.id);
+          fixtures.push(...seasonFixtures.filter(f => f.correspondentId === correspondentId));
+        }
+      }
+    }
+
+    // Also check legacy root fixtures (for backward compatibility)
+    try {
+      const legacySnap = await getDocs(query(collection(db, 'fixtures'), where('correspondentId', '==', correspondentId)));
+      fixtures.push(...legacySnap.docs.filter(d => !d.ref.path.includes('/matches')).map(d => ({ id: d.id, ...d.data() } as Fixture)));
+    } catch (e) {
+      // Legacy fixtures collection may not exist
+    }
+
+    return fixtures;
+  }
+
+  /**
+   * Create a standalone fixture in a seasonal path
+   * Path: fixtures/{seasonId}/matches
+   */
+  async createFixture(seasonId: string, fixture: Omit<Fixture, 'id'>): Promise<string> {
+    const ref = await addDoc(collection(db, `fixtures/${seasonId}/matches`), {
+      ...fixture,
+      seasonId,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    });
+    // Ensure ID is inside the object
+    await updateDoc(ref, { id: ref.id });
+    return ref.id;
+  }
+
+  /**
+   * Update a fixture in a seasonal path
+   * Path: fixtures/{seasonId}/matches/{fixtureId}
+   */
+  async updateFixture(seasonId: string, fixtureId: string, data: Partial<Fixture>) {
+    const path = seasonId ? `fixtures/${seasonId}/matches/${fixtureId}` : `fixtures/${fixtureId}`;
+    await updateDoc(doc(db, path), {
+      ...data,
+      updatedAt: Timestamp.now(),
+    });
   }
 
   async advanceWinner(leagueId: string, winnerRefId: string, winnerName: string, nextMatchId: string, slot: number = 0) {

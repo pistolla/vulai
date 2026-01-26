@@ -138,7 +138,7 @@ const correspondentSlice = createSlice({
       .addCase(updateFixture.fulfilled, (s, { payload }) => {
         const index = s.fixtures.findIndex(f => f.id === payload.id);
         if (index !== -1) {
-          s.fixtures[index] = payload;
+          s.fixtures[index] = { ...s.fixtures[index], ...payload };
         }
       }),
 });
