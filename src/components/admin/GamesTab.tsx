@@ -2,14 +2,16 @@ import { useEffect, useState } from 'react';
 import { useAppSelector } from '@/hooks/redux';
 import { apiService } from '@/services/apiService';
 import { db } from '@/services/firebase';
-import { addDoc, collection, updateDoc, deleteDoc, doc, getDocs } from 'firebase/firestore';
+import { addDoc, collection, updateDoc, deleteDoc, doc, getDocs, setDoc } from 'firebase/firestore';
 import { loadLiveGames, loadUpcomingGames, addLiveGame, addUpcomingGame, updateLiveGame, updateUpcomingGame, deleteLiveGame, deleteUpcomingGame, syncAdminGameCollections } from '@/services/firestoreAdmin';
+import { firebaseLeagueService } from '@/services/firebaseCorrespondence';
+import { Season } from '@/models';
 import ExportButtons from './ExportButtons';
 
 import { Modal } from '@/components/common/Modal';
 
 // Game Form Component
-function GameForm({ formData, setFormData, teams, players, sports, onSubmit, submitLabel, leagues }: any) {
+function GameForm({ formData, setFormData, teams, players, sports, onSubmit, submitLabel, leagues, seasons }: any) {
   const [leaguesData, setLeaguesData] = useState<any[]>([]);
   const [groups, setGroups] = useState<any[]>([]);
   const [stages, setStages] = useState<any[]>([]);
@@ -65,6 +67,20 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
           >
             <option value="friendly">Friendly</option>
             <option value="league">League</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Season</label>
+          <select
+            value={formData.seasonId || ''}
+            onChange={(e) => setFormData({ ...formData, seasonId: e.target.value })}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            required
+          >
+            <option value="">Select Season</option>
+            {seasons?.map((s: Season) => (
+              <option key={s.id} value={s.id}>{s.name} {s.isActive ? '(Active)' : ''}</option>
+            ))}
           </select>
         </div>
         {formData.type === 'league' ? (
@@ -326,6 +342,7 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
   const [players, setPlayers] = useState<any[]>([]);
   const [sports, setSports] = useState<any[]>([]);
   const [leagues, setLeagues] = useState<any[]>([]);
+  const [seasons, setSeasons] = useState<Season[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -352,6 +369,7 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
     date: '',
     time: '',
     venue: '',
+    seasonId: '',
     selectedLeague: '',
     selectedGroup: '',
     selectedStage: '',
@@ -367,11 +385,29 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
       date: '',
       time: '',
       venue: '',
+      seasonId: '',
       selectedLeague: '',
       selectedGroup: '',
       selectedStage: '',
       selectedMatch: ''
     });
+  };
+
+  // Load seasons for a specific sport
+  const loadSeasonsForSport = async (sportId: string) => {
+    try {
+      const seasonsSnap = await getDocs(collection(db, `sports/${sportId}/seasons`));
+      const sportSeasons = seasonsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Season));
+      setSeasons(sportSeasons);
+      // Auto-select active season if none selected
+      if (!newGame.seasonId) {
+        const active = sportSeasons.find(s => s.isActive);
+        if (active) setNewGame({ ...newGame, seasonId: active.id });
+      }
+    } catch (e) {
+      console.error('Failed to load seasons for sport:', e);
+      setSeasons([]);
+    }
   };
 
   useEffect(() => {
@@ -396,12 +432,30 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
         const leaguesData = leaguesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         setLeagues(leaguesData);
 
-        // Load fixtures
+        // Load seasons from all sports
+        const allSeasons: Season[] = [];
+        for (const sport of sportsData) {
+          const seasonsSnap = await getDocs(collection(db, `sports/${sport.id}/seasons`));
+          const sportSeasons = seasonsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Season));
+          allSeasons.push(...sportSeasons);
+        }
+        setSeasons(allSeasons);
 
-        const fixturesSnap = await getDocs(collection(db, 'fixtures'));
-
-        const fixturesData = fixturesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
+        // Load fixtures from seasonal paths
+        const fixturesData: any[] = [];
+        for (const season of allSeasons) {
+          const fixturesSnap = await getDocs(collection(db, `fixtures/${season.id}/matches`));
+          const seasonFixtures = fixturesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+          fixturesData.push(...seasonFixtures);
+        }
+        // Also check legacy fixtures
+        try {
+          const legacySnap = await getDocs(collection(db, 'fixtures'));
+          const legacyFixtures = legacySnap.docs.filter(d => !d.ref.path.includes('/matches')).map(d => ({ id: d.id, ...d.data() }));
+          fixturesData.push(...legacyFixtures);
+        } catch (e) {
+          // Legacy fixtures collection may not exist
+        }
         setAllFixtures(fixturesData);
 
         // Sync admin collections
@@ -420,6 +474,7 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
         setPlayers([]);
         setSports([]);
         setLeagues([]);
+        setSeasons([]);
       } finally {
         setLoading(false);
       }
@@ -428,6 +483,30 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
     loadData();
   }, []);
 
+  // Load seasons when sport changes (for friendly matches) or league changes (for league matches)
+  useEffect(() => {
+    if (newGame.type === 'friendly' && newGame.sport) {
+      // Find sport ID from sport name
+      const sport = sports.find(s => s.name.toLowerCase() === newGame.sport.toLowerCase());
+      if (sport) {
+        loadSeasonsForSport(sport.id);
+      }
+    } else if (newGame.type === 'league' && newGame.selectedLeague) {
+      // Load seasons based on league's sport
+      const league = leagues.find(l => l.id === newGame.selectedLeague);
+      if (league) {
+        const sport = sports.find(s => s.name.toLowerCase() === league.sportType.toLowerCase());
+        if (sport) {
+          loadSeasonsForSport(sport.id);
+        }
+      }
+    } else {
+      // Clear seasons when switching types without selection
+      setSeasons([]);
+      setNewGame({ ...newGame, seasonId: '' });
+    }
+  }, [newGame.type, newGame.sport, newGame.selectedLeague, sports, leagues]);
+
   const handleAddGame = async () => {
     if (!newGame.homeTeam || !newGame.awayTeam) {
       alert('Please select both home and away teams');
@@ -435,6 +514,10 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
     }
     if (newGame.homeTeam === newGame.awayTeam) {
       alert('Home and away teams cannot be the same');
+      return;
+    }
+    if (!newGame.seasonId) {
+      alert('Please select a season');
       return;
     }
     if (newGame.type === 'league' && !newGame.selectedMatch) {
@@ -448,18 +531,28 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
         matchId: newGame.type === 'league' ? newGame.selectedMatch : undefined,
         status: 'scheduled',
         createdAt: new Date().toISOString(),
-        scheduledAt: `${newGame.date}T${newGame.time}:00`
+        scheduledAt: `${newGame.date}T${newGame.time}:00`,
+        seasonId: newGame.seasonId
       };
-      await addDoc(collection(db, 'fixtures'), gameData);
+      // Use seasonal path: fixtures/{seasonId}/matches
+      const fixtureRef = await addDoc(collection(db, `fixtures/${newGame.seasonId}/matches`), gameData);
+      // Ensure ID is inside the object
+      await updateDoc(fixtureRef, { id: fixtureRef.id });
       alert('Game added successfully');
       resetNewGame();
       setShowAddModal(false);
-      // Reload
-      const fixtures = await apiService.getFixtures();
+      // Reload fixtures from seasonal paths
+      const fixturesData: any[] = [];
+      for (const season of seasons) {
+        const fixturesSnap = await getDocs(collection(db, `fixtures/${season.id}/matches`));
+        const seasonFixtures = fixturesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        fixturesData.push(...seasonFixtures);
+      }
+      setAllFixtures(fixturesData);
       // Sync again
       const liveGamesSnap = await getDocs(collection(doc(db, 'admin'), 'liveGames'));
       const existingLiveIds = liveGamesSnap.docs.map(d => d.data().fixtureId);
-      for (const f of fixtures.filter((f: any) => f.status === 'live' || f.status === 'active')) {
+      for (const f of fixturesData.filter((f: any) => f.status === 'live' || f.status === 'active')) {
         if (!existingLiveIds.includes(f.id)) {
           await addLiveGame(f);
         }
@@ -467,7 +560,7 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
       const upcomingGamesSnap = await getDocs(collection(doc(db, 'admin'), 'upcomingGames'));
       const existingUpcomingIds = upcomingGamesSnap.docs.map(d => d.data().fixtureId);
       const today = new Date().toDateString();
-      for (const f of fixtures.filter((f: any) => new Date(f.scheduledAt).toDateString() === today && f.status === 'scheduled')) {
+      for (const f of fixturesData.filter((f: any) => new Date(f.scheduledAt).toDateString() === today && f.status === 'scheduled')) {
         if (!existingUpcomingIds.includes(f.id)) {
           await addUpcomingGame(f);
         }
@@ -490,15 +583,28 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
       alert('Home and away teams cannot be the same');
       return;
     }
+    if (!editingGame.seasonId) {
+      alert('Season ID is required to update game');
+      return;
+    }
     try {
       const gameData = {
         ...editingGame,
         scheduledAt: `${editingGame.date}T${editingGame.time}:00`
       };
-      await updateDoc(doc(db, 'fixtures', editingGame.fixtureId), gameData);
+      // Use seasonal path: fixtures/{seasonId}/matches/{fixtureId}
+      await updateDoc(doc(db, `fixtures/${editingGame.seasonId}/matches`, editingGame.fixtureId), gameData);
       alert('Game updated successfully');
       setShowEditModal(false);
       setEditingGame(null);
+      // Reload fixtures from seasonal paths
+      const fixturesData: any[] = [];
+      for (const season of seasons) {
+        const fixturesSnap = await getDocs(collection(db, `fixtures/${season.id}/matches`));
+        const seasonFixtures = fixturesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        fixturesData.push(...seasonFixtures);
+      }
+      setAllFixtures(fixturesData);
       // Reload
       const liveData = await loadLiveGames();
       const upcomingData = await loadUpcomingGames();
@@ -509,10 +615,16 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
     }
   };
 
-  const handleDeleteGame = async (fixtureId: string) => {
+  const handleDeleteGame = async (fixtureId: string, seasonId?: string) => {
     if (!confirm('Are you sure you want to delete this game?')) return;
     try {
-      await deleteDoc(doc(db, 'fixtures', fixtureId));
+      // Use seasonal path: fixtures/{seasonId}/matches/{fixtureId}
+      if (seasonId) {
+        await deleteDoc(doc(db, `fixtures/${seasonId}/matches`, fixtureId));
+      } else {
+        // Fallback to legacy path
+        await deleteDoc(doc(db, 'fixtures', fixtureId));
+      }
       // Also delete from admin collection
       const liveGame = live.find(l => l.fixtureId === fixtureId);
       if (liveGame) {
@@ -523,6 +635,14 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
           await deleteUpcomingGame(upcomingGame.id);
         }
       }
+      // Reload fixtures from seasonal paths
+      const fixturesData: any[] = [];
+      for (const season of seasons) {
+        const fixturesSnap = await getDocs(collection(db, `fixtures/${season.id}/matches`));
+        const seasonFixtures = fixturesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        fixturesData.push(...seasonFixtures);
+      }
+      setAllFixtures(fixturesData);
       // Reload
       const liveData = await loadLiveGames();
       const upcomingData = await loadUpcomingGames();
@@ -708,6 +828,7 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
             players={players}
             sports={sports}
             leagues={leagues}
+            seasons={seasons}
             onSubmit={handleAddGame}
             submitLabel="Add Game"
           />
@@ -724,6 +845,7 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
             players={players}
             sports={sports}
             leagues={leagues}
+            seasons={seasons}
             onSubmit={handleEditGame}
             submitLabel="Update Game"
           />
@@ -840,7 +962,7 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
                       <td className="px-4 py-2 text-sm space-x-2">
                         <button onClick={() => startG(g.fixtureId)} className="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700">Start</button>
                         <button onClick={() => { setEditingGame({ ...g, date: g.scheduledAt.split('T')[0], time: g.scheduledAt.split('T')[1].substring(0, 5) }); setShowEditModal(true); }} className="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700">Edit</button>
-                        <button onClick={() => handleDeleteGame(g.fixtureId)} className="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700">Delete</button>
+                        <button onClick={() => handleDeleteGame(g.fixtureId, g.seasonId)} className="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700">Delete</button>
                       </td>
                     </tr>
                   ))}

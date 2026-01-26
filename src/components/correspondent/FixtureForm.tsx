@@ -90,12 +90,20 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
         if (sport) loadSeasonsForSport(sport.id);
       }
       loadMatches(selectedLeague);
+    } else {
+      // Clear seasons when no league is selected
+      setSeasons([]);
+      setSelectedSeasonId('');
     }
   }, [selectedLeague, sports]);
 
   useEffect(() => {
     if (type === 'friendly' && selectedSportId) {
       loadSeasonsForSport(selectedSportId);
+    } else if (type === 'league' && !selectedLeague) {
+      // Clear seasons when switching to league mode without a league selected
+      setSeasons([]);
+      setSelectedSeasonId('');
     }
   }, [type, selectedSportId]);
 
