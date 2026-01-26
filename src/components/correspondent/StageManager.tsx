@@ -2,7 +2,7 @@ import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { League, Group, StageType } from "@/models";
 import { firebaseLeagueService } from "@/services/firebaseCorrespondence";
 import { RootState } from "@/store";
-import { createStage } from "@/store/correspondentThunk";
+import { createStage, deleteStage } from "@/store/correspondentThunk";
 import { setStages } from "@/store/slices/correspondentSlice";
 import { useState, useEffect } from "react";
 import { MatchManager } from "./MatchManager";
@@ -198,7 +198,20 @@ export const StageManager: React.FC<{ league: League; group: Group }> = ({ leagu
                         )}
                       </div>
                     </div>
-                    <div className="flex-shrink-0">
+                    <div className="flex-shrink-0 flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          if (confirm('Are you sure you want to delete this stage and all its matches?')) {
+                            dispatch(deleteStage({ leagueId: league.id!, groupId: group.id!, stageId: s.id! }));
+                          }
+                        }}
+                        className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        title="Delete Stage"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
                       <MatchManager league={league} group={group} stage={s} />
                     </div>
                   </div>

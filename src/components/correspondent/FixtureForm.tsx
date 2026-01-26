@@ -243,67 +243,53 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
             </>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Home Team
               </label>
-              {type === 'friendly' ? (
-                <select
-                  value={homeTeamId}
-                  onChange={(e) => {
-                    const team = teams.find(t => t.id === e.target.value);
-                    setHomeTeamId(e.target.value);
-                    setHomeTeamName(team?.name || '');
-                  }}
-                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
-                >
-                  <option value="">Select Home Team</option>
-                  {teams.map(team => (
-                    <option key={team.id} value={team.id}>{team.name}</option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  type="text"
-                  value={homeTeamName}
-                  onChange={(e) => setHomeTeamName(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
-                  placeholder="Enter home team name"
-                />
-              )}
+              <select
+                value={homeTeamId}
+                onChange={(e) => {
+                  const team = teams.find(t => t.id === e.target.value);
+                  setHomeTeamId(e.target.value);
+                  setHomeTeamName(team?.name || '');
+                }}
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+              >
+                <option value="">Select Home Team</option>
+                {teams.map(team => (
+                  <option key={team.id} value={team.id}>{team.name}</option>
+                ))}
+                {/* Fallback for placeholder teams from match */}
+                {type === 'league' && homeTeamName && !teams.some(t => t.name === homeTeamName) && (
+                  <option value={homeTeamId}>{homeTeamName} (Placeholder)</option>
+                )}
+              </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Away Team
               </label>
-              {type === 'friendly' ? (
-                <select
-                  value={awayTeamId}
-                  onChange={(e) => {
-                    const team = teams.find(t => t.id === e.target.value);
-                    setAwayTeamId(e.target.value);
-                    setAwayTeamName(team?.name || '');
-                  }}
-                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
-                >
-                  <option value="">Select Away Team</option>
-                  {teams.map(team => (
-                    <option key={team.id} value={team.id}>{team.name}</option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  type="text"
-                  value={awayTeamName}
-                  onChange={(e) => setAwayTeamName(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
-                  placeholder="Enter away team name"
-                />
-              )}
+              <select
+                value={awayTeamId}
+                onChange={(e) => {
+                  const team = teams.find(t => t.id === e.target.value);
+                  setAwayTeamId(e.target.value);
+                  setAwayTeamName(team?.name || '');
+                }}
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+              >
+                <option value="">Select Away Team</option>
+                {teams.map(team => (
+                  <option key={team.id} value={team.id}>{team.name}</option>
+                ))}
+                {/* Fallback for placeholder teams from match */}
+                {type === 'league' && awayTeamName && !teams.some(t => t.name === awayTeamName) && (
+                  <option value={awayTeamId}>{awayTeamName} (Placeholder)</option>
+                )}
+              </select>
             </div>
-          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

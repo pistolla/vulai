@@ -108,6 +108,10 @@ class FirebaseLeagueService {
     });
   }
 
+  async deleteStage(leagueId: string, groupId: string, stageId: string) {
+    await deleteDoc(doc(db, `leagues/${leagueId}/groups/${groupId}/stages/${stageId}`));
+  }
+
   // ---------------- SUBGROUP CRUD ---------------- //
 
   async createSubGroup(leagueId: string, groupId: string, subGroup: Omit<Group, 'id'>): Promise<string> {
@@ -160,6 +164,10 @@ class FirebaseLeagueService {
 
   async updateMatchParticipants(leagueId: string, groupId: string, stageId: string, matchId: string, participants: Participant[]) {
     await this.updateMatch(leagueId, groupId, stageId, matchId, { participants });
+  }
+
+  async deleteMatch(leagueId: string, groupId: string, stageId: string, matchId: string) {
+    await deleteDoc(doc(db, `leagues/${leagueId}/groups/${groupId}/stages/${stageId}/matches/${matchId}`));
   }
 
   async getMatch(leagueId: string, groupId: string, stageId: string, matchId: string): Promise<Match | null> {

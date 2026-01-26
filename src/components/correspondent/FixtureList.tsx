@@ -26,7 +26,8 @@ export const FixtureList: React.FC<FixtureListProps> = ({ onSelect }) => {
             for (const stage of stages) {
               const matches = await firebaseLeagueService.listMatches(league.id!, group.id!, stage.id!);
               matches.forEach(match => {
-                if (!fixtures.some(f => f.matchId === match.id) && match.participants.length >= 2) {
+                const linkedFixture = fixtures.find(f => f.matchId === match.id);
+                if (match.participants.length >= 2) {
                   allMatches.push({ match, league, groupName: group.name, stageName: stage.name });
                 }
               });
@@ -80,7 +81,10 @@ export const FixtureList: React.FC<FixtureListProps> = ({ onSelect }) => {
                   <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{groupName}</td>
                   <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{stageName}</td>
                   <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
-                    {match.participants.map(p => p.name || p.refId).join(' vs ')}
+                    {fixtures.find(f => f.matchId === match.id)
+                      ? `${fixtures.find(f => f.matchId === match.id)?.homeTeamName} vs ${fixtures.find(f => f.matchId === match.id)?.awayTeamName}`
+                      : match.participants.map(p => p.name || p.refId).join(' vs ')
+                    }
                   </td>
                   <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
                     {new Date(match.date).toLocaleDateString()}

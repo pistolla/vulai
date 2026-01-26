@@ -141,6 +141,22 @@ export const createMatch = createAsyncThunk(
   },
 );
 
+export const deleteMatch = createAsyncThunk(
+  'matches/delete',
+  async ({ leagueId, groupId, stageId, matchId }: { leagueId: string; groupId: string; stageId: string; matchId: string }) => {
+    await firebaseLeagueService.deleteMatch(leagueId, groupId, stageId, matchId);
+    return { leagueId, groupId, stageId, matchId };
+  },
+);
+
+export const deleteStage = createAsyncThunk(
+  'stages/delete',
+  async ({ leagueId, groupId, stageId }: { leagueId: string; groupId: string; stageId: string }) => {
+    await firebaseLeagueService.deleteStage(leagueId, groupId, stageId);
+    return { leagueId, groupId, stageId };
+  },
+);
+
 export const updateMatchScores = createAsyncThunk(
   'matches/updateScores',
   async ({ leagueId, groupId, stageId, matchId, participants }: { leagueId: string; groupId: string; stageId: string; matchId: string; participants: Participant[] }) => {

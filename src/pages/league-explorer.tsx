@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
-import { League, Match, Group, Stage, Season } from '../models';
+import { League, Match, Group, Stage, Season, Fixture } from '../models';
 import { firebaseLeagueService } from '../services/firebaseCorrespondence';
 import { useTheme } from '../components/ThemeProvider';
 import { apiService } from '../services/apiService';
+import { db } from '../services/firebase';
+import { collection, getDocs } from 'firebase/firestore';
 
 interface MatchWithContext extends Match {
   groupName?: string;
@@ -45,19 +47,35 @@ const LeagueExplorerPage: React.FC = () => {
         // Fetch all groups
         const groups = await firebaseLeagueService.listGroups(leagueId);
 
+        // Fetch all fixtures to link with matches
+        const fixturesSnap = await getDocs(collection(db, 'fixtures'));
+        const allFixtures = fixturesSnap.docs.map(d => ({ id: d.id, ...d.data() } as Fixture));
+
         // Fetch all matches from all groups and stages
         const allMatches: MatchWithContext[] = [];
         for (const group of groups) {
           const stages = await firebaseLeagueService.listStages(leagueId, group.id!);
           for (const stage of stages) {
             const matches = await firebaseLeagueService.listMatches(leagueId, group.id!, stage.id!);
-            // Enrich match with context
-            const enrichedMatches = matches.map(m => ({
-              ...m,
-              groupName: group.name,
-              stageName: stage.name
-            }));
-            allMatches.push(...enrichedMatches);
+
+            // Filter only matches that have a corresponding fixture
+            const matchesWithFixtures = matches
+              .filter(m => allFixtures.some(f => f.matchId === m.id))
+              .map(m => {
+                const fixture = allFixtures.find(f => f.matchId === m.id)!;
+                return {
+                  ...m,
+                  groupName: group.name,
+                  stageName: stage.name,
+                  // Use fixture details instead of placeholder
+                  homeTeamName: fixture.homeTeamName,
+                  awayTeamName: fixture.awayTeamName,
+                  venue: fixture.venue || m.venue,
+                  date: fixture.scheduledAt || m.date,
+                };
+              });
+
+            allMatches.push(...matchesWithFixtures);
           }
         }
 

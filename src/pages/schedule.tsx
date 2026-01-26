@@ -88,7 +88,7 @@ const SchedulePage: React.FC = () => {
           }
         }
 
-        // Load fixtures for all users
+        // Load fixtures for ALL users (public)
         if (isMounted) {
           try {
             const [live, upcoming] = await Promise.all([
@@ -97,23 +97,6 @@ const SchedulePage: React.FC = () => {
             ]);
             const allFixtures = [...live, ...upcoming].sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
             setFixtures(allFixtures);
-
-            // Find closest upcoming fixture
-            const now = new Date();
-            const closest = allFixtures.find(f => new Date(f.scheduledAt) > now);
-            if (closest) {
-              setCurrentDate(new Date(closest.scheduledAt));
-            }
-
-            // Smart Navigation: If today has no matches, and a date hasn't been selected yet
-            const todayStr = new Date().toISOString().split('T')[0];
-            const hasMatchesToday = allFixtures.some(f => new Date(f.scheduledAt).toISOString().split('T')[0] === todayStr);
-            if (!hasMatchesToday && !selectedDate) {
-              const nextFixture = allFixtures.find(f => new Date(f.scheduledAt) > now);
-              if (nextFixture) {
-                setCurrentDate(new Date(nextFixture.scheduledAt));
-              }
-            }
 
             // Map to display format
             setDisplayFixtures(allFixtures.map(f => ({
@@ -125,11 +108,11 @@ const SchedulePage: React.FC = () => {
               score: f.score,
               date: new Date(f.scheduledAt).toISOString().split('T')[0],
               time: new Date(f.scheduledAt).toLocaleTimeString(),
-              venue: f.venue
+              venue: f.venue,
+              seasonId: (f as any).seasonId // Preserve seasonId for filtering
             })));
           } catch (fixtureError) {
             console.error('Failed to load fixtures:', fixtureError);
-            // Fall back to static matches
           }
         }
       } catch (error) {

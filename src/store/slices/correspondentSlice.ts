@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { CorrespondentDashboard, LiveCommentary, FixtureVideo, Group, Match, Stage, League, Fixture } from '@/models';
-import { pushCommentaryEvent, attachDriveVideo, createLeague, fetchLeagues, createGroup, createStage, createMatch, updateMatchScores, fetchPointsTable, fetchFixtures, createFixture, updateFixture } from '@/store/correspondentThunk';
+import { pushCommentaryEvent, attachDriveVideo, createLeague, fetchLeagues, createGroup, createStage, createMatch, updateMatchScores, fetchPointsTable, fetchFixtures, createFixture, updateFixture, deleteStage, deleteMatch } from '@/store/correspondentThunk';
 
 // Define proper type for points data
 interface PointsEntry {
@@ -99,6 +99,16 @@ const correspondentSlice = createSlice({
         const key = `${leagueId}_${groupId}_${stageId}`;
         if (!s.matches[key]) s.matches[key] = [];
         s.matches[key].push(match);
+      })
+      .addCase(deleteMatch.fulfilled, (s, { payload }) => {
+        const { leagueId, groupId, stageId, matchId } = payload;
+        const key = `${leagueId}_${groupId}_${stageId}`;
+        s.matches[key] = s.matches[key]?.filter(m => m.id !== matchId) || [];
+      })
+      .addCase(deleteStage.fulfilled, (s, { payload }) => {
+        const { leagueId, groupId, stageId } = payload;
+        const key = `${leagueId}_${groupId}`;
+        s.stages[key] = s.stages[key]?.filter(st => st.id !== stageId) || [];
       })
       .addCase(updateMatchScores.fulfilled, (s, { payload }) => {
         const { leagueId, groupId, stageId, matchId, participants } = payload;

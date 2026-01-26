@@ -34,12 +34,22 @@ export const MatchManager: React.FC<{ league: League; group: Group; stage: Stage
 
         // Fetch seasons for the sport
         const sports: Sport[] = await apiService.getSports();
-        const sport = sports.find(s => s.name.toLowerCase() === league.sportType.toLowerCase() || s.name === league.name); // Simple heuristic
+        // Improved sport matching heuristic
+        const sport = sports.find(s =>
+          s.name.toLowerCase() === league.sportType.toLowerCase() ||
+          s.name.toLowerCase() === league.name.toLowerCase() ||
+          league.name.toLowerCase().includes(s.name.toLowerCase())
+        );
+
         if (sport) {
           const leagueSeasons = await firebaseLeagueService.listSeasons(sport.id);
           setSeasons(leagueSeasons);
           const active = leagueSeasons.find(s => s.isActive);
           if (active) setSelectedSeasonId(active.id);
+        } else {
+          // Fallback: search by name directly if no sport match
+          console.warn('No direct sport match found, searching seasons for:', league.name);
+          // We could potentially list ALL seasons if no sport found, or just log
         }
       } catch (error) {
         console.error('Failed to load match manager data:', error);
