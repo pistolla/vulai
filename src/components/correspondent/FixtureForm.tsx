@@ -243,6 +243,7 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
             </>
           )}
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Home Team
@@ -252,7 +253,7 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
                 onChange={(e) => {
                   const team = teams.find(t => t.id === e.target.value);
                   setHomeTeamId(e.target.value);
-                  setHomeTeamName(team?.name || '');
+                  setHomeTeamName(team?.name || (e.target.value === homeTeamId && homeTeamName ? homeTeamName : ''));
                 }}
                 className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
               >
@@ -261,7 +262,7 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
                   <option key={team.id} value={team.id}>{team.name}</option>
                 ))}
                 {/* Fallback for placeholder teams from match */}
-                {type === 'league' && homeTeamName && !teams.some(t => t.name === homeTeamName) && (
+                {type === 'league' && homeTeamName && !teams.some(t => t.id === homeTeamId) && (
                   <option value={homeTeamId}>{homeTeamName} (Placeholder)</option>
                 )}
               </select>
@@ -276,7 +277,7 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
                 onChange={(e) => {
                   const team = teams.find(t => t.id === e.target.value);
                   setAwayTeamId(e.target.value);
-                  setAwayTeamName(team?.name || '');
+                  setAwayTeamName(team?.name || (e.target.value === awayTeamId && awayTeamName ? awayTeamName : ''));
                 }}
                 className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
               >
@@ -285,11 +286,12 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
                   <option key={team.id} value={team.id}>{team.name}</option>
                 ))}
                 {/* Fallback for placeholder teams from match */}
-                {type === 'league' && awayTeamName && !teams.some(t => t.name === awayTeamName) && (
+                {type === 'league' && awayTeamName && !teams.some(t => t.id === awayTeamId) && (
                   <option value={awayTeamId}>{awayTeamName} (Placeholder)</option>
                 )}
               </select>
             </div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

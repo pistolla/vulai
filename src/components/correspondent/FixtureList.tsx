@@ -81,17 +81,17 @@ export const FixtureList: React.FC<FixtureListProps> = ({ onSelect }) => {
                   <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{groupName}</td>
                   <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{stageName}</td>
                   <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
-                    {fixtures.find(f => f.matchId === match.id)
-                      ? `${fixtures.find(f => f.matchId === match.id)?.homeTeamName} vs ${fixtures.find(f => f.matchId === match.id)?.awayTeamName}`
-                      : match.participants.map(p => p.name || p.refId).join(' vs ')
-                    }
+                    {(() => {
+                      const f = fixtures.find(f => f.matchId === match.id);
+                      return f ? `${f.homeTeamName} vs ${f.awayTeamName}` : match.participants.map(p => p.name || p.refId).join(' vs ');
+                    })()}
                   </td>
                   <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
                     {new Date(match.date).toLocaleDateString()}
                   </td>
                   <td className="px-4 py-2 text-sm">
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs">
-                      Create Fixture
+                    <button className={`${fixtures.some(f => f.matchId === match.id) ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'} text-white px-3 py-1 rounded text-xs`}>
+                      {fixtures.some(f => f.matchId === match.id) ? 'Edit Fixture' : 'Create Fixture'}
                     </button>
                   </td>
                 </tr>
