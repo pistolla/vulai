@@ -69,22 +69,21 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
             <option value="league">League</option>
           </select>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Season</label>
-          <select
-            value={formData.seasonId || ''}
-            onChange={(e) => setFormData({ ...formData, seasonId: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            required
-          >
-            <option value="">Select Season</option>
-            {seasons?.map((s: Season) => (
-              <option key={s.id} value={s.id}>{s.name} {s.isActive ? '(Active)' : ''}</option>
-            ))}
-          </select>
-        </div>
         {formData.type === 'league' ? (
           <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">League</label>
+              <select
+                value={formData.selectedLeague}
+                onChange={(e) => setFormData({ ...formData, selectedLeague: e.target.value, selectedGroup: '', selectedStage: '', selectedMatch: '' })}
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value="">Select League</option>
+                {leaguesData.filter((l: any) => l.sportType === 'team').map((l: any) => (
+                  <option key={l.id} value={l.id}>{l.name}</option>
+                ))}
+              </select>
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Sport</label>
               <select
@@ -100,19 +99,39 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
                 <option value="hockey">Hockey</option>
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">League</label>
-              <select
-                value={formData.selectedLeague}
-                onChange={(e) => setFormData({ ...formData, selectedLeague: e.target.value, selectedGroup: '', selectedStage: '', selectedMatch: '' })}
-                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              >
-                <option value="">Select League</option>
-                {leaguesData.filter((l: any) => l.sportType === 'team' && l.sport === formData.sport).map((l: any) => (
-                  <option key={l.id} value={l.id}>{l.name}</option>
-                ))}
-              </select>
-            </div>
+          </>
+        ) : (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Sport</label>
+            <select
+              value={formData.sport}
+              onChange={(e) => setFormData({ ...formData, sport: e.target.value })}
+              className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            >
+              <option value="football">Football</option>
+              <option value="basketball">Basketball</option>
+              <option value="volleyball">Volleyball</option>
+              <option value="rugby">Rugby</option>
+              <option value="hockey">Hockey</option>
+            </select>
+          </div>
+        )}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Season</label>
+          <select
+            value={formData.seasonId || ''}
+            onChange={(e) => setFormData({ ...formData, seasonId: e.target.value })}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            required
+          >
+            <option value="">Select Season</option>
+            {seasons?.map((s: Season) => (
+              <option key={s.id} value={s.id}>{s.name} {s.isActive ? '(Active)' : ''}</option>
+            ))}
+          </select>
+        </div>
+        {formData.type === 'league' && (
+          <>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Group</label>
               <select
@@ -153,21 +172,6 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
               </select>
             </div>
           </>
-        ) : (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Sport</label>
-            <select
-              value={formData.sport}
-              onChange={(e) => setFormData({ ...formData, sport: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            >
-              <option value="football">Football</option>
-              <option value="basketball">Basketball</option>
-              <option value="volleyball">Volleyball</option>
-              <option value="rugby">Rugby</option>
-              <option value="hockey">Hockey</option>
-            </select>
-          </div>
         )}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Home Team</label>
@@ -492,10 +496,10 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
         loadSeasonsForSport(sport.id);
       }
     } else if (newGame.type === 'league' && newGame.selectedLeague) {
-      // Load seasons based on league's sportType
+      // Load seasons based on league's sportName
       const league = leagues.find(l => l.id === newGame.selectedLeague);
       if (league) {
-        const sport = sports.find(s => s.name.toLowerCase() === league.sportType.toLowerCase());
+        const sport = sports.find(s => s.name.toLowerCase() === league.sportName.toLowerCase());
         if (sport) {
           loadSeasonsForSport(sport.id);
         }

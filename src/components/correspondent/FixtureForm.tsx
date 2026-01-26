@@ -86,8 +86,11 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
     if (selectedLeague) {
       const league = leagues.find(l => l.id === selectedLeague);
       if (league) {
-        const sport = sports.find(s => s.name.toLowerCase() === league.sportName.toLowerCase());
-        if (sport) loadSeasonsForSport(sport.id);
+        const sportName = league.sportName;
+        if (sportName) {
+          const sport = sports.find(s => s.name.toLowerCase() === sportName.toLowerCase());
+          if (sport) loadSeasonsForSport(sport.id);
+        }
       }
       loadMatches(selectedLeague);
     } else {
@@ -262,6 +265,24 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
             </select>
           </div>
 
+          {type === 'league' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Select League
+              </label>
+              <select
+                value={selectedLeague}
+                onChange={(e) => setSelectedLeague(e.target.value)}
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+              >
+                <option value="">Choose League</option>
+                {leagues.map((league: League) => (
+                  <option key={league.id} value={league.id}>{league.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {type === 'friendly' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -301,44 +322,24 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
             )}
           </div>
 
-          {type === 'league' && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Select League
-                </label>
-                <select
-                  value={selectedLeague}
-                  onChange={(e) => setSelectedLeague(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
-                >
-                  <option value="">Choose League</option>
-                  {leagues.map((league: League) => (
-                    <option key={league.id} value={league.id}>{league.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              {selectedLeague && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Select Match
-                  </label>
-                  <select
-                    value={selectedMatch}
-                    onChange={(e) => setSelectedMatch(e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
-                  >
-                    <option value="">Choose Match</option>
-                    {matches.filter((match: Match) => !fixtures.some((f: Fixture) => f.matchId === match.id) && match.participants && match.participants.length >= 2).map((match: Match) => (
-                      <option key={match.id} value={match.id}>
-                        Match #{match.matchNumber} - {match.participants.map(p => p.name || p.refId).join(' vs ')}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </>
+          {type === 'league' && selectedLeague && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Select Match
+              </label>
+              <select
+                value={selectedMatch}
+                onChange={(e) => setSelectedMatch(e.target.value)}
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+              >
+                <option value="">Choose Match</option>
+                {matches.filter((match: Match) => !fixtures.some((f: Fixture) => f.matchId === match.id) && match.participants && match.participants.length >= 2).map((match: Match) => (
+                  <option key={match.id} value={match.id}>
+                    Match #{match.matchNumber} - {match.participants.map(p => p.name || p.refId).join(' vs ')}
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
