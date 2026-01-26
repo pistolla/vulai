@@ -86,7 +86,7 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
     if (selectedLeague) {
       const league = leagues.find(l => l.id === selectedLeague);
       if (league) {
-        const sport = sports.find(s => s.name.toLowerCase() === league.sportType.toLowerCase());
+        const sport = sports.find(s => s.name.toLowerCase() === league.sportName.toLowerCase());
         if (sport) loadSeasonsForSport(sport.id);
       }
       loadMatches(selectedLeague);

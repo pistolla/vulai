@@ -14,6 +14,7 @@ export const LeagueForm: React.FC<{ onCreate?: (l: League) => void }> = ({ onCre
   const [description, setDescription] = useState('');
   const [hasGroups, setHasGroups] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [sportName, setSportName] = useState('');
 
   // New states for sport selection
   const [sports, setSports] = useState<Sport[]>([]);
@@ -28,6 +29,7 @@ export const LeagueForm: React.FC<{ onCreate?: (l: League) => void }> = ({ onCre
     setSelectedSportId(id);
     const sport = sports.find(s => s.id === id);
     if (sport) {
+      setSportName(sport.id);
       setSportType(sport.category as SportType);
     }
   };
@@ -42,6 +44,7 @@ export const LeagueForm: React.FC<{ onCreate?: (l: League) => void }> = ({ onCre
       const res = await dispatch(createLeague({
         name: name.trim(),
         sportType,
+        sportName,
         description: description.trim(),
         hasGroups
       }));

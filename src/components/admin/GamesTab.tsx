@@ -492,7 +492,7 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
         loadSeasonsForSport(sport.id);
       }
     } else if (newGame.type === 'league' && newGame.selectedLeague) {
-      // Load seasons based on league's sport
+      // Load seasons based on league's sportType
       const league = leagues.find(l => l.id === newGame.selectedLeague);
       if (league) {
         const sport = sports.find(s => s.name.toLowerCase() === league.sportType.toLowerCase());
