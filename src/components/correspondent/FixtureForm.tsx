@@ -387,18 +387,18 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
               <select
                 value={homeTeamId}
                 onChange={(e) => {
-                  const team = teams.find(t => t.id === e.target.value);
+                  const team = teams.find((t: any) => t.id === e.target.value);
                   setHomeTeamId(e.target.value);
                   setHomeTeamName(team?.name || '');
                 }}
                 className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
               >
                 <option value="">Select Home Team</option>
-                {teams.map(team => (
+                {teams.map((team: any) => (
                   <option key={team.id} value={team.id}>{team.name}</option>
                 ))}
                 {/* Fallback for placeholder teams from match */}
-                {type === 'league' && homeTeamName && !teams.some(t => t.id === homeTeamId) && (
+                {type === 'league' && homeTeamName && !teams.some((t: any) => t.id === homeTeamId) && (
                   <option value={homeTeamId}>{homeTeamName} (Placeholder)</option>
                 )}
               </select>
@@ -411,18 +411,18 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
               <select
                 value={awayTeamId}
                 onChange={(e) => {
-                  const team = teams.find(t => t.id === e.target.value);
+                  const team = teams.find((t: any) => t.id === e.target.value);
                   setAwayTeamId(e.target.value);
                   setAwayTeamName(team?.name || '');
                 }}
                 className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
               >
                 <option value="">Select Away Team</option>
-                {teams.map(team => (
+                {teams.map((team: any) => (
                   <option key={team.id} value={team.id}>{team.name}</option>
                 ))}
                 {/* Fallback for placeholder teams from match */}
-                {type === 'league' && awayTeamName && !teams.some(t => t.id === awayTeamId) && (
+                {type === 'league' && awayTeamName && !teams.some((t: any) => t.id === awayTeamId) && (
                   <option value={awayTeamId}>{awayTeamName} (Placeholder)</option>
                 )}
               </select>

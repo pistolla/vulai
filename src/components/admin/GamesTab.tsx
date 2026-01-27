@@ -175,33 +175,38 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
         )}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Home Team</label>
-          <input
-            type="text"
+          <select
             required
-            value={formData.homeTeam}
-            onChange={(e) => setFormData({ ...formData, homeTeam: e.target.value })}
-            list="participants-list"
+            value={formData.homeTeamId}
+            onChange={(e) => {
+              const team = teams.find((t: any) => t.id === e.target.value);
+              setFormData({ ...formData, homeTeamId: e.target.value, homeTeamName: team?.name || '' });
+            }}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            placeholder="Type or select home team"
-          />
+          >
+            <option value="">Select Home Team</option>
+            {teams.map((team: any) => (
+              <option key={team.id} value={team.id}>{team.name}</option>
+            ))}
+          </select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Away Team</label>
-          <input
-            type="text"
+          <select
             required
-            value={formData.awayTeam}
-            onChange={(e) => setFormData({ ...formData, awayTeam: e.target.value })}
-            list="participants-list"
+            value={formData.awayTeamId}
+            onChange={(e) => {
+              const team = teams.find((t: any) => t.id === e.target.value);
+              setFormData({ ...formData, awayTeamId: e.target.value, awayTeamName: team?.name || '' });
+            }}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            placeholder="Type or select away team"
-          />
+          >
+            <option value="">Select Away Team</option>
+            {teams.map((team: any) => (
+              <option key={team.id} value={team.id}>{team.name}</option>
+            ))}
+          </select>
         </div>
-        <datalist id="participants-list">
-          {participants.map((p: any) => (
-            <option key={p.id} value={p.name || `${p.firstName} ${p.lastName}`} />
-          ))}
-        </datalist>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Date</label>
           <input
@@ -233,11 +238,11 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
           />
         </div>
       </div>
-      {formData.homeTeam && formData.awayTeam && formData.date && formData.time && formData.venue && (
+      {formData.homeTeamName && formData.awayTeamName && formData.date && formData.time && formData.venue && (
         <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
           <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Game Preview</h4>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            <strong>{formData.homeTeam}</strong> vs <strong>{formData.awayTeam}</strong><br />
+            <strong>{formData.homeTeamName}</strong> vs <strong>{formData.awayTeamName}</strong><br />
             {formData.sport} • {new Date(formData.date).toLocaleDateString()} at {formData.time}<br />
             Venue: {formData.venue}
           </p>
@@ -368,8 +373,10 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
   const [newGame, setNewGame] = useState({
     type: 'friendly',
     sport: 'football',
-    homeTeam: '',
-    awayTeam: '',
+    homeTeamId: '',
+    awayTeamId: '',
+    homeTeamName: '',
+    awayTeamName: '',
     date: '',
     time: '',
     venue: '',
@@ -384,8 +391,10 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
     setNewGame({
       type: 'friendly',
       sport: 'football',
-      homeTeam: '',
-      awayTeam: '',
+      homeTeamId: '',
+      awayTeamId: '',
+      homeTeamName: '',
+      awayTeamName: '',
       date: '',
       time: '',
       venue: '',
@@ -512,11 +521,11 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
   }, [newGame.type, newGame.sport, newGame.selectedLeague, sports, leagues]);
 
   const handleAddGame = async () => {
-    if (!newGame.homeTeam || !newGame.awayTeam) {
+    if (!newGame.homeTeamId || !newGame.awayTeamId) {
       alert('Please select both home and away teams');
       return;
     }
-    if (newGame.homeTeam === newGame.awayTeam) {
+    if (newGame.homeTeamId === newGame.awayTeamId) {
       alert('Home and away teams cannot be the same');
       return;
     }
@@ -529,38 +538,21 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
       return;
     }
     try {
-      // Find or create home team
-      let homeTeamId = teams.find(t => t.name === newGame.homeTeam)?.id;
-      if (!homeTeamId) {
-        const teamRef = await addDoc(collection(db, 'teams'), {
-          name: newGame.homeTeam,
-          sport: newGame.sport,
-          universityId: '',
-          foundedYear: new Date().getFullYear(),
-          createdAt: serverTimestamp()
-        });
-        homeTeamId = teamRef.id;
-      }
+      // Get team names from selected team IDs
+      const homeTeam = teams.find(t => t.id === newGame.homeTeamId);
+      const awayTeam = teams.find(t => t.id === newGame.awayTeamId);
 
-      // Find or create away team
-      let awayTeamId = teams.find(t => t.name === newGame.awayTeam)?.id;
-      if (!awayTeamId) {
-        const teamRef = await addDoc(collection(db, 'teams'), {
-          name: newGame.awayTeam,
-          sport: newGame.sport,
-          universityId: '',
-          foundedYear: new Date().getFullYear(),
-          createdAt: serverTimestamp()
-        });
-        awayTeamId = teamRef.id;
+      if (!homeTeam || !awayTeam) {
+        alert('Selected teams not found');
+        return;
       }
 
       const gameData = {
         ...newGame,
-        homeTeamName: newGame.homeTeam,
-        awayTeamName: newGame.awayTeam,
-        homeTeamId: homeTeamId,
-        awayTeamId: awayTeamId,
+        homeTeamName: homeTeam.name,
+        awayTeamName: awayTeam.name,
+        homeTeamId: newGame.homeTeamId,
+        awayTeamId: newGame.awayTeamId,
         type: newGame.type,
         matchId: newGame.type === 'league' ? newGame.selectedMatch : undefined,
         leagueId: newGame.type === 'league' ? newGame.selectedLeague : undefined,
