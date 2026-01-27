@@ -8,6 +8,7 @@ import { MatchManager } from "./MatchManager";
 import { PointsTable } from "./PointsTable";
 import { LeagueVisualizer } from "./LeagueVisualizer.tsx";
 import { useTheme } from "@/components/ThemeProvider";
+import { firebaseLeagueService } from "@/services/firebaseCorrespondence";
 
 // --- Top-level Dashboard Component ---
 export const LeagueDashboard: React.FC = () => {
@@ -26,11 +27,31 @@ export const LeagueDashboard: React.FC = () => {
     { id: 'points', label: 'Points', icon: '📊' }
   ];
 
-  const handleLeagueSelect = (l: League) => {
+  const handleLeagueSelect = async (l: League) => {
     setSelectedLeague(l);
     if (l.hasGroups === false) {
-      // Create/Select a virtual group for ungrouped stage management
-      setSelectedGroup({ id: '_general', name: 'General', createdAt: new Date().toISOString() });
+      // Fetch the default "General" group
+      // Ideally we should list groups and take the first one
+      try {
+        // We need to fetch groups here. Since we can't dispatch inside this callback easily to Redux without fetching thunk,
+        // we can use the firebase service directly or rely on the user navigating to 'stages' step triggering fetching.
+        // For better UX, we'll auto-select the first group found.
+        // NOTE: GroupManager does fetching on mount/update. 
+        // We will set a temporary "loading" group or just trigger the step change.
+        // Actually, StageManager needs a group ID.
+        // Let's rely on StageManager handling a null group by fetching the default? No, StageManager takes a group prop.
+
+        // We will fetch groups here for the groupless league
+        const groups = await firebaseLeagueService.listGroups(l.id!);
+        if (groups.length > 0) {
+          setSelectedGroup(groups[0]);
+        } else {
+          // Fallback if creation didn't happen yet (shouldn't occur if LeagueForm works)
+          setSelectedGroup({ id: 'temp_general', name: 'General', createdAt: '' });
+        }
+      } catch (e) {
+        console.error("Failed to fetch default group", e);
+      }
       setCurrentStep('stages');
     } else {
       setCurrentStep('groups');

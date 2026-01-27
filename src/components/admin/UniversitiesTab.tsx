@@ -120,6 +120,10 @@ export default function UniversitiesTab({ adminData, create, update, deleteU }: 
   // Removed local data fetching useEffect as data is provided via Redux in parent or store
 
   const handleAddUniversity = async () => {
+    if (!newUniversity.name || !newUniversity.location) {
+      alert('University Name and Location are required.');
+      return;
+    }
     await create({
       name: newUniversity.name,
       location: newUniversity.location,
@@ -133,6 +137,10 @@ export default function UniversitiesTab({ adminData, create, update, deleteU }: 
   };
 
   const handleEditUniversity = async () => {
+    if (!editingUniversity.name || !editingUniversity.location) {
+      alert('University Name and Location are required.');
+      return;
+    }
     await update(editingUniversity.id, {
       name: editingUniversity.name,
       location: editingUniversity.location,

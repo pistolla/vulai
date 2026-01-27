@@ -76,12 +76,11 @@ export default function OrdersTab() {
                     <h4 className="font-medium">Order #{order.id}</h4>
                     <p className="text-sm text-gray-600">{new Date(order.createdAt).toLocaleDateString()}</p>
                   </div>
-                  <span className={`px-2 py-1 rounded text-sm capitalize ${
-                    order.status === 'approved' ? 'bg-green-100 text-green-800' :
-                    order.status === 'pending_approval' ? 'bg-yellow-100 text-yellow-800' :
-                    order.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
+                  <span className={`px-2 py-1 rounded text-sm capitalize ${order.status === 'approved' ? 'bg-green-100 text-green-800' :
+                      order.status === 'pending_approval' ? 'bg-yellow-100 text-yellow-800' :
+                        order.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                          'bg-red-100 text-red-800'
+                    }`}>
                     {order.status.replace('_', ' ')}
                   </span>
                 </div>
@@ -99,12 +98,12 @@ export default function OrdersTab() {
                     <button className="text-blue-600 hover:text-blue-800 text-sm">
                       View Details
                     </button>
-                    {order.status === 'approved' && (
+                    {(order.status === 'approved' || order.status === 'pending_approval') && (
                       <button
                         onClick={() => handleReturnRequest(order)}
                         className="text-red-600 hover:text-red-800 text-sm"
                       >
-                        Return/Cancel
+                        {order.status === 'pending_approval' ? 'Cancel Order' : 'Return Items'}
                       </button>
                     )}
                   </div>

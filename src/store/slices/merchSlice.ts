@@ -1,19 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { fetchMerch } from '../adminThunk';
-
-export interface MerchItem {
-  id: string;
-  type: 'team' | 'unil';
-  name: string;
-  price: number;
-  image: string;
-  images: string[]; // Array of base64 images or URLs
-  description: string;
-  category: string;
-  catalog: string;
-  university?: string;
-  team?: string;
-}
+import { MerchItem } from '@/models';
 interface State { items: MerchItem[]; loading: boolean; error: string | null }
 const initialState: State = { items: [], loading: false, error: null };
 

@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { apiService } from '@/services/apiService';
 import Pagination from './Pagination';
 import ExportButtons from './ExportButtons';
-import { University } from '@/models';
+import { University, League } from '@/models';
+import { firebaseLeagueService } from '@/services/firebaseCorrespondence';
 
 import { Modal } from '@/components/common/Modal';
 
@@ -11,11 +12,26 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user }: any) {
   const [universities, setUniversities] = useState<any[]>([]);
   const [sports, setSports] = useState<any[]>([]);
 
+  const [leagues, setLeagues] = useState<League[]>([]);
+  const [filteredLeagues, setFilteredLeagues] = useState<League[]>([]);
+
   useEffect(() => {
-    // Load universities and sports
+    // Load universities, sports, and leagues
     apiService.getUniversities().then(setUniversities).catch(console.error);
     apiService.getSports().then(setSports).catch(console.error);
+    firebaseLeagueService.listLeagues().then(setLeagues).catch(console.error);
   }, []);
+
+  useEffect(() => {
+    if (formData.sport) {
+      // Filter leagues by sport name match (assuming league.sportType or league.sportName matches sport.name)
+      // Adjusting matching logic: league.sportType stores sport name (e.g. 'Football')
+      const filtered = leagues.filter(l => l.sportType?.toLowerCase() === formData.sport.toLowerCase());
+      setFilteredLeagues(filtered);
+    } else {
+      setFilteredLeagues([]);
+    }
+  }, [formData.sport, leagues]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -96,13 +112,16 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user }: any) {
         </div>
         <div>
           <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">League</label>
-          <input
-            type="text"
+          <select
             value={formData.league}
             onChange={(e) => setFormData({ ...formData, league: e.target.value })}
-            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold"
-            placeholder="e.g. Premier League"
-          />
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold appearance-none"
+            disabled={!formData.sport}
+          >
+            <option value="">Select League</option>
+            {filteredLeagues.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
+          </select>
+          {!formData.sport && <p className="text-xs text-red-400 mt-1">Select a sport first</p>}
         </div>
         <div>
           <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Record</label>

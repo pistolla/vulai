@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
-import { MerchDocument, OrderData, StockRecordData, PurchaseOrderData } from '@/models';
+import { MerchDocument, OrderData, StockRecordData, PurchaseOrderData, InvoiceData, InvoiceItem } from '@/models';
 import { DocumentList } from '../correspondent/DocumentList';
 import { DocumentForm } from '../correspondent/DocumentForm';
 import { ApprovalModal } from '../correspondent/ApprovalModal';
@@ -104,6 +104,7 @@ export default function ManagerTab({ adminData }: any) {
           type: 'out', // Stock out for sales
           reason: `Order fulfillment for order ${doc.id}`,
           reference: doc.id,
+          size: item.size
         };
 
         await dispatch(createMerchDocument({
@@ -136,8 +137,32 @@ export default function ManagerTab({ adminData }: any) {
         })).unwrap();
       }
 
+      // Create Invoice document
+      const invoiceData: InvoiceData = {
+        orderId: doc.id,
+        invoiceNumber: `INV-${doc.id.slice(0, 8).toUpperCase()}`,
+        paymentStatus: (orderData.paymentMethod === 'card' || orderData.paymentMethod === 'paypal' || orderData.paymentMethod === 'mobile') ? 'paid' : 'pending',
+        dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days due
+        items: orderData.items.map(item => ({
+          description: item.merchName,
+          quantity: item.quantity,
+          price: item.price,
+          subtotal: item.subtotal,
+          size: item.size
+        })),
+        total: orderData.total,
+        tax: orderData.total * 0.16, // Assuming 16% VAT
+      };
+
+      await dispatch(createMerchDocument({
+        type: 'invoice',
+        merchType: 'unil',
+        status: 'completed',
+        data: invoiceData,
+      })).unwrap();
+
       // Update the order status to approved
-      await dispatch(approveMerchDocument({ id: doc.id, comment: 'Order processed and fulfilled' })).unwrap();
+      await dispatch(approveMerchDocument({ id: doc.id, comment: 'Order processed, fulfilled, and invoiced' })).unwrap();
 
       alert('Order approved and processed successfully!');
     } catch (error) {
@@ -181,7 +206,26 @@ export default function ManagerTab({ adminData }: any) {
       }
 
       if (unilItems.length > 0) {
-        // Route to stock manager (could be a separate merchType or status)
+        // Route to stock manager and adjust stock
+        for (const item of unilItems) {
+          const stockRecordData: StockRecordData = {
+            merchId: item.merchId,
+            merchName: item.merchName,
+            quantity: item.quantity,
+            type: 'in', // Stock back in for returns
+            reason: `Return of goods for return request ${returnDoc.id}`,
+            reference: returnDoc.id,
+            size: item.size
+          };
+
+          await dispatch(createMerchDocument({
+            type: 'stock_record',
+            merchType: 'unil',
+            status: 'completed',
+            data: stockRecordData,
+          })).unwrap();
+        }
+
         await dispatch(createMerchDocument({
           type: 'return_of_goods',
           merchType: 'unil',
@@ -189,7 +233,7 @@ export default function ManagerTab({ adminData }: any) {
           data: {
             ...returnData,
             items: unilItems,
-            notes: `Processed by stock manager: ${returnData.notes}`,
+            notes: `Processed and stock adjusted by manager: ${returnData.notes}`,
           },
         })).unwrap();
       }
@@ -256,12 +300,13 @@ export default function ManagerTab({ adminData }: any) {
       ) : (
         <DocumentList
           documents={unilDocuments}
-          onCreate={() => {}} // Disable create for managers
-          onEdit={() => {}} // Disable edit for orders
-          onDelete={() => {}} // Disable delete for orders
+          onCreate={() => { }} // Disable create for managers
+          onEdit={() => { }} // Disable edit for orders
+          onDelete={() => { }} // Disable delete for orders
           onApprove={handleApprove}
           onReject={handleReject}
           onView={handleView}
+          allowCreate={false}
         />
       )}
 

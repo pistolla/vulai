@@ -541,7 +541,7 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
       // Reload teams to ensure we have the latest data
       const teamsData = await apiService.getTeams();
       setTeams(teamsData);
-      
+
       // Get team names from selected team IDs
       const homeTeam = teamsData.find((t: any) => t.id === newGame.homeTeamId);
       const awayTeam = teamsData.find((t: any) => t.id === newGame.awayTeamId);
@@ -551,6 +551,18 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
         if (!homeTeam || !awayTeam) {
           alert('Selected teams not found in teams collection. Please ensure teams are created first.');
           return;
+        }
+
+        // Validate sport
+        if (newGame.sport) {
+          if (homeTeam.sport && homeTeam.sport.toLowerCase() !== newGame.sport.toLowerCase()) {
+            alert(`Home team sport (${homeTeam.sport}) does not match selected sport (${newGame.sport}).`);
+            return;
+          }
+          if (awayTeam.sport && awayTeam.sport.toLowerCase() !== newGame.sport.toLowerCase()) {
+            alert(`Away team sport (${awayTeam.sport}) does not match selected sport (${newGame.sport}).`);
+            return;
+          }
         }
       }
 

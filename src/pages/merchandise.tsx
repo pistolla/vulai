@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
+import QuickViewModal from '@/components/QuickViewModal';
+import { useAppSelector, useAppDispatch } from '@/hooks/redux';
+import { addToCart } from '@/store/slices/cartSlice';
 import Layout from '../components/Layout';
 import MerchandiseCard from '../components/MerchandiseCard';
 import CartTab from '../components/CartTab';
-import { useAppSelector } from '@/hooks/redux';
+import { firebaseMerchService } from '@/services/firebaseMerchService';
+import { MerchItem } from '@/models';
 
 const MerchandisePage: React.FC = () => {
   const router = useRouter();
   const user = useAppSelector(s => s.auth.user);
-  const [merchandise, setMerchandise] = useState<any[]>([]);
+  const [merchandise, setMerchandise] = useState<MerchItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentFilter, setCurrentFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -17,91 +22,111 @@ const MerchandisePage: React.FC = () => {
   useEffect(() => {
     const loadMerchandise = async () => {
       try {
-        // Mock merchandise data - in real app this would come from Firebase
-        const mockMerchandise = [
-          {
-            id: '1',
-            name: 'University Sports Jersey',
-            description: 'Official university sports jersey with moisture-wicking fabric',
-            price: 2500,
-            images: ['/images/jersey-1.jpg', '/images/jersey-2.jpg', '/images/jersey-3.jpg'],
-            category: 'Apparel',
-            inStock: true,
-            likes: 45
-          },
-          {
-            id: '2',
-            name: 'Sports Water Bottle',
-            description: 'Insulated water bottle with university logo',
-            price: 800,
-            images: ['/images/bottle-1.jpg', '/images/bottle-2.jpg'],
-            category: 'Accessories',
-            inStock: true,
-            likes: 23
-          },
-          {
-            id: '3',
-            name: 'Team Hoodie',
-            description: 'Comfortable hoodie perfect for game days',
-            price: 3200,
-            images: ['/images/hoodie-1.jpg', '/images/hoodie-2.jpg', '/images/hoodie-3.jpg'],
-            category: 'Apparel',
-            inStock: false,
-            likes: 67
-          },
-          {
-            id: '4',
-            name: 'Sports Cap',
-            description: 'Adjustable cap with embroidered university logo',
-            price: 1200,
-            images: ['/images/cap-1.jpg', '/images/cap-2.jpg'],
-            category: 'Accessories',
-            inStock: true,
-            likes: 34
-          },
-          {
-            id: '5',
-            name: 'Training Shorts',
-            description: 'Lightweight training shorts for optimal performance',
-            price: 1800,
-            images: ['/images/shorts-1.jpg', '/images/shorts-2.jpg'],
-            category: 'Apparel',
-            inStock: true,
-            likes: 28
-          },
-          {
-            id: '6',
-            name: 'Sports Backpack',
-            description: 'Durable backpack with multiple compartments',
-            price: 4500,
-            images: ['/images/backpack-1.jpg', '/images/backpack-2.jpg'],
-            category: 'Accessories',
-            inStock: true,
-            likes: 52
-          },
-          {
-            id: '7',
-            name: 'Team Scarf',
-            description: 'Show your team spirit with this official scarf',
-            price: 900,
-            images: ['/images/scarf-1.jpg', '/images/scarf-2.jpg'],
-            category: 'Accessories',
-            inStock: true,
-            likes: 19
-          },
-          {
-            id: '8',
-            name: 'Athletic Socks',
-            description: 'Comfortable athletic socks with cushioned sole',
-            price: 600,
-            images: ['/images/socks-1.jpg', '/images/socks-2.jpg'],
-            category: 'Apparel',
-            inStock: true,
-            likes: 15
-          }
-        ];
-        
-        setMerchandise(mockMerchandise);
+        // Attempt to fetch from Firestore
+        let items = await firebaseMerchService.listMerchItems();
+
+        if (items.length === 0) {
+          // Seed if empty
+          const mockMerchandise: MerchItem[] = [
+            {
+              id: '1',
+              name: 'University Sports Jersey',
+              description: 'Official university sports jersey with moisture-wicking fabric',
+              price: 2500,
+              images: ['/images/jersey-1.jpg', '/images/jersey-2.jpg', '/images/jersey-3.jpg'],
+              category: 'Garments Upper Body',
+              inStock: true,
+              likes: 45,
+              type: 'unil',
+              availableSizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+            },
+            {
+              id: '2',
+              name: 'Sports Water Bottle',
+              description: 'Insulated water bottle with university logo',
+              price: 800,
+              images: ['/images/bottle-1.jpg', '/images/bottle-2.jpg'],
+              category: 'Gadgets',
+              inStock: true,
+              likes: 23,
+              type: 'unil'
+            },
+            {
+              id: '3',
+              name: 'Team Hoodie',
+              description: 'Comfortable hoodie perfect for game days',
+              price: 3200,
+              images: ['/images/hoodie-1.jpg', '/images/hoodie-2.jpg', '/images/hoodie-3.jpg'],
+              category: 'Garments Upper Body',
+              inStock: false,
+              likes: 67,
+              type: 'unil',
+              availableSizes: ['S', 'M', 'L', 'XL']
+            },
+            {
+              id: '4',
+              name: 'Sports Cap',
+              description: 'Adjustable cap with embroidered university logo',
+              price: 1200,
+              images: ['/images/cap-1.jpg', '/images/cap-2.jpg'],
+              category: 'Headgear',
+              inStock: true,
+              likes: 34,
+              type: 'unil',
+              availableSizes: ['One Size']
+            },
+            {
+              id: '5',
+              name: 'Training Shorts',
+              description: 'Lightweight training shorts for optimal performance',
+              price: 1800,
+              images: ['/images/shorts-1.jpg', '/images/shorts-2.jpg'],
+              category: 'Garments Lower Body',
+              inStock: true,
+              likes: 28,
+              type: 'unil',
+              availableSizes: ['S', 'M', 'L', 'XL']
+            },
+            {
+              id: '6',
+              name: 'Sports Backpack',
+              description: 'Durable backpack with multiple compartments',
+              price: 4500,
+              images: ['/images/backpack-1.jpg', '/images/backpack-2.jpg'],
+              category: 'Equipment',
+              inStock: true,
+              likes: 52,
+              type: 'unil'
+            },
+            {
+              id: '7',
+              name: 'Team Scarf',
+              description: 'Show your team spirit with this official scarf',
+              price: 900,
+              images: ['/images/scarf-1.jpg', '/images/scarf-2.jpg'],
+              category: 'Assortment',
+              inStock: true,
+              likes: 19,
+              type: 'unil'
+            },
+            {
+              id: '8',
+              name: 'Athletic Socks',
+              description: 'Comfortable athletic socks with cushioned sole',
+              price: 600,
+              images: ['/images/socks-1.jpg', '/images/socks-2.jpg'],
+              category: 'Underwear',
+              inStock: true,
+              likes: 15,
+              type: 'unil',
+              availableSizes: ['Standard', 'Large']
+            }
+          ];
+          await firebaseMerchService.seedInitialData(mockMerchandise);
+          items = mockMerchandise;
+        }
+
+        setMerchandise(items);
       } catch (error) {
         console.error('Failed to load merchandise:', error);
       } finally {
@@ -118,44 +143,47 @@ const MerchandisePage: React.FC = () => {
     }
   }, [router.query.checkout]);
 
-  const handleAddToCart = (item: any) => {
-    if (!user) {
-      alert('Please log in to add items to your cart.');
-      return;
-    }
+  const [selectedQuickViewItem, setSelectedQuickViewItem] = useState<MerchItem | null>(null);
 
-    const savedCart = sessionStorage.getItem('cart');
-    const cartItems = savedCart ? JSON.parse(savedCart) : [];
-    const existingItem = cartItems.find((cartItem: any) => cartItem.id === item.id);
+  const handleQuickView = (item: MerchItem) => {
+    setSelectedQuickViewItem(item);
+  };
 
-    if (existingItem) {
-      existingItem.quantity += 1;
-    } else {
-      cartItems.push({ ...item, quantity: 1 });
-    }
+  const dispatch = useAppDispatch();
 
-    sessionStorage.setItem('cart', JSON.stringify(cartItems));
-    window.dispatchEvent(new Event('cartUpdated'));
-    alert(`Added ${item.name} to cart!`);
+  const handleAddToCart = (item: MerchItem) => {
+    dispatch(addToCart({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      image: item.images[0] || '',
+      category: item.category,
+      selectedSize: item.selectedSize,
+      availableSizes: item.availableSizes,
+      quantity: 1
+    }));
+    alert(`Added ${item.name}${item.selectedSize ? ` (Size: ${item.selectedSize})` : ''} to cart!`);
   };
 
   const handleToggleWishlist = async (itemId: string, isLiked: boolean) => {
-    // TODO: Implement Firebase wishlist functionality
-    try {
-      console.log(`${isLiked ? 'Added to' : 'Removed from'} wishlist: ${itemId}`);
-      return Promise.resolve();
-    } catch (error) {
-      console.error('Failed to update wishlist:', error);
-      throw error;
-    }
+    // TODO: Implement actual wishlist persistence
+    console.log(`${isLiked ? 'Added to' : 'Removed from'} wishlist: ${itemId}`);
   };
 
+  const [sortBy, setSortBy] = useState<'newest' | 'price-low' | 'price-high' | 'likes'>('newest');
+
   const filteredMerchandise = merchandise.filter(item => {
-    const matchesFilter = currentFilter === 'all' || item.category.toLowerCase() === currentFilter.toLowerCase();
+    const matchesFilter = currentFilter === 'all' || item.category === currentFilter;
     const matchesSearch = searchQuery === '' ||
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesFilter && matchesSearch;
+  }).sort((a, b) => {
+    if (sortBy === 'price-low') return a.price - b.price;
+    if (sortBy === 'price-high') return b.price - a.price;
+    if (sortBy === 'likes') return (b.likes || 0) - (a.likes || 0);
+    // Newest first (default or fallback)
+    return b.id.localeCompare(a.id);
   });
 
   if (loading) {
@@ -205,9 +233,9 @@ const MerchandisePage: React.FC = () => {
           <div className="flex flex-col lg:flex-row gap-6 items-center justify-between mb-8">
             {/* Search Bar */}
             <div className="relative flex-1 max-w-md">
-              <input 
-                type="text" 
-                placeholder="Search merchandise..." 
+              <input
+                type="text"
+                placeholder="Search merchandise..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-4 py-3 pl-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-unill-yellow-400 focus:border-transparent"
@@ -216,33 +244,45 @@ const MerchandisePage: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
-            
+
             {/* Filter Buttons */}
-            <div className="flex flex-wrap gap-3">
-              <button 
-                className={`filter-btn px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all ${
-                  currentFilter === 'all' ? 'active' : ''
-                }`}
-                onClick={() => setCurrentFilter('all')}
-              >
-                All Items
-              </button>
-              <button 
-                className={`filter-btn px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all ${
-                  currentFilter === 'apparel' ? 'active' : ''
-                }`}
-                onClick={() => setCurrentFilter('apparel')}
-              >
-                Apparel
-              </button>
-              <button 
-                className={`filter-btn px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all ${
-                  currentFilter === 'accessories' ? 'active' : ''
-                }`}
-                onClick={() => setCurrentFilter('accessories')}
-              >
-                Accessories
-              </button>
+            <div className="flex flex-col sm:flex-row gap-4 items-center">
+              <div className="flex flex-wrap gap-3">
+                {[
+                  { id: 'all', label: 'All Items' },
+                  { id: 'Garments Upper Body', label: 'Upper' },
+                  { id: 'Garments Lower Body', label: 'Lower' },
+                  { id: 'Footwear', label: 'Footwear' },
+                  { id: 'Headgear', label: 'Headgear' },
+                  { id: 'Gadgets', label: 'Gadgets' },
+                  { id: 'Equipment', label: 'Equipment' },
+                  { id: 'Assortment', label: 'Assort' },
+                ].map((filter) => (
+                  <button
+                    key={filter.id}
+                    className={`filter-btn px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all text-sm ${currentFilter === filter.id ? 'active' : ''
+                      }`}
+                    onClick={() => setCurrentFilter(filter.id)}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Sort Dropdown */}
+              <div className="flex items-center space-x-2 min-w-[180px]">
+                <span className="text-gray-700 text-xs font-bold uppercase">Sort:</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="flex-1 px-3 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-unill-yellow-400"
+                >
+                  <option value="newest">Newest</option>
+                  <option value="price-low">Price: Low</option>
+                  <option value="price-high">Price: High</option>
+                  <option value="likes">Popular</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -262,8 +302,9 @@ const MerchandisePage: React.FC = () => {
                 <MerchandiseCard
                   key={item.id}
                   item={item}
-                  onAddToCart={handleAddToCart}
+                  onAddToCart={(itemWithSelectedSize) => handleAddToCart(itemWithSelectedSize as MerchItem)}
                   onToggleWishlist={handleToggleWishlist}
+                  onQuickView={handleQuickView}
                 />
               ))}
             </div>
@@ -310,6 +351,14 @@ const MerchandisePage: React.FC = () => {
           box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
         }
       `}</style>
+      {selectedQuickViewItem && (
+        <QuickViewModal
+          item={selectedQuickViewItem}
+          isOpen={!!selectedQuickViewItem}
+          onClose={() => setSelectedQuickViewItem(null)}
+          onAddToCart={handleAddToCart}
+        />
+      )}
     </Layout>
   );
 };

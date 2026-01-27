@@ -47,7 +47,7 @@ export const DocumentViewModal: React.FC<DocumentViewModalProps> = ({
         doc.text('Items:', 20, yPos);
         yPos += 10;
         orderData.items.forEach((item: OrderItem) => {
-          doc.text(`${item.merchName} - Qty: ${item.quantity} - Price: KSh ${item.price} - Subtotal: KSh ${item.subtotal}`, 30, yPos);
+          doc.text(`${item.merchName}${item.size ? ` (Size: ${item.size})` : ''} - Qty: ${item.quantity} - Price: KSh ${item.price} - Subtotal: KSh ${item.subtotal}`, 30, yPos);
           yPos += 10;
         });
         doc.text(`Total: KSh ${orderData.total}`, 20, yPos);
@@ -127,7 +127,7 @@ export const DocumentViewModal: React.FC<DocumentViewModalProps> = ({
         doc.text('Items:', 20, yPos);
         yPos += 10;
         returnData.items.forEach((item: ReturnItem) => {
-          doc.text(`${item.merchName} - Qty: ${item.quantity} - Condition: ${item.condition}`, 30, yPos);
+          doc.text(`${item.merchName}${item.size ? ` (Size: ${item.size})` : ''} - Qty: ${item.quantity} - Condition: ${item.condition}`, 30, yPos);
           yPos += 10;
         });
         break;
@@ -136,7 +136,7 @@ export const DocumentViewModal: React.FC<DocumentViewModalProps> = ({
         const stockData = document.data as StockRecordData;
         doc.text('Stock Record Details:', 20, yPos);
         yPos += 10;
-        doc.text(`Merchandise: ${stockData.merchName}`, 20, yPos);
+        doc.text(`Merchandise: ${stockData.merchName}${stockData.size ? ` (Size: ${stockData.size})` : ''}`, 20, yPos);
         yPos += 10;
         doc.text(`Type: ${stockData.type}`, 20, yPos);
         yPos += 10;
@@ -168,7 +168,7 @@ export const DocumentViewModal: React.FC<DocumentViewModalProps> = ({
         doc.text('Items:', 20, yPos);
         yPos += 10;
         purchaseOrderData.items.forEach((item: OrderItem) => {
-          doc.text(`${item.merchName} - Qty: ${item.quantity} - Price: KSh ${item.price} - Subtotal: KSh ${item.subtotal}`, 30, yPos);
+          doc.text(`${item.merchName}${item.size ? ` (Size: ${item.size})` : ''} - Qty: ${item.quantity} - Price: KSh ${item.price} - Subtotal: KSh ${item.subtotal}`, 30, yPos);
           yPos += 10;
         });
         doc.text(`Total: KSh ${purchaseOrderData.total}`, 20, yPos);
@@ -280,7 +280,10 @@ export const DocumentViewModal: React.FC<DocumentViewModalProps> = ({
                   <div key={index} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50 dark:bg-gray-700">
                     <div>
                       <p className="font-medium">{item.merchName}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Quantity: {item.quantity} | Price: KSh {item.price}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Quantity: {item.quantity} | Price: KSh {item.price}
+                        {item.size && <span> | Size: {item.size}</span>}
+                      </p>
                     </div>
                     <p className="font-medium">KSh {item.subtotal}</p>
                   </div>
@@ -358,7 +361,9 @@ export const DocumentViewModal: React.FC<DocumentViewModalProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Merchandise</label>
-                <p className="mt-1 p-2 border border-gray-300 rounded-md bg-gray-50 dark:bg-gray-700">{stockData.merchName}</p>
+                <p className="mt-1 p-2 border border-gray-300 rounded-md bg-gray-50 dark:bg-gray-700">
+                  {stockData.merchName} {stockData.size && `(Size: ${stockData.size})`}
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Type</label>
@@ -447,7 +452,10 @@ export const DocumentViewModal: React.FC<DocumentViewModalProps> = ({
                   <div key={index} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50 dark:bg-gray-700">
                     <div>
                       <p className="font-medium">{item.merchName}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Quantity: {item.quantity} | Condition: {item.condition}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Quantity: {item.quantity} | Condition: {item.condition}
+                        {item.size && <span> | Size: {item.size}</span>}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -497,7 +505,10 @@ export const DocumentViewModal: React.FC<DocumentViewModalProps> = ({
                   <div key={index} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50 dark:bg-gray-700">
                     <div>
                       <p className="font-medium">{item.merchName}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Quantity: {item.quantity} | Price: KSh {item.price}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Quantity: {item.quantity} | Price: KSh {item.price}
+                        {item.size && <span> | Size: {item.size}</span>}
+                      </p>
                     </div>
                     <p className="font-medium">KSh {item.subtotal}</p>
                   </div>

@@ -17,6 +17,7 @@ export type RootState = {
   sportTeam: any;
   contact: any;
   leagues: any;
+  cart: any;
 };
 
 export type AppDispatch = any; // placeholder, will be defined in index.ts

@@ -1,30 +1,33 @@
 import { useState } from 'react';
-import { useAppSelector } from '@/hooks/redux';
+import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/services/firebase';
+import { updateUserProfile } from '@/store/authThunk';
 
 export const ProfileTab: React.FC = () => {
   const user = useAppSelector(s => s.auth.user);
+  const dispatch = useAppDispatch();
 
   // Initialize profile with user data or defaults
   const [profile, setProfile] = useState({
-    firstName: user?.displayName?.split(' ')[0] || 'John',
-    lastName: user?.displayName?.split(' ')[1] || 'Doe',
-    email: user?.email || 'john.doe@example.com',
-    university: user?.universityId || 'Harvard University',
+    firstName: user?.displayName?.split(' ')[0] || '',
+    lastName: user?.displayName?.split(' ')[1] || '',
+    email: user?.email || '',
+    university: user?.universityId || '',
     phoneNumber: user?.phoneNumber || '',
     twoFactorEnabled: user?.twoFactorEnabled || false
   });
-  const [avatar, setAvatar] = useState<string | null>(null);
+  const [avatar, setAvatar] = useState<string | null>(user?.photoURL || null);
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const onProfileChange = (field: keyof typeof profile, value: string) => {
+  const onProfileChange = (field: keyof typeof profile, value: any) => {
     setProfile(p => ({ ...p, [field]: value }));
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !user) return;
 
     setUploading(true);
     try {
@@ -40,8 +43,13 @@ export const ProfileTab: React.FC = () => {
             ctx.drawImage(img, 0, 0, 200, 200);
             const resizedBase64 = canvas.toDataURL('image/jpeg', 0.8);
             setAvatar(resizedBase64);
-            // Save to Firestore
-            await updateDoc(doc(db, 'users', user!.uid), { avatar: resizedBase64 });
+            // Save to Firestore directly for avatar
+            await updateDoc(doc(db, 'users', user.uid), { photoURL: resizedBase64 });
+            // Update local state via thunk or direct dispatch? 
+            // For consistency let's use the thunk even for partial updates if we were doing it properly, 
+            // but here we already have the logic handled partially inline. 
+            // Let's just update the specific field using our new thunk for Redux sync.
+            dispatch(updateUserProfile({ photoURL: resizedBase64 }));
             alert('Avatar updated successfully!');
           }
         };
@@ -49,16 +57,34 @@ export const ProfileTab: React.FC = () => {
       };
       reader.readAsDataURL(file);
     } catch (error) {
+      console.error(error);
       alert('Failed to upload avatar');
     } finally {
       setUploading(false);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement profile update thunk
-    alert('Profile update functionality to be implemented');
+    setSaving(true);
+    try {
+      const displayName = `${profile.firstName} ${profile.lastName}`.trim();
+
+      await dispatch(updateUserProfile({
+        displayName,
+        email: profile.email,
+        universityId: profile.university,
+        phoneNumber: profile.phoneNumber,
+        twoFactorEnabled: profile.twoFactorEnabled
+      })).unwrap(); // unwrap to catch errors from the thunk
+
+      alert('Profile updated successfully!');
+    } catch (error: any) {
+      console.error('Failed to update profile:', error);
+      alert(`Failed to update profile: ${error.message || 'Unknown error'}`);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -74,7 +100,7 @@ export const ProfileTab: React.FC = () => {
               <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
             ) : (
               <span className="text-2xl font-bold text-gray-600 dark:text-gray-300">
-                {profile.firstName[0]}{profile.lastName[0]}
+                {profile.firstName?.[0]}{profile.lastName?.[0]}
               </span>
             )}
           </div>
@@ -161,7 +187,7 @@ export const ProfileTab: React.FC = () => {
             type="checkbox"
             id="twoFactor"
             checked={profile.twoFactorEnabled}
-            onChange={e => onProfileChange('twoFactorEnabled', e.target.checked.toString())}
+            onChange={e => onProfileChange('twoFactorEnabled', e.target.checked)}
             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
           />
           <label htmlFor="twoFactor" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
@@ -171,9 +197,10 @@ export const ProfileTab: React.FC = () => {
         <div className="flex justify-end">
           <button
             type="submit"
-            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
+            disabled={saving}
+            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
-            Update Profile
+            {saving ? 'Saving...' : 'Update Profile'}
           </button>
         </div>
       </form>

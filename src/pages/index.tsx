@@ -2,14 +2,17 @@ import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { apiService, HomeData } from '../services/apiService';
 import { Sport } from '../types';
-import { useAppSelector } from '../hooks/redux';
+import { useAppSelector, useAppDispatch } from '../hooks/redux';
+import { addToCart } from '../store/slices/cartSlice';
 import { useTheme } from '../components/ThemeProvider';
 import banner from '../images/banner.gif';
 import MerchandiseCard from '../components/MerchandiseCard';
 import { loadLiveGames, loadUpcomingGames } from '../services/firestoreAdmin';
-import { Fixture } from '../models';
+import { Fixture, MerchItem } from '../models';
+import QuickViewModal from '../components/QuickViewModal';
 
 const HomePage: React.FC = () => {
+  const dispatch = useAppDispatch();
   const user = useAppSelector(s => s.auth.user);
   const { theme, mounted } = useTheme();
   const [data, setData] = useState<HomeData | null>(null);
@@ -123,9 +126,18 @@ const HomePage: React.FC = () => {
   };
 
   const handleAddToCart = (item: any) => {
-    // TODO: Implement add to cart functionality
+    dispatch(addToCart({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      image: item.images[0] || '',
+      category: item.category || 'Standard',
+      quantity: 1
+    }));
     alert(`Added ${item.name} to cart!`);
   };
+
+  const [selectedQuickViewItem, setSelectedQuickViewItem] = useState<MerchItem | null>(null);
 
   const handleToggleWishlist = async (itemId: string, isLiked: boolean) => {
     // TODO: Implement Firebase wishlist functionality
@@ -139,43 +151,47 @@ const HomePage: React.FC = () => {
     }
   };
 
+  const handleQuickView = (item: MerchItem) => {
+    setSelectedQuickViewItem(item);
+  };
+
   /* ---------------------------------
      Live Match Card Component
    ---------------------------------- */
-   function LiveMatchCard({ match }: { match: Fixture }) {
-     return (
-       <div className="flex-shrink-0 w-80 bg-white/10 backdrop-blur-md rounded-lg p-4 border border-white/20 animate-pulse-live">
-         <div className="flex items-center justify-between mb-3">
-           <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">LIVE</span>
-           <span className="text-sm text-gray-700 capitalize">{match.sport}</span>
-         </div>
-         <div className="text-center">
-           <div className="flex items-center justify-between mb-3">
-             <div className="text-center">
-               <h4 className="font-bold text-sm">{match.homeTeamName}</h4>
-               <p className="text-2xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
-                 {match.score?.home ?? 0}
-               </p>
-             </div>
-             <div className="text-gray-400 text-lg">VS</div>
-             <div className="text-center">
-               <h4 className="font-bold text-sm">{match.awayTeamName}</h4>
-               <p className="text-2xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
-                 {match.score?.away ?? 0}
-               </p>
-             </div>
-           </div>
-           <p className="text-xs text-gray-700 mb-3">{match.venue} • {new Date(match.scheduledAt).toLocaleTimeString()}</p>
-           <button
-             onClick={() => window.location.href = `/live-match/${match.id}`}
-             className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded text-sm font-semibold hover:from-red-600 hover:to-red-700 transition-all"
-           >
-             Watch Live
-           </button>
-         </div>
-       </div>
-     );
-   }
+  function LiveMatchCard({ match }: { match: Fixture }) {
+    return (
+      <div className="flex-shrink-0 w-80 bg-white/10 backdrop-blur-md rounded-lg p-4 border border-white/20 animate-pulse-live">
+        <div className="flex items-center justify-between mb-3">
+          <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">LIVE</span>
+          <span className="text-sm text-gray-700 capitalize">{match.sport}</span>
+        </div>
+        <div className="text-center">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-center">
+              <h4 className="font-bold text-sm">{match.homeTeamName}</h4>
+              <p className="text-2xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
+                {match.score?.home ?? 0}
+              </p>
+            </div>
+            <div className="text-gray-400 text-lg">VS</div>
+            <div className="text-center">
+              <h4 className="font-bold text-sm">{match.awayTeamName}</h4>
+              <p className="text-2xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
+                {match.score?.away ?? 0}
+              </p>
+            </div>
+          </div>
+          <p className="text-xs text-gray-700 mb-3">{match.venue} • {new Date(match.scheduledAt).toLocaleTimeString()}</p>
+          <button
+            onClick={() => window.location.href = `/live-match/${match.id}`}
+            className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded text-sm font-semibold hover:from-red-600 hover:to-red-700 transition-all"
+          >
+            Watch Live
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -201,21 +217,21 @@ const HomePage: React.FC = () => {
             </h1>
           </div>
           {user == null && (
-          <p className="text-xl md:text-2xl mb-8 text-gray-200 max-w-2xl mx-auto leading-relaxed">
-            Discover excellence in university athletics. Join our diverse sports programs and compete at the highest level with state-of-the-art facilities and expert coaching.
-          </p>
+            <p className="text-xl md:text-2xl mb-8 text-gray-200 max-w-2xl mx-auto leading-relaxed">
+              Discover excellence in university athletics. Join our diverse sports programs and compete at the highest level with state-of-the-art facilities and expert coaching.
+            </p>
           )}
           {/* Live Matches Slider for Logged-in Users */}
-           {user && liveMatches.length > 0 && (
-             <div className="mb-8">
-               <h2 className="text-2xl font-bold text-white mb-4">🔴 LIVE NOW</h2>
-               <div className="flex gap-4 overflow-x-auto scroll-snap-x mandatory pb-4 max-w-4xl items-center justify-center">
-                 {liveMatches.map((match) => (
-                   <LiveMatchCard key={match.id} match={match} />
-                 ))}
-               </div>
-             </div>
-           )}
+          {user && liveMatches.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-white mb-4">🔴 LIVE NOW</h2>
+              <div className="flex gap-4 overflow-x-auto scroll-snap-x mandatory pb-4 max-w-4xl items-center justify-center">
+                {liveMatches.map((match) => (
+                  <LiveMatchCard key={match.id} match={match} />
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <a href="/sports" className="bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-unill-yellow-500 hover:to-unill-purple-600 transition-all transform hover:scale-105 animate-pulse-glow">
@@ -226,7 +242,7 @@ const HomePage: React.FC = () => {
             </a>
           </div>
         </div>
-        
+
         {/* Scroll Indicator */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
           <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -244,60 +260,58 @@ const HomePage: React.FC = () => {
             </h2>
             <p className="text-xl text-gray-700">Stay updated with the latest university sports action</p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-             {(user ? [...liveMatches, ...upcomingMatches] : (data?.matches || [])).map((match) => (
-               <div
-                 key={match.id}
-                 className={`bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20 ${
-                   match.status === 'live' ? 'animate-pulse-live' : ''
-                 }`}
-               >
-                 <div className="flex items-center justify-between mb-4">
-                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                     match.status === 'live' ? 'bg-red-500 text-white' :
-                     match.status === 'scheduled' ? 'bg-blue-500 text-white' :
-                     'bg-green-500 text-white'
-                   }`}>
-                     {match.status === 'scheduled' ? 'UPCOMING' : match.status.toUpperCase()}
-                   </span>
-                   <span className="text-sm text-gray-700 capitalize">{match.sport}</span>
-                 </div>
-                 <div className="text-center">
-                   <div className="flex items-center justify-between mb-4">
-                     <div className="text-center">
-                       <h4 className="font-bold text-lg">{('homeTeamName' in match) ? match.homeTeamName : match.homeTeam}</h4>
-                       {match.score ? (
-                         <p className="text-3xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
-                           {match.score.home}
-                         </p>
-                       ) : (
-                         <div className="w-12 h-12 bg-gradient-to-br from-unill-yellow-400 to-unill-purple-500 rounded-full mx-auto"></div>
-                       )}
-                     </div>
-                     <div className="text-gray-400 text-xl">VS</div>
-                     <div className="text-center">
-                       <h4 className="font-bold text-lg">{('awayTeamName' in match) ? match.awayTeamName : match.awayTeam}</h4>
-                       {match.score ? (
-                         <p className="text-3xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
-                           {match.score.away}
-                         </p>
-                       ) : (
-                         <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full mx-auto"></div>
-                       )}
-                     </div>
-                   </div>
-                   <p className="text-sm text-gray-700">
-                     {match.venue} • {('scheduledAt' in match) ? new Date(match.scheduledAt).toLocaleTimeString() : match.time}
-                     {match.status === 'completed' && ' • Final'}
-                   </p>
-                 </div>
-               </div>
-             ))}
-           </div>
+            {(user ? [...liveMatches, ...upcomingMatches] : (data?.matches || [])).map((match) => (
+              <div
+                key={match.id}
+                className={`bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20 ${match.status === 'live' ? 'animate-pulse-live' : ''
+                  }`}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${match.status === 'live' ? 'bg-red-500 text-white' :
+                    match.status === 'scheduled' ? 'bg-blue-500 text-white' :
+                      'bg-green-500 text-white'
+                    }`}>
+                    {match.status === 'scheduled' ? 'UPCOMING' : match.status.toUpperCase()}
+                  </span>
+                  <span className="text-sm text-gray-700 capitalize">{match.sport}</span>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="text-center">
+                      <h4 className="font-bold text-lg">{('homeTeamName' in match) ? match.homeTeamName : match.homeTeam}</h4>
+                      {match.score ? (
+                        <p className="text-3xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
+                          {match.score.home}
+                        </p>
+                      ) : (
+                        <div className="w-12 h-12 bg-gradient-to-br from-unill-yellow-400 to-unill-purple-500 rounded-full mx-auto"></div>
+                      )}
+                    </div>
+                    <div className="text-gray-400 text-xl">VS</div>
+                    <div className="text-center">
+                      <h4 className="font-bold text-lg">{('awayTeamName' in match) ? match.awayTeamName : match.awayTeam}</h4>
+                      {match.score ? (
+                        <p className="text-3xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent">
+                          {match.score.away}
+                        </p>
+                      ) : (
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full mx-auto"></div>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-700">
+                    {match.venue} • {('scheduledAt' in match) ? new Date(match.scheduledAt).toLocaleTimeString() : match.time}
+                    {match.status === 'completed' && ' • Final'}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
-      
+
       {/* Merchandise Section */}
       <section className={`py-16 bg-gradient-to-b from-black/10 to-black/20 ${mounted && theme === 'light' ? 'bg-gradient-to-b from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -307,7 +321,7 @@ const HomePage: React.FC = () => {
             </h2>
             <p className="text-xl text-gray-700">Show your university pride with our exclusive sports merchandise</p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {merchandise.map((item) => (
               <MerchandiseCard
@@ -315,10 +329,11 @@ const HomePage: React.FC = () => {
                 item={item}
                 onAddToCart={handleAddToCart}
                 onToggleWishlist={handleToggleWishlist}
+                onQuickView={handleQuickView}
               />
             ))}
           </div>
-          
+
           <div className="text-center">
             <a
               href="/merchandise"
@@ -332,8 +347,8 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       </section>
-      
-      
+
+
       {/* Statistics Section */}
       <section className={`py-20 bg-black/20 backdrop-blur-sm ${mounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -343,7 +358,7 @@ const HomePage: React.FC = () => {
             </h2>
             <p className="text-xl text-gray-700">Numbers that speak to our athletic achievements</p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="text-center bg-white/10 backdrop-blur-md rounded-lg p-8 border border-white/20">
               <div className="text-5xl font-black bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent mb-2">
@@ -379,14 +394,14 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       </section>
-      
+
       {/* Call to Action */}
       <section className={`py-20 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 ${mounted && theme === 'light' ? 'bg-gradient-to-r from-mauve-200 via-mauve-300 to-mauve-400' : ''}`}>
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl md:text-5xl font-black text-white mb-6">Ready to Join the Team?</h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-          Join any team sports programs by filling an online form. 
-          We will help you get in touch with the team management.
+            Join any team sports programs by filling an online form.
+            We will help you get in touch with the team management.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
@@ -402,6 +417,14 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {selectedQuickViewItem && (
+        <QuickViewModal
+          item={selectedQuickViewItem}
+          isOpen={!!selectedQuickViewItem}
+          onClose={() => setSelectedQuickViewItem(null)}
+          onAddToCart={handleAddToCart}
+        />
+      )}
     </Layout>
   );
 };

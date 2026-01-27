@@ -1,46 +1,40 @@
 import { useState, useEffect } from 'react';
 import { useAppSelector } from '@/hooks/redux';
 
-interface MerchandiseItem {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  images: string[];
-  category: string;
-  inStock: boolean;
-  likes: number;
-}
+import { MerchItem } from '@/models';
 
 interface MerchandiseCardProps {
-  item: MerchandiseItem;
-  onAddToCart?: (item: MerchandiseItem) => void;
+  item: MerchItem;
+  onAddToCart?: (item: MerchItem) => void;
   onToggleWishlist?: (itemId: string, isLiked: boolean) => void;
+  onQuickView?: (item: MerchItem) => void;
 }
 
 export const MerchandiseCard: React.FC<MerchandiseCardProps> = ({
   item,
   onAddToCart,
-  onToggleWishlist
+  onToggleWishlist,
+  onQuickView
 }) => {
   const user = useAppSelector(s => s.auth.user);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(item.likes);
   const [mounted, setMounted] = useState(false);
+  const [selectedSize, setSelectedSize] = useState<string>('');
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const nextImage = () => {
-    setCurrentImageIndex((prev) => 
+    setCurrentImageIndex((prev) =>
       prev === item.images.length - 1 ? 0 : prev + 1
     );
   };
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => 
+    setCurrentImageIndex((prev) =>
       prev === 0 ? item.images.length - 1 : prev - 1
     );
   };
@@ -50,10 +44,18 @@ export const MerchandiseCard: React.FC<MerchandiseCardProps> = ({
   };
 
   const handleAddToCart = () => {
-    if (user && onAddToCart) {
-      onAddToCart(item);
-    } else {
+    if (!user) {
       alert('Please log in to add items to cart');
+      return;
+    }
+
+    if (item.availableSizes && item.availableSizes.length > 0 && !selectedSize) {
+      alert('Please select a size');
+      return;
+    }
+
+    if (onAddToCart) {
+      onAddToCart({ ...item, selectedSize } as any); // Type cast for simplicity if needed
     }
   };
 
@@ -65,7 +67,7 @@ export const MerchandiseCard: React.FC<MerchandiseCardProps> = ({
 
     const newLikedState = !isLiked;
     setIsLiked(newLikedState);
-    
+
     // Optimistically update likes count
     setLikesCount(prev => newLikedState ? prev + 1 : prev - 1);
 
@@ -98,7 +100,7 @@ export const MerchandiseCard: React.FC<MerchandiseCardProps> = ({
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
       {/* Image Slider */}
       <div className="relative h-64 overflow-hidden">
-        <div 
+        <div
           className="flex transition-transform duration-300 ease-in-out h-full"
           style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
         >
@@ -143,9 +145,8 @@ export const MerchandiseCard: React.FC<MerchandiseCardProps> = ({
               <button
                 key={index}
                 onClick={() => goToImage(index)}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  index === currentImageIndex ? 'bg-white' : 'bg-white bg-opacity-50'
-                }`}
+                className={`w-2 h-2 rounded-full transition-colors ${index === currentImageIndex ? 'bg-white' : 'bg-white bg-opacity-50'
+                  }`}
                 aria-label={`Go to image ${index + 1}`}
               />
             ))}
@@ -162,11 +163,10 @@ export const MerchandiseCard: React.FC<MerchandiseCardProps> = ({
         {/* Wishlist Button */}
         <button
           onClick={handleToggleWishlist}
-          className={`absolute top-2 right-2 p-2 rounded-full transition-colors ${
-            isLiked 
-              ? 'bg-red-500 text-white' 
-              : 'bg-white bg-opacity-80 text-gray-600 hover:bg-opacity-100'
-          }`}
+          className={`absolute top-2 right-2 p-2 rounded-full transition-colors ${isLiked
+            ? 'bg-red-500 text-white'
+            : 'bg-white bg-opacity-80 text-gray-600 hover:bg-opacity-100'
+            }`}
           aria-label={isLiked ? 'Remove from wishlist' : 'Add to wishlist'}
         >
           <svg className="w-5 h-5" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
@@ -183,9 +183,32 @@ export const MerchandiseCard: React.FC<MerchandiseCardProps> = ({
             {item.category}
           </span>
         </div>
-        
+
         <p className="text-gray-600 text-sm mb-4 line-clamp-2">{item.description}</p>
-        
+
+        {/* Size Selection */}
+        {item.availableSizes && item.availableSizes.length > 0 && (
+          <div className="mb-4">
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">
+              Select Size
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {item.availableSizes.map((size) => (
+                <button
+                  key={size}
+                  onClick={() => setSelectedSize(size)}
+                  className={`px-3 py-1 text-sm rounded-md border transition-colors ${selectedSize === size
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-500'
+                    }`}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between mb-4">
           <span className="text-2xl font-bold text-blue-600">
             KSh {item.price.toLocaleString()}
@@ -203,16 +226,15 @@ export const MerchandiseCard: React.FC<MerchandiseCardProps> = ({
           <button
             onClick={handleAddToCart}
             disabled={!item.inStock}
-            className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
-              item.inStock
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
+            className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${item.inStock
+              ? 'bg-blue-600 text-white hover:bg-blue-700'
+              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
           >
             {item.inStock ? 'Add to Cart' : 'Out of Stock'}
           </button>
           <button
-            onClick={() => alert('Quick view feature coming soon!')}
+            onClick={() => onQuickView && onQuickView(item)}
             className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
             aria-label="Quick view"
           >

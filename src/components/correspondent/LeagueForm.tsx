@@ -1,6 +1,6 @@
 import { useAppDispatch } from "@/hooks/redux";
 import { League, SportType, Sport } from "@/models";
-import { createLeague } from "@/store/correspondentThunk";
+import { createLeague, createGroup } from "@/store/correspondentThunk";
 import { useState, useEffect } from "react";
 import { useTheme } from "@/components/ThemeProvider";
 import { apiService } from "@/services/apiService";
@@ -48,8 +48,18 @@ export const LeagueForm: React.FC<{ onCreate?: (l: League) => void }> = ({ onCre
         description: description.trim(),
         hasGroups
       }));
-      if (res.type === createLeague.fulfilled.type && res.payload && onCreate) {
-        onCreate(res.payload as League);
+      if (res.type === createLeague.fulfilled.type && res.payload) {
+        // If groupless, create a default "General" group automatically
+        if (!hasGroups) {
+          await dispatch(createGroup({
+            leagueId: (res.payload as League).id!,
+            group: { name: 'General' }
+          }));
+        }
+
+        if (onCreate) {
+          onCreate(res.payload as League);
+        }
       }
       setName('');
       setDescription('');

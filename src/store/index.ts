@@ -4,31 +4,33 @@ import adminSlice from './slices/adminSlice';
 import correspondentSlice from './slices/correspondentSlice';
 import fanSlice from './slices/fanSlice';
 import sportTeamSlice from './slices/sportTeamSlice';
-import usersSlice     from './slices/usersSlice';
-import merchSlice     from './slices/merchSlice';
+import usersSlice from './slices/usersSlice';
+import merchSlice from './slices/merchSlice';
 import merchDocumentsSlice from './slices/merchDocumentsSlice';
-import reviewSlice    from './slices/reviewSlice';
-import gamesSlice     from './slices/gamesSlice';
+import reviewSlice from './slices/reviewSlice';
+import gamesSlice from './slices/gamesSlice';
 import teamSlice from './slices/teamSlice';
 import contactSlice from './slices/contactSlice';
 import { listenerMiddleware } from './listeners';
 import leaguesSlice from './slices/leagueSlice';
+import cartSlice from './slices/cartSlice';
 
 export const store = configureStore({
   reducer: {
-    auth:    authSlice,
-    admin:   adminSlice,
-    users:   usersSlice,
-    merch:   merchSlice,
+    auth: authSlice,
+    admin: adminSlice,
+    users: usersSlice,
+    merch: merchSlice,
     merchDocuments: merchDocumentsSlice,
-    review:  reviewSlice,
-    games:   gamesSlice,
+    review: reviewSlice,
+    games: gamesSlice,
     team: teamSlice,
     correspondent: correspondentSlice,
     fan: fanSlice,
     sportTeam: sportTeamSlice,
     contact: contactSlice,
-    leagues: leaguesSlice
+    leagues: leaguesSlice,
+    cart: cartSlice
   },
   middleware: (gDM) => gDM({
     serializableCheck: {

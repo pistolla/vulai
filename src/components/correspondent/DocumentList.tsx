@@ -11,6 +11,7 @@ interface DocumentListProps {
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
   onView: (doc: MerchDocument) => void;
+  allowCreate?: boolean;
 }
 
 export const DocumentList: React.FC<DocumentListProps> = ({
@@ -21,6 +22,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
   onApprove,
   onReject,
   onView,
+  allowCreate = true,
 }) => {
   const [filterType, setFilterType] = useState<DocumentType | 'all'>('all');
   const [filterStatus, setFilterStatus] = useState<DocumentStatus | 'all'>('all');
@@ -53,7 +55,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
           <p className="text-sm text-gray-600 dark:text-gray-400">Manage orders, invoices, and records</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {documentTypes.map(type => (
+          {(allowCreate ?? true) && documentTypes.map(type => (
             <button
               key={type}
               onClick={() => onCreate(type)}

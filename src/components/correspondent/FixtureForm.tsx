@@ -204,6 +204,21 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
           setIsLoading(false);
           return;
         }
+
+        // Validate that teams belong to the selected sport
+        const selectedSport = sports.find((s: any) => s.id === selectedSportId);
+        if (selectedSport) {
+          if (homeTeam.sport && homeTeam.sport.toLowerCase() !== selectedSport.name.toLowerCase()) {
+            alert(`Home team sport (${homeTeam.sport}) does not match selected sport (${selectedSport.name}).`);
+            setIsLoading(false);
+            return;
+          }
+          if (awayTeam.sport && awayTeam.sport.toLowerCase() !== selectedSport.name.toLowerCase()) {
+            alert(`Away team sport (${awayTeam.sport}) does not match selected sport (${selectedSport.name}).`);
+            setIsLoading(false);
+            return;
+          }
+        }
       }
 
       // For league matches, use team names if teams exist, otherwise use the names already set

@@ -52,8 +52,35 @@ const LeagueExplorerPage: React.FC = () => {
         const groupsToProcess = groups.length > 0 ? groups : [{ id: '_general', name: 'General' } as Group];
 
         // Fetch all fixtures to link with matches
-        const fixturesSnap = await getDocs(collection(db, 'fixtures'));
-        const allFixtures = fixturesSnap.docs.map(d => ({ id: d.id, ...d.data() } as Fixture));
+        const allFixtures: Fixture[] = [];
+
+        // 1. Fetch legacy fixtures (backward compatibility)
+        try {
+          const fixturesSnap = await getDocs(collection(db, 'fixtures'));
+          allFixtures.push(...fixturesSnap.docs.map(d => ({ id: d.id, ...d.data() } as Fixture)));
+        } catch (e) {
+          console.warn('Legacy fixtures fetch failed', e);
+        }
+
+        // 2. Fetch seasonal fixtures
+        try {
+          const sportsData: any[] = await apiService.getSports();
+          const sport = sportsData.find(s => s.name.toLowerCase() === league.sportType.toLowerCase());
+          if (sport) {
+            const leagueSeasons = await firebaseLeagueService.listSeasons(sport.id);
+            for (const season of leagueSeasons) {
+              try {
+                const seasonFixtures = await firebaseLeagueService.listFixtures(season.id);
+                allFixtures.push(...seasonFixtures);
+              } catch (e) {
+                // Ignore if season fixtures don't exist
+              }
+            }
+          }
+        } catch (e) {
+          console.error('Failed to load seasonal fixtures:', e);
+        }
+
         setFixtures(allFixtures);
 
         // Fetch all matches from all groups and stages

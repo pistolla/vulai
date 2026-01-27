@@ -3,9 +3,8 @@ import {
   collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc,
   query, where, serverTimestamp, Timestamp, collectionGroup, QueryDocumentSnapshot, DocumentData
 } from 'firebase/firestore';
-import { University, Team, Fixture, PlayerAvatar, Sport, ImportedData, Season } from '@/models';
+import { University, Team, Fixture, PlayerAvatar, Sport, ImportedData, Season, MerchItem } from '@/models';
 import { AdminUserRow } from '@/store/slices/usersSlice';
-import { MerchItem } from '@/store/slices/merchSlice';
 import { ReviewRow } from '@/store/slices/reviewSlice';
 
 /* ---------- dashboard ---------- */

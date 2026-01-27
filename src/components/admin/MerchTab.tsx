@@ -91,10 +91,31 @@ function MerchandiseForm({ formData, setFormData, universities, teams, selectedU
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Category</label>
-          <input
-            type="text"
+          <select
             value={formData.category}
             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          >
+            <option value="">Select Category</option>
+            <option value="Footwear">Footwear</option>
+            <option value="Headgear">Headgear</option>
+            <option value="Garments Upper Body">Garments Upper Body</option>
+            <option value="Garments Lower Body">Garments Lower Body</option>
+            <option value="Underwear">Underwear</option>
+            <option value="Gadgets">Gadgets</option>
+            <option value="Equipment">Equipment</option>
+            <option value="Assortment">Assortment</option>
+            <option value="Apparel">Apparel (Legacy)</option>
+            <option value="Accessories">Accessories (Legacy)</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Available Sizes (comma-separated)</label>
+          <input
+            type="text"
+            placeholder="e.g. S, M, L or 40, 41, 42"
+            value={formData.availableSizes ? formData.availableSizes.join(', ') : ''}
+            onChange={(e) => setFormData({ ...formData, availableSizes: e.target.value.split(',').map(s => s.trim()).filter(s => s) })}
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         </div>
@@ -185,7 +206,8 @@ export default function MerchTab({ adminData }: any) {
     category: '',
     catalog: '',
     university: '',
-    team: ''
+    team: '',
+    availableSizes: [] as string[]
   });
 
   useEffect(() => {
@@ -204,10 +226,13 @@ export default function MerchTab({ adminData }: any) {
       price: parseFloat(newItem.price),
       image: newItem.image || '/images/default-merch.jpg',
       images: newItem.images,
-      category: newItem.category,
+      category: newItem.category as any,
       catalog: newItem.catalog,
       university: newItem.university,
-      team: newItem.team
+      team: newItem.team,
+      availableSizes: newItem.availableSizes,
+      inStock: true,
+      likes: 0
     }) as any);
     resetNewItem();
     setShowAddModal(false);
@@ -221,10 +246,11 @@ export default function MerchTab({ adminData }: any) {
       price: '',
       image: '',
       images: [],
-      category: '',
+      category: '' as any,
       catalog: '',
       university: '',
-      team: ''
+      team: '',
+      availableSizes: []
     });
     setSelectedUniversity('');
     setSelectedTeam('');

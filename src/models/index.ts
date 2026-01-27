@@ -317,8 +317,9 @@ export interface OrderData {
   shippingAddress: string;
   items: OrderItem[];
   total: number;
-  paymentMethod: 'pay_on_delivery' | 'pay_on_order';
+  paymentMethod: 'pay_on_delivery' | 'pay_on_order' | 'card' | 'paypal' | 'mobile';
   notes?: string;
+  orderHash?: string;
 }
 
 export interface OrderItem {
@@ -327,6 +328,7 @@ export interface OrderItem {
   quantity: number;
   price: number;
   subtotal: number;
+  size?: string;
 }
 
 export interface InvoiceData {
@@ -345,6 +347,7 @@ export interface InvoiceItem {
   quantity: number;
   price: number;
   subtotal: number;
+  size?: string;
 }
 
 export interface StockRecordData {
@@ -354,6 +357,7 @@ export interface StockRecordData {
   type: 'in' | 'out';
   reason: string;
   reference?: string; // e.g., order id
+  size?: string;
 }
 
 export interface TransportDocumentData {
@@ -379,6 +383,7 @@ export interface ReturnItem {
   merchName: string;
   quantity: number;
   condition: 'new' | 'used' | 'damaged';
+  size?: string;
 }
 
 export interface PurchaseOrderData {
@@ -400,4 +405,23 @@ export interface DeliveryNotesData {
   receivedBy: string;
   items: OrderItem[];
   notes?: string;
+}
+
+export interface MerchItem {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  images: string[]; // URLs
+  image?: string; // Primary image URL (legacy/convenience)
+  category: 'Footwear' | 'Headgear' | 'Garments Upper Body' | 'Garments Lower Body' | 'Underwear' | 'Gadgets' | 'Equipment' | 'Assortment' | 'Apparel' | 'Accessories';
+  inStock: boolean;
+  likes: number;
+  type?: 'team' | 'unil';
+  teamId?: string;
+  catalog?: string;
+  university?: string;
+  team?: string;
+  availableSizes?: string[];
+  selectedSize?: string;
 }
