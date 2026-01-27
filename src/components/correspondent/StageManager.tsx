@@ -27,10 +27,12 @@ export const StageManager: React.FC<{ league: League; group?: Group | null }> = 
     (async () => {
       setLoading(true);
       try {
+        console.log(`[StageManager] Loading stages for league: ${league.id}, group: ${effectiveGroupId}`);
         const list = await firebaseLeagueService.listStages(league.id!, effectiveGroupId);
+        console.log(`[StageManager] Found ${list.length} stages`);
         dispatch(setStages({ leagueId: league.id!, groupId: effectiveGroupId, stages: list }));
       } catch (error) {
-        console.error('Failed to load stages:', error);
+        console.error('[StageManager] Failed to load stages:', error);
       } finally {
         setLoading(false);
       }
@@ -55,6 +57,7 @@ export const StageManager: React.FC<{ league: League; group?: Group | null }> = 
 
     setLoading(true);
     try {
+      console.log(`[StageManager] Creating stage: ${name}, order: ${order}, type: ${type} in group ${effectiveGroupId}`);
       await dispatch(createStage({
         leagueId: league.id!,
         groupId: effectiveGroupId,
@@ -64,7 +67,8 @@ export const StageManager: React.FC<{ league: League; group?: Group | null }> = 
           type,
           parentStageId: parentStageId || undefined
         }
-      }));
+      })).unwrap();
+
       // refresh
       const list = await firebaseLeagueService.listStages(league.id!, effectiveGroupId);
       dispatch(setStages({ leagueId: league.id!, groupId: effectiveGroupId, stages: list }));
@@ -72,9 +76,10 @@ export const StageManager: React.FC<{ league: League; group?: Group | null }> = 
       setParentStageId('');
       setAddingSubstageTo(null);
       setOrder(prev => prev + 1);
+      console.log(`[StageManager] Stage created successfully`);
     } catch (error) {
-      console.error('Failed to create stage:', error);
-      alert('Failed to create stage. Please try again.');
+      console.error('[StageManager] Failed to create stage:', error);
+      alert('Failed to create stage. Please check console for details.');
     } finally {
       setLoading(false);
     }

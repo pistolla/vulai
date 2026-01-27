@@ -43,14 +43,17 @@ export const LeagueDashboard: React.FC = () => {
 
         // We will fetch groups here for the groupless league
         const groups = await firebaseLeagueService.listGroups(l.id!);
+        console.log(`[LeagueDashboard] Fetched ${groups.length} groups for league ${l.id}`);
         if (groups.length > 0) {
           setSelectedGroup(groups[0]);
         } else {
-          // Fallback if creation didn't happen yet (shouldn't occur if LeagueForm works)
-          setSelectedGroup({ id: 'temp_general', name: 'General', createdAt: '' });
+          // Fallback if creation didn't happen yet
+          console.warn(`[LeagueDashboard] No groups found for groupless league ${l.id}. Using _general fallback.`);
+          setSelectedGroup({ id: '_general', name: 'General', createdAt: '' });
         }
       } catch (e) {
-        console.error("Failed to fetch default group", e);
+        console.error("[LeagueDashboard] Failed to fetch default group", e);
+        setSelectedGroup({ id: '_general', name: 'General', createdAt: '' });
       }
       setCurrentStep('stages');
     } else {

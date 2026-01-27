@@ -24,9 +24,11 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user }: any) {
 
   useEffect(() => {
     if (formData.sport) {
-      // Filter leagues by sport name match (assuming league.sportType or league.sportName matches sport.name)
-      // Adjusting matching logic: league.sportType stores sport name (e.g. 'Football')
-      const filtered = leagues.filter(l => l.sportType?.toLowerCase() === formData.sport.toLowerCase());
+      const selectedSport = formData.sport.toLowerCase();
+      const filtered = leagues.filter(l =>
+        (l.sportName?.toLowerCase() === selectedSport) ||
+        (l.sportType?.toLowerCase() === selectedSport)
+      );
       setFilteredLeagues(filtered);
     } else {
       setFilteredLeagues([]);
@@ -192,7 +194,7 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
   const itemsPerPage = 10;
   const [newTeam, setNewTeam] = useState({
     name: '',
-    sport: 'football',
+    sport: 'Football',
     universityId: '',
     coach: '',
     foundedYear: '',
@@ -218,7 +220,7 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
   const resetNewTeam = () => {
     setNewTeam({
       name: '',
-      sport: 'football',
+      sport: 'Football',
       universityId: '',
       coach: '',
       foundedYear: '',

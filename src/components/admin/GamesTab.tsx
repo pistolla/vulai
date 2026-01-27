@@ -79,7 +79,11 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
                 className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="">Select League</option>
-                {leaguesData.filter((l: any) => l.sportType === 'team').map((l: any) => (
+                {leaguesData.filter((l: any) => {
+                  if (!formData.sport) return true;
+                  const sportLower = formData.sport.toLowerCase();
+                  return (l.sportName?.toLowerCase() === sportLower) || (l.sportType?.toLowerCase() === sportLower);
+                }).map((l: any) => (
                   <option key={l.id} value={l.id}>{l.name}</option>
                 ))}
               </select>

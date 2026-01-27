@@ -36,7 +36,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
   const user = useAppSelector(s => s.auth.user);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
-  const [cartItems, setCartItems] = useState<any[]>([]);
+  const cartItems = useAppSelector(state => state.cart.items);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const cartRef = useRef<HTMLDivElement>(null);
   const mobileCartRef = useRef<HTMLDivElement>(null);
@@ -105,28 +105,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    const savedCart = sessionStorage.getItem('cart');
-    if (savedCart) {
-      setCartItems(JSON.parse(savedCart));
-    }
-
-    const handleStorageChange = () => {
-      const updatedCart = sessionStorage.getItem('cart');
-      if (updatedCart) {
-        setCartItems(JSON.parse(updatedCart));
-      } else {
-        setCartItems([]);
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('cartUpdated', handleStorageChange);
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('cartUpdated', handleStorageChange);
-    };
-  }, []);
+  // Particle background logic
 
   const initParticleBackground = () => {
     // ... (keep p5 logic) ...
@@ -269,7 +248,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
                       </div>
                     ) : (
                       <div className="px-4 py-2 space-y-2">
-                        {cartItems.map((item, index) => (
+                        {cartItems.map((item: any, index: number) => (
                           <div key={index} className="flex items-center space-x-3 py-2">
                             <img src={item.images ? item.images[0] : item.image} alt={item.name} className="w-10 h-10 object-cover rounded" />
                             <div className="flex-1 min-w-0">
@@ -283,7 +262,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
                           <div className="flex justify-between items-center">
                             <span className="font-medium text-gray-900 dark:text-white">Total:</span>
                             <span className="font-bold text-gray-900 dark:text-white">
-                              KSh {cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}
+                              KSh {cartItems.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0).toFixed(2)}
                             </span>
                           </div>
                         </div>
@@ -422,7 +401,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
                           </div>
                         ) : (
                           <div className="px-4 py-2 space-y-2">
-                            {cartItems.map((item, index) => (
+                            {cartItems.map((item: any, index: number) => (
                               <div key={index} className="flex items-center space-x-3 py-2">
                                 <img src={item.images ? item.images[0] : item.image} alt={item.name} className="w-10 h-10 object-cover rounded" />
                                 <div className="flex-1 min-w-0">
@@ -436,7 +415,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
                               <div className="flex justify-between items-center">
                                 <span className="font-medium text-gray-900 dark:text-white">Total:</span>
                                 <span className="font-bold text-gray-900 dark:text-white">
-                                  KSh {cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}
+                                  KSh {cartItems.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0).toFixed(2)}
                                 </span>
                               </div>
                             </div>

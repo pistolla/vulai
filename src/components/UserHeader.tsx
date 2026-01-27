@@ -24,7 +24,7 @@ export default function UserHeader({ theme = 'crimson' }: UserHeaderProps) {
   const { theme: appTheme, toggleTheme } = useTheme();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
-  const [cartItems, setCartItems] = useState<any[]>([]);
+  const cartItems = useAppSelector(state => state.cart.items);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const cartRef = useRef<HTMLDivElement>(null);
 
@@ -41,12 +41,7 @@ export default function UserHeader({ theme = 'crimson' }: UserHeaderProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    const savedCart = sessionStorage.getItem('cart');
-    if (savedCart) {
-      setCartItems(JSON.parse(savedCart));
-    }
-  }, []);
+  // State and refs managed above
 
   const handleLogout = async () => {
     await signOut().then(() => {
@@ -110,7 +105,7 @@ export default function UserHeader({ theme = 'crimson' }: UserHeaderProps) {
                     </div>
                   ) : (
                     <div className="px-4 py-2 space-y-2">
-                      {cartItems.map((item, index) => (
+                      {cartItems.map((item: any, index: number) => (
                         <div key={index} className="flex items-center space-x-3 py-2">
                           <img src={item.image} alt={item.name} className="w-10 h-10 object-cover rounded" />
                           <div className="flex-1 min-w-0">
@@ -124,7 +119,7 @@ export default function UserHeader({ theme = 'crimson' }: UserHeaderProps) {
                         <div className="flex justify-between items-center">
                           <span className="font-medium text-gray-900 dark:text-white">Total:</span>
                           <span className="font-bold text-gray-900 dark:text-white">
-                            KSh {cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}
+                            KSh {cartItems.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0).toFixed(2)}
                           </span>
                         </div>
                       </div>

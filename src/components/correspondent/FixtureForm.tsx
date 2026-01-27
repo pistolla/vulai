@@ -134,8 +134,9 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
         }
       }
       setMatches(allMatches);
+      console.log(`[FixtureForm] Loaded ${allMatches.length} matches for league ${leagueId}`);
     } catch (error) {
-      console.error('Failed to load matches:', error);
+      console.error('[FixtureForm] Failed to load matches:', error);
     }
   };
 
@@ -227,16 +228,19 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
 
       // For both league and friendly matches, get sport name
       const leagueObj = leagues.find((l: any) => l.id === selectedLeague);
-      const sportName = type === 'league'
-        ? (leagueObj?.name || 'Unknown')
-        : (sports.find((s: any) => s.id === selectedSportId)?.name || 'Friendly');
+      let sportNameFinal = '';
+      if (type === 'league') {
+        sportNameFinal = leagueObj?.sportName || leagueObj?.name || 'Unknown';
+      } else {
+        sportNameFinal = sports.find((s: any) => s.id === selectedSportId)?.name || 'Friendly';
+      }
 
       const fixtureData: Omit<Fixture, 'id' | 'correspondentId'> = {
         homeTeamName: finalHomeTeamName,
         awayTeamName: finalAwayTeamName,
         homeTeamId: homeTeamId,
         awayTeamId: awayTeamId,
-        sport: sportName,
+        sport: sportNameFinal,
         scheduledAt,
         venue,
         status: 'scheduled',
@@ -248,6 +252,8 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
         blogContent: blogContent || undefined,
         seasonId: selectedSeasonId,
       };
+
+      console.log('[FixtureForm] Saving fixture:', fixtureData);
 
       if (fixture) {
         await dispatch(updateFixture({ id: fixture.id, fixture: fixtureData }));
