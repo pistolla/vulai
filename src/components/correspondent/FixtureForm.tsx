@@ -197,9 +197,23 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
       const homeTeam = teams.find((t: any) => t.id === homeTeamId);
       const awayTeam = teams.find((t: any) => t.id === awayTeamId);
 
-      // Validate that teams exist in the teams collection
-      if (!homeTeam || !awayTeam) {
-        alert('Selected teams not found in teams collection. Please ensure teams are created first.');
+      // For friendly matches, teams MUST exist in the teams collection
+      if (type === 'friendly') {
+        if (!homeTeam || !awayTeam) {
+          alert('Selected teams not found in teams collection. Please ensure teams are created first.');
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // For league matches, use team names if teams exist, otherwise use the names already set
+      const finalHomeTeamName = homeTeam?.name || homeTeamName;
+      const finalAwayTeamName = awayTeam?.name || awayTeamName;
+
+      // Validate that we have team names
+      if (!finalHomeTeamName || !finalAwayTeamName) {
+        alert('Team names are required. Please select valid teams.');
+        setIsLoading(false);
         return;
       }
 
@@ -210,8 +224,8 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
         : (sports.find((s: any) => s.id === selectedSportId)?.name || 'Friendly');
 
       const fixtureData: Omit<Fixture, 'id' | 'correspondentId'> = {
-        homeTeamName: homeTeam.name,
-        awayTeamName: awayTeam.name,
+        homeTeamName: finalHomeTeamName,
+        awayTeamName: finalAwayTeamName,
         homeTeamId: homeTeamId,
         awayTeamId: awayTeamId,
         sport: sportName,
@@ -362,6 +376,7 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
                   setHomeTeamName(team?.name || '');
                 }}
                 className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+                required
               >
                 <option value="">Select Home Team</option>
                 {teams.map((team: any) => (
@@ -386,6 +401,7 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
                   setAwayTeamName(team?.name || '');
                 }}
                 className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+                required
               >
                 <option value="">Select Away Team</option>
                 {teams.map((team: any) => (
