@@ -156,8 +156,8 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
         setHomeTeamName(match.participants[0].name || `Team ${match.participants[0].refId}`);
         setAwayTeamName(match.participants[1].name || `Team ${match.participants[1].refId}`);
         // Try to find actual team IDs if they exist
-        const homeTeam = teams.find(t => t.name === match.participants[0].name);
-        const awayTeam = teams.find(t => t.name === match.participants[1].name);
+        const homeTeam = teams.find((t: any) => t.name === match.participants[0].name);
+        const awayTeam = teams.find((t: any) => t.name === match.participants[1].name);
         setHomeTeamId(homeTeam?.id || match.participants[0].refId);
         setAwayTeamId(awayTeam?.id || match.participants[1].refId);
         if (match.seasonId) setSelectedSeasonId(match.seasonId);
@@ -174,12 +174,12 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
       alert("Please select a season.");
       return;
     }
-    if (!homeTeamName || !awayTeamName) {
+    if (!homeTeamId || !awayTeamId) {
       alert("Please select both home and away teams.");
       return;
     }
-    if (homeTeamName === awayTeamName) {
-      alert("Home and away teams cannot be the same.");
+    if (homeTeamId === awayTeamId) {
+      alert("Home and away teams cannot be same.");
       return;
     }
     if (!scheduledAt) {
@@ -193,57 +193,26 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
     setIsLoading(true);
 
     try {
-      let homeId = homeTeamId;
-      let awayId = awayTeamId;
+      // Get team names from selected team IDs
+      const homeTeam = teams.find((t: any) => t.id === homeTeamId);
+      const awayTeam = teams.find((t: any) => t.id === awayTeamId);
 
-      // For both league and friendly matches, ensure teams exist
-      const leagueObj = leagues.find(l => l.id === selectedLeague);
+      if (!homeTeam || !awayTeam) {
+        alert('Selected teams not found');
+        return;
+      }
+
+      // For both league and friendly matches, get sport name
+      const leagueObj = leagues.find((l: any) => l.id === selectedLeague);
       const sportName = type === 'league'
         ? (leagueObj?.name || 'Unknown')
-        : (sports.find(s => s.id === selectedSportId)?.name || 'Friendly');
-
-      // Create or find home team
-      const homeTeam = teams.find(t => t.name === homeTeamName);
-      if (!homeTeam) {
-        const teamId = doc(collection(db, 'teams')).id;
-        const newTeam: Omit<Team, 'id'> = {
-          universityId: state.auth.user!.universityId!,
-          name: homeTeamName,
-          sport: sportName,
-          foundedYear: new Date().getFullYear(),
-        };
-        await setDoc(doc(db, 'teams', teamId), newTeam);
-        homeId = teamId;
-      } else {
-        homeId = homeTeam.id;
-      }
-
-      // Create or find away team
-      const awayTeam = teams.find(t => t.name === awayTeamName);
-      if (!awayTeam) {
-        const teamId = doc(collection(db, 'teams')).id;
-        const newTeam: Omit<Team, 'id'> = {
-          universityId: state.auth.user!.universityId!,
-          name: awayTeamName,
-          sport: sportName,
-          foundedYear: new Date().getFullYear(),
-        };
-        await setDoc(doc(db, 'teams', teamId), newTeam);
-        awayId = teamId;
-      } else {
-        awayId = awayTeam.id;
-      }
-
-      // Ensure we have valid team IDs
-      if (!homeId || !awayId) {
-        throw new Error('Failed to create or find team IDs');
-      }
+        : (sports.find((s: any) => s.id === selectedSportId)?.name || 'Friendly');
 
       const fixtureData: Omit<Fixture, 'id' | 'correspondentId'> = {
-        homeTeamName,
-        awayTeamName,
-        homeTeamId: homeId,
-        awayTeamId: awayId,
+        homeTeamName: homeTeam.name,
+        awayTeamName: awayTeam.name,
+        homeTeamId: homeTeamId,
+        awayTeamId: awayTeamId,
         sport: sportName,
         scheduledAt,
         venue,
