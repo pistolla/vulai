@@ -174,44 +174,69 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
       alert("Please select a season.");
       return;
     }
+    if (!homeTeamName || !awayTeamName) {
+      alert("Please select both home and away teams.");
+      return;
+    }
+    if (homeTeamName === awayTeamName) {
+      alert("Home and away teams cannot be the same.");
+      return;
+    }
+    if (!scheduledAt) {
+      alert("Please select a date and time for the fixture.");
+      return;
+    }
+    if (!venue) {
+      alert("Please enter a venue for the fixture.");
+      return;
+    }
     setIsLoading(true);
 
     try {
       let homeId = homeTeamId;
       let awayId = awayTeamId;
 
-      if (type === 'league') {
-        const leagueObj = leagues.find(l => l.id === selectedLeague);
-        // Create teams if not exist
-        const homeTeam = teams.find(t => t.name === homeTeamName);
-        if (!homeTeam) {
-          const teamId = doc(collection(db, 'teams')).id;
-          const newTeam: Omit<Team, 'id'> = {
-            universityId: state.auth.user!.universityId!,
-            name: homeTeamName,
-            sport: leagueObj?.name || 'Unknown',
-            foundedYear: new Date().getFullYear(),
-          };
-          await setDoc(doc(db, 'teams', teamId), newTeam);
-          homeId = teamId;
-        } else {
-          homeId = homeTeam.id;
-        }
+      // For both league and friendly matches, ensure teams exist
+      const leagueObj = leagues.find(l => l.id === selectedLeague);
+      const sportName = type === 'league'
+        ? (leagueObj?.name || 'Unknown')
+        : (sports.find(s => s.id === selectedSportId)?.name || 'Friendly');
 
-        const awayTeam = teams.find(t => t.name === awayTeamName);
-        if (!awayTeam) {
-          const teamId = doc(collection(db, 'teams')).id;
-          const newTeam: Omit<Team, 'id'> = {
-            universityId: state.auth.user!.universityId!,
-            name: awayTeamName,
-            sport: leagueObj?.name || 'Unknown',
-            foundedYear: new Date().getFullYear(),
-          };
-          await setDoc(doc(db, 'teams', teamId), newTeam);
-          awayId = teamId;
-        } else {
-          awayId = awayTeam.id;
-        }
+      // Create or find home team
+      const homeTeam = teams.find(t => t.name === homeTeamName);
+      if (!homeTeam) {
+        const teamId = doc(collection(db, 'teams')).id;
+        const newTeam: Omit<Team, 'id'> = {
+          universityId: state.auth.user!.universityId!,
+          name: homeTeamName,
+          sport: sportName,
+          foundedYear: new Date().getFullYear(),
+        };
+        await setDoc(doc(db, 'teams', teamId), newTeam);
+        homeId = teamId;
+      } else {
+        homeId = homeTeam.id;
+      }
+
+      // Create or find away team
+      const awayTeam = teams.find(t => t.name === awayTeamName);
+      if (!awayTeam) {
+        const teamId = doc(collection(db, 'teams')).id;
+        const newTeam: Omit<Team, 'id'> = {
+          universityId: state.auth.user!.universityId!,
+          name: awayTeamName,
+          sport: sportName,
+          foundedYear: new Date().getFullYear(),
+        };
+        await setDoc(doc(db, 'teams', teamId), newTeam);
+        awayId = teamId;
+      } else {
+        awayId = awayTeam.id;
+      }
+
+      // Ensure we have valid team IDs
+      if (!homeId || !awayId) {
+        throw new Error('Failed to create or find team IDs');
       }
 
       const fixtureData: Omit<Fixture, 'id' | 'correspondentId'> = {
@@ -219,9 +244,7 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
         awayTeamName,
         homeTeamId: homeId,
         awayTeamId: awayId,
-        sport: type === 'league'
-          ? (leagues.find((l: League) => l.id === selectedLeague)?.name || 'Unknown')
-          : (sports.find(s => s.id === selectedSportId)?.name || 'Friendly'),
+        sport: sportName,
         scheduledAt,
         venue,
         status: 'scheduled',

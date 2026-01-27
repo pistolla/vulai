@@ -30,9 +30,10 @@ const LeaguePage: React.FC = () => {
   const { slug } = router.query;
   const dispatch = useAppDispatch();
   const { leagues, loading: leaguesLoading } = useAppSelector((state) => state.leagues);
+  const fixtures = useAppSelector((state) => state.correspondent.fixtures || []);
   const [league, setLeague] = useState<League | null>(null);
   const [leagueData, setLeagueData] = useState<any>(null);
-  const [fixtures, setFixtures] = useState<Fixture[]>([]);
+  const [leagueFixtures, setLeagueFixtures] = useState<Fixture[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'groups' | 'stages' | 'matches' | 'standings'>('overview');
 
@@ -43,7 +44,7 @@ const LeaguePage: React.FC = () => {
       try {
         setLoading(true);
 
-        // Fetch the specific league data from Firebase
+        // Fetch specific league data from Firebase
         const leagueObj = await firebaseLeagueService.getLeague(slug as string);
         if (!leagueObj) {
           setLoading(false);
@@ -54,7 +55,7 @@ const LeaguePage: React.FC = () => {
         // Fetch groups, stages, and matches for this league
         const groups = await firebaseLeagueService.listGroups(slug as string);
 
-        // Build the league data structure expected by components
+        // Build league data structure expected by components
         const leagueData: LeagueData = {
           id: leagueObj.id!,
           name: leagueObj.name,
@@ -95,12 +96,10 @@ const LeaguePage: React.FC = () => {
           const leagueFixtures = allFixtures.filter(fixture =>
             fixture.matchId && leagueMatchIds.includes(fixture.matchId)
           );
-          setFixtures(leagueFixtures);
+          setLeagueFixtures(leagueFixtures);
         } catch (fixtureError) {
           console.error('Failed to load fixtures:', fixtureError);
         }
-
-        setLeagueData(leagueData);
       } catch (error) {
         console.error('Failed to load league data:', error);
       } finally {
@@ -110,7 +109,6 @@ const LeaguePage: React.FC = () => {
 
     loadLeagueData();
   }, [slug]);
-
 
   if (loading) {
     return (
@@ -141,7 +139,6 @@ const LeaguePage: React.FC = () => {
       </Layout>
     );
   }
-
 
   return (
     <Layout title={leagueData.name} description={leagueData.description}>
@@ -202,7 +199,7 @@ const LeaguePage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {fixtures.map((fixture) => (
+                  {fixtures.map((fixture: Fixture) => (
                     <tr key={fixture.id} className="border-b border-white/10">
                       <td className="py-3">{new Date(fixture.scheduledAt).toLocaleDateString()}</td>
                       <td className="py-3 font-medium">{fixture.homeTeamName}</td>

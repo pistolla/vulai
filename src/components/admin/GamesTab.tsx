@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAppSelector } from '@/hooks/redux';
 import { apiService } from '@/services/apiService';
 import { db } from '@/services/firebase';
-import { addDoc, collection, updateDoc, deleteDoc, doc, getDocs, setDoc } from 'firebase/firestore';
+import { addDoc, collection, updateDoc, deleteDoc, doc, getDocs, setDoc, serverTimestamp } from 'firebase/firestore';
 import { loadLiveGames, loadUpcomingGames, addLiveGame, addUpcomingGame, updateLiveGame, updateUpcomingGame, deleteLiveGame, deleteUpcomingGame, syncAdminGameCollections } from '@/services/firestoreAdmin';
 import { firebaseLeagueService } from '@/services/firebaseCorrespondence';
 import { Season } from '@/models';
@@ -529,8 +529,38 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
       return;
     }
     try {
+      // Find or create home team
+      let homeTeamId = teams.find(t => t.name === newGame.homeTeam)?.id;
+      if (!homeTeamId) {
+        const teamRef = await addDoc(collection(db, 'teams'), {
+          name: newGame.homeTeam,
+          sport: newGame.sport,
+          universityId: '',
+          foundedYear: new Date().getFullYear(),
+          createdAt: serverTimestamp()
+        });
+        homeTeamId = teamRef.id;
+      }
+
+      // Find or create away team
+      let awayTeamId = teams.find(t => t.name === newGame.awayTeam)?.id;
+      if (!awayTeamId) {
+        const teamRef = await addDoc(collection(db, 'teams'), {
+          name: newGame.awayTeam,
+          sport: newGame.sport,
+          universityId: '',
+          foundedYear: new Date().getFullYear(),
+          createdAt: serverTimestamp()
+        });
+        awayTeamId = teamRef.id;
+      }
+
       const gameData = {
         ...newGame,
+        homeTeamName: newGame.homeTeam,
+        awayTeamName: newGame.awayTeam,
+        homeTeamId: homeTeamId,
+        awayTeamId: awayTeamId,
         type: newGame.type,
         matchId: newGame.type === 'league' ? newGame.selectedMatch : undefined,
         leagueId: newGame.type === 'league' ? newGame.selectedLeague : undefined,
@@ -607,8 +637,38 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
       return;
     }
     try {
+      // Find or create home team
+      let homeTeamId = teams.find(t => t.name === editingGame.homeTeam)?.id;
+      if (!homeTeamId) {
+        const teamRef = await addDoc(collection(db, 'teams'), {
+          name: editingGame.homeTeam,
+          sport: editingGame.sport,
+          universityId: '',
+          foundedYear: new Date().getFullYear(),
+          createdAt: serverTimestamp()
+        });
+        homeTeamId = teamRef.id;
+      }
+
+      // Find or create away team
+      let awayTeamId = teams.find(t => t.name === editingGame.awayTeam)?.id;
+      if (!awayTeamId) {
+        const teamRef = await addDoc(collection(db, 'teams'), {
+          name: editingGame.awayTeam,
+          sport: editingGame.sport,
+          universityId: '',
+          foundedYear: new Date().getFullYear(),
+          createdAt: serverTimestamp()
+        });
+        awayTeamId = teamRef.id;
+      }
+
       const gameData = {
         ...editingGame,
+        homeTeamName: editingGame.homeTeam,
+        awayTeamName: editingGame.awayTeam,
+        homeTeamId: homeTeamId,
+        awayTeamId: awayTeamId,
         scheduledAt: `${editingGame.date}T${editingGame.time}:00`
       };
       // Use seasonal path: fixtures/{seasonId}/matches/{fixtureId}
