@@ -150,7 +150,7 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
               <select
                 value={formData.selectedStage}
                 onChange={(e) => setFormData({ ...formData, selectedStage: e.target.value, selectedMatch: '' })}
-                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:ring-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="">Select Stage</option>
                 {stages.map((s: any) => (
@@ -538,19 +538,30 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
       return;
     }
     try {
+      // Reload teams to ensure we have the latest data
+      const teamsData = await apiService.getTeams();
+      setTeams(teamsData);
+      
       // Get team names from selected team IDs
-      const homeTeam = teams.find(t => t.id === newGame.homeTeamId);
-      const awayTeam = teams.find(t => t.id === newGame.awayTeamId);
+      const homeTeam = teamsData.find((t: any) => t.id === newGame.homeTeamId);
+      const awayTeam = teamsData.find((t: any) => t.id === newGame.awayTeamId);
 
-      if (!homeTeam || !awayTeam) {
-        alert('Selected teams not found');
-        return;
+      // For friendly matches, teams MUST exist in the teams collection
+      if (newGame.type === 'friendly') {
+        if (!homeTeam || !awayTeam) {
+          alert('Selected teams not found in teams collection. Please ensure teams are created first.');
+          return;
+        }
       }
+
+      // Use team names if teams exist, otherwise use placeholder names for league matches
+      const finalHomeTeamName = homeTeam?.name || newGame.homeTeamName;
+      const finalAwayTeamName = awayTeam?.name || newGame.awayTeamName;
 
       const gameData = {
         ...newGame,
-        homeTeamName: homeTeam.name,
-        awayTeamName: awayTeam.name,
+        homeTeamName: finalHomeTeamName,
+        awayTeamName: finalAwayTeamName,
         homeTeamId: newGame.homeTeamId,
         awayTeamId: newGame.awayTeamId,
         type: newGame.type,
