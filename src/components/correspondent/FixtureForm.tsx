@@ -210,13 +210,6 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
       const finalHomeTeamName = homeTeam?.name || homeTeamName;
       const finalAwayTeamName = awayTeam?.name || awayTeamName;
 
-      // Validate that we have team names
-      if (!finalHomeTeamName || !finalAwayTeamName) {
-        alert('Team names are required. Please select valid teams.');
-        setIsLoading(false);
-        return;
-      }
-
       // For both league and friendly matches, get sport name
       const leagueObj = leagues.find((l: any) => l.id === selectedLeague);
       const sportName = type === 'league'
