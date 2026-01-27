@@ -197,8 +197,9 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
       const homeTeam = teams.find((t: any) => t.id === homeTeamId);
       const awayTeam = teams.find((t: any) => t.id === awayTeamId);
 
+      // Validate that teams exist in the teams collection
       if (!homeTeam || !awayTeam) {
-        alert('Selected teams not found');
+        alert('Selected teams not found in teams collection. Please ensure teams are created first.');
         return;
       }
 
