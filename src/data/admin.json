@@ -1,120 +1,16 @@
 {
   "dashboard": {
     "stats": {
-      "users": 150,
-      "liveGames": 3,
-      "merchSales": 25000,
-      "pendingReviews": 5
+      "users": 0,
+      "liveGames": 0,
+      "merchSales": 0,
+      "pendingReviews": 0
     },
-    "liveGames": [
-      {
-        "id": "game1",
-        "homeTeamName": "Eagles",
-        "awayTeamName": "Lions",
-        "score": { "home": 24, "away": 17 },
-        "minute": 65,
-        "venue": "University Stadium",
-        "sport": "football"
-      },
-      {
-        "id": "game2",
-        "homeTeamName": "Titans",
-        "awayTeamName": "Warriors",
-        "score": { "home": 67, "away": 64 },
-        "minute": 35,
-        "venue": "Sports Arena",
-        "sport": "basketball"
-      }
-    ],
-    "upcomingGames": [
-      {
-        "id": "game3",
-        "homeTeamName": "Spikers",
-        "awayTeamName": "Hawks",
-        "scheduledAt": "2025-10-16T19:00:00Z",
-        "sport": "volleyball"
-      },
-      {
-        "id": "game4",
-        "homeTeamName": "Rugby Kings",
-        "awayTeamName": "Storm",
-        "scheduledAt": "2025-10-17T15:00:00Z",
-        "sport": "rugby"
-      }
-    ],
-    "recentUsers": [
-      {
-        "uid": "user1",
-        "name": "John Doe",
-        "role": "fan",
-        "status": "active",
-        "university": "University of Nairobi"
-      },
-      {
-        "uid": "user2",
-        "name": "Jane Smith",
-        "role": "correspondent",
-        "status": "pending",
-        "university": "Kenyatta University"
-      }
-    ]
+    "liveGames": [],
+    "upcomingGames": [],
+    "recentUsers": []
   },
-  "users": [
-    {
-      "uid": "user1",
-      "name": "John Doe",
-      "email": "john@example.com",
-      "role": "fan",
-      "status": "active",
-      "university": "University of Nairobi"
-    },
-    {
-      "uid": "user2",
-      "name": "Jane Smith",
-      "email": "jane@example.com",
-      "role": "correspondent",
-      "status": "pending",
-      "university": "Kenyatta University"
-    },
-    {
-      "uid": "user3",
-      "name": "Bob Johnson",
-      "email": "bob@example.com",
-      "role": "admin",
-      "status": "active",
-      "university": "Strathmore University"
-    }
-  ],
-  "merchandise": [
-    {
-      "id": "merch1",
-      "name": "Eagles Jersey",
-      "description": "Official team jersey",
-      "price": 2500,
-      "image": "/images/jersey.jpg"
-    },
-    {
-      "id": "merch2",
-      "name": "Team Cap",
-      "description": "Adjustable baseball cap",
-      "price": 800,
-      "image": "/images/cap.jpg"
-    }
-  ],
-  "reviews": [
-    {
-      "id": "review1",
-      "title": "Football Match Report",
-      "correspondent": "Jane Smith",
-      "type": "match_report",
-      "submittedAt": "2025-10-14T10:00:00Z"
-    },
-    {
-      "id": "review2",
-      "title": "Player Interview",
-      "correspondent": "Mike Wilson",
-      "type": "interview",
-      "submittedAt": "2025-10-13T14:30:00Z"
-    }
-  ]
+  "users": [],
+  "merchandise": [],
+  "reviews": []
 }

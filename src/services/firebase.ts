@@ -21,7 +21,7 @@ import {
   PhoneAuthProvider,
   signInWithPhoneNumber,
 } from 'firebase/auth';
-import { getFirestore, doc, setDoc, getDoc, serverTimestamp, updateDoc, collection, getDocs, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
+import { getFirestore, initializeFirestore, doc, setDoc, getDoc, serverTimestamp, updateDoc, collection, getDocs, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 import { AuthUser, UserProfile, UserRole } from '@/models/User';
 import { League, University } from '@/models';
 import { getStorage } from 'firebase/storage';
@@ -41,7 +41,9 @@ const app = initializeApp(firebaseConfig);
 
 if (!getApps().length) initializeApp(firebaseConfig);
 export const auth = getAuth();
-export const db = getFirestore();
+export const db = initializeFirestore(app, {
+  ignoreUndefinedProperties: true,
+});
 
 const fetchTopLevelLeagues = async (): Promise<League[]> => {
   try {
@@ -142,41 +144,41 @@ export const subscribeAuth = (cb: (u: AuthUser | null) => void) =>
     cb(mapRawUser({ uid: raw.uid, ...snap.data() }));
   });
 
-  /* ---------- Social login ---------- */
-  const googleProvider    = new GoogleAuthProvider();
-  const facebookProvider  = new FacebookAuthProvider();
-  const twitterProvider   = new TwitterAuthProvider();
-  
-  const socialLogin = async (provider: GoogleAuthProvider | FacebookAuthProvider | TwitterAuthProvider) => {
-    const cred = await signInWithPopup(auth, provider);
-    const uid  = cred.user.uid;
+/* ---------- Social login ---------- */
+const googleProvider = new GoogleAuthProvider();
+const facebookProvider = new FacebookAuthProvider();
+const twitterProvider = new TwitterAuthProvider();
 
-    /* create / merge profile doc */
-    await setDoc(
-      doc(db, 'users', uid),
-      {
-        email:       cred.user.email,
-        displayName: cred.user.displayName,
-        role:        'fan', // default
-        photoURL:    cred.user.photoURL,
-        createdAt:   serverTimestamp(),
-      },
-      { merge: true }
-    );
-    const snap = await getDoc(doc(db, 'users', uid));
-    if (!snap.exists()) throw new Error('Profile creation failed');
-    return mapRawUser({ uid, ...snap.data() });
-  };
-  
-  export const loginGoogle   = () => socialLogin(googleProvider);
-  export const loginFacebook = () => socialLogin(facebookProvider);
+const socialLogin = async (provider: GoogleAuthProvider | FacebookAuthProvider | TwitterAuthProvider) => {
+  const cred = await signInWithPopup(auth, provider);
+  const uid = cred.user.uid;
+
+  /* create / merge profile doc */
+  await setDoc(
+    doc(db, 'users', uid),
+    {
+      email: cred.user.email,
+      displayName: cred.user.displayName,
+      role: 'fan', // default
+      photoURL: cred.user.photoURL,
+      createdAt: serverTimestamp(),
+    },
+    { merge: true }
+  );
+  const snap = await getDoc(doc(db, 'users', uid));
+  if (!snap.exists()) throw new Error('Profile creation failed');
+  return mapRawUser({ uid, ...snap.data() });
+};
+
+export const loginGoogle = () => socialLogin(googleProvider);
+export const loginFacebook = () => socialLogin(facebookProvider);
 export const fetchUniversities = async (): Promise<University[]> => {
   const { getDocs, collection } = await import('firebase/firestore');
   const snap = await getDocs(collection(db, 'universities'));
   return snap.docs.map(d => ({ id: d.id, ...d.data() } as University));
 };
-  export const loginTwitter  = () => socialLogin(twitterProvider);
-  export const storage = getStorage();
+export const loginTwitter = () => socialLogin(twitterProvider);
+export const storage = getStorage();
 
 /* ---------- Profile Management ---------- */
 export const updateProfile = async (data: { displayName?: string; universityId?: string }) => {

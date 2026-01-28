@@ -123,12 +123,12 @@ export default function CartTab() {
               quantity: item.quantity,
               price: item.price,
               subtotal: item.price * item.quantity,
-              size: item.selectedSize
+              size: item.selectedSize || ''
             })),
             total: total,
             paymentMethod: paymentMethod,
             notes: 'Order placed via online checkout',
-            orderHash: cartItems.map((i: any) => `${i.id}-${i.selectedSize}-${i.quantity}`).join('|')
+            orderHash: cartItems.map((i: any) => `${i.id}-${i.selectedSize || 'no-size'}-${i.quantity}`).join('|')
           };
 
           await firebaseMerchService.createOrder(orderData, user.uid);

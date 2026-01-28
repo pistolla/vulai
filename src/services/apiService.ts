@@ -10,8 +10,10 @@ import {
   collection,
   addDoc,
   query,
-  collectionGroup
+  collectionGroup,
+  onSnapshot
 } from "firebase/firestore";
+import { CacheService } from './CacheService';
 
 export interface HomeData {
   sports: Sport[];
@@ -67,28 +69,109 @@ export interface AdminData {
 
 
 export class ApiService {
+  private listeners: (() => void)[] = [];
+
+  constructor() {
+    this.initListeners();
+  }
+
+  private initListeners() {
+    if (typeof window === 'undefined') return;
+
+    // Listen to collections and clear related cache keys
+    const collectionsToWatch = [
+      { name: 'home', cacheKey: '/api/home' },
+      { name: 'sports', cacheKey: '/api/sports' },
+      { name: 'teams', cacheKey: '/api/teams' },
+      { name: 'universities', cacheKey: '/api/teams/universities' },
+      { name: 'schedule', cacheKey: '/api/schedule' },
+      { name: 'players', cacheKey: '/api/players' },
+      { name: 'admin', cacheKey: '/api/admin' },
+      { name: 'merchandise', cacheKey: '/api/admin' },
+      { name: 'users', cacheKey: '/api/admin' }, // Users list is often in Admin data
+      { name: 'reviews', cacheKey: '/api/admin' },
+      { name: 'games', cacheKey: '/api/schedule' }, // Game changes affect schedule
+      { name: 'teamApplications', cacheKey: '/api/admin' }
+    ];
+
+    collectionsToWatch.forEach(col => {
+      const unsub = onSnapshot(collection(db, col.name), () => {
+        console.log(`ApiService: Invalidating cache for ${col.cacheKey} due to change in ${col.name}`);
+        CacheService.remove(col.cacheKey);
+      }, (error) => {
+        console.warn(`ApiService: Listener failed for ${col.name}`, error);
+      });
+      this.listeners.push(unsub);
+    });
+
+    // Special case for fixtures (collectionGroup matches)
+    const unsubFixtures = onSnapshot(query(collectionGroup(db, 'matches')), () => {
+      console.log('ApiService: Invalidating cache for /api/fixtures');
+      CacheService.remove('/api/fixtures');
+    });
+    this.listeners.push(unsubFixtures);
+  }
 
   private async fetchWithFallback<T>(endpoint: string, fallbackPath: string): Promise<T> {
+    const startTime = performance.now();
+    console.group(`ApiService: Query [${endpoint}]`);
+
+    // 1. Check Cache
+    const cached = CacheService.get<T>(endpoint);
+    if (cached) {
+      const duration = (performance.now() - startTime).toFixed(2);
+      console.log(`[Stage 1/3] Cache HIT - Duration: ${duration}ms`);
+      console.groupEnd();
+      return cached;
+    }
+    console.log(`[Stage 1/3] Cache MISS`);
+
     try {
-      // Try Firebase first with timeout
+      // 2. Try Firebase first with timeout
+      console.log(`[Stage 2/3] Firebase Fetch START`);
+      const firebaseStartTime = performance.now();
+
       const firebasePromise = this.fetchFromFirebase<T>(endpoint);
       const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('Firebase timeout')), 5000)
       );
 
       const result = await Promise.race([firebasePromise, timeoutPromise]);
+      const firebaseDuration = (performance.now() - firebaseStartTime).toFixed(2);
+      console.log(`[Stage 2/3] Firebase Fetch SUCCESS - Duration: ${firebaseDuration}ms`);
+
+      // 3. Save to Cache on success
+      CacheService.set(endpoint, result);
+      console.log(`[Stage 3/3] Cache UPDATE complete`);
+
+      const totalDuration = (performance.now() - startTime).toFixed(2);
+      console.log(`Total Query Duration: ${totalDuration}ms`);
+      console.groupEnd();
       return result;
     } catch (firebaseError) {
-      console.warn(`Firebase fetch failed for ${endpoint}, falling back to JSON:`, firebaseError);
+      const firebaseDuration = (performance.now() - startTime).toFixed(2);
+      console.warn(`[Stage 2/3] Firebase Fetch FAILED - Error:`, firebaseError);
+
       // Fallback to JSON file
+      console.log(`[Stage 3/3] Falling back to JSON: ${fallbackPath}`);
+      const fallbackStartTime = performance.now();
+
       try {
         const response = await fetch(fallbackPath, { cache: 'no-store' });
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-        return (await response.json()) as T;
+        const result = (await response.json()) as T;
+        const fallbackDuration = (performance.now() - fallbackStartTime).toFixed(2);
+        const totalDuration = (performance.now() - startTime).toFixed(2);
+
+        console.log(`[Stage 3/3] Fallback SUCCESS - Duration: ${fallbackDuration}ms`);
+        console.log(`Total Query Duration (including failure): ${totalDuration}ms`);
+        console.groupEnd();
+        return result;
       } catch (fallbackError) {
-        console.error(`Fallback fetch also failed for ${endpoint}:`, fallbackError);
+        console.error(`[Stage 3/3] Fallback Fetch FAILED:`, fallbackError);
+        console.groupEnd();
         throw new Error(`Failed to load data from both Firebase and fallback for ${endpoint}`);
       }
     }
@@ -251,50 +334,62 @@ export class ApiService {
 
   // 🔹 Admin CRUD operations
   async createUser(userData: any): Promise<void> {
+    console.log(`ApiService: [CRUD] Creating user in Firebase - uid: ${userData.uid}`);
     await setDoc(doc(db, "users", userData.uid), userData);
   }
 
   async updateUser(uid: string, userData: any): Promise<void> {
+    console.log(`ApiService: [CRUD] Updating user in Firebase - uid: ${uid}`);
     await updateDoc(doc(db, "users", uid), userData);
   }
 
   async deleteUser(uid: string): Promise<void> {
+    console.log(`ApiService: [CRUD] Deleting user in Firebase - uid: ${uid}`);
     await deleteDoc(doc(db, "users", uid));
   }
 
   async createMerchandise(item: any): Promise<void> {
+    console.log(`ApiService: [CRUD] Creating merchandise in Firebase`);
     await addDoc(collection(db, "merchandise"), item);
   }
 
   async updateMerchandise(id: string, item: any): Promise<void> {
+    console.log(`ApiService: [CRUD] Updating merchandise in Firebase - id: ${id}`);
     await updateDoc(doc(db, "merchandise", id), item);
   }
 
   async deleteMerchandise(id: string): Promise<void> {
+    console.log(`ApiService: [CRUD] Deleting merchandise in Firebase - id: ${id}`);
     await deleteDoc(doc(db, "merchandise", id));
   }
 
   async approveReview(id: string): Promise<void> {
+    console.log(`ApiService: [CRUD] Approving review in Firebase - id: ${id}`);
     await updateDoc(doc(db, "reviews", id), { status: "approved" });
   }
 
   async rejectReview(id: string): Promise<void> {
+    console.log(`ApiService: [CRUD] Rejecting review in Firebase - id: ${id}`);
     await updateDoc(doc(db, "reviews", id), { status: "rejected" });
   }
 
   async updateGameScore(id: string, homeScore: number, awayScore: number): Promise<void> {
+    console.log(`ApiService: [CRUD] Updating game score in Firebase - id: ${id}`);
     await updateDoc(doc(db, "games", id), { homeScore, awayScore });
   }
 
   async startGame(id: string): Promise<void> {
+    console.log(`ApiService: [CRUD] Starting game in Firebase - id: ${id}`);
     await updateDoc(doc(db, "games", id), { status: "started" });
   }
 
   async endGame(id: string): Promise<void> {
+    console.log(`ApiService: [CRUD] Ending game in Firebase - id: ${id}`);
     await updateDoc(doc(db, "games", id), { status: "ended" });
   }
 
   async submitTeamApplication(data: any): Promise<void> {
+    console.log(`ApiService: [CRUD] Submitting team application in Firebase`);
     await addDoc(collection(db, "teamApplications"), data);
   }
 }

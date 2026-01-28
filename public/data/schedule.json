@@ -1,43 +1,9 @@
 {
-  "matches": [
-    {
-      "id": 1,
-      "sport": "football",
-      "homeTeam": "KU Hardnuts",
-      "awayTeam": "USIU",
-      "date": "2025-10-18",
-      "time": "15:00",
-      "venue": "Kenyatta University Main Field",
-      "status": "upcoming",
-      "score": null
-    },
-    {
-      "id": 2,
-      "sport": "basketball",
-      "homeTeam": "USIU Tigers",
-      "awayTeam": "KU Pirates",
-      "date": "2025-10-16",
-      "time": "20:00",
-      "venue": "USIU Arena",
-      "status": "live",
-      "score": { "home": 67, "away": 64 }
-    },
-    {
-      "id": 3,
-      "sport": "volleyball",
-      "homeTeam": "JKUAT VolleyKats (W)",
-      "awayTeam": "KCA (W)",
-      "date": "2025-10-10",
-      "time": "18:30",
-      "venue": "Nyayo Indoor Arena (Playoffs)",
-      "status": "completed",
-      "score": { "home": 3, "away": 1 }
-    }
-  ],
+  "matches": [],
   "stats": {
-    "totalMatches": 12,
-    "liveNow": 1,
-    "homeGames": 8,
-    "expectedAttendance": 2450
+    "totalMatches": 0,
+    "liveNow": 0,
+    "homeGames": 0,
+    "expectedAttendance": 0
   }
 }
