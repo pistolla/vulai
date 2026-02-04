@@ -18,8 +18,8 @@ export function useTeamData(slug: string | undefined) {
     const [teamData, setTeamData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [themeColors, setThemeColors] = useState(configThemes.blue);
+    const [error, setError] = useState<string | null>(null);
 
-    // Realtime simulation state
     const [upcomingMatches, setUpcomingMatches] = useState<any[]>([]);
 
     useEffect(() => {
@@ -28,20 +28,37 @@ export function useTeamData(slug: string | undefined) {
         const loadData = async () => {
             try {
                 setLoading(true);
+                setError(null);
+                
                 // 1. Fetch Team Data
                 const teamsData = await apiService.getTeamsData();
-                const team = teamsData.teams.find((t: any) => t.id === slug);
-
-                if (team) {
-                    setTeamData(team);
-                    const theme = configThemes[team.theme || 'blue'] || configThemes.blue;
-                    setThemeColors(theme);
+                
+                // Try to find team by id first, then by slug field
+                let team = teamsData.teams.find((t: any) => t.id === slug);
+                
+                // If not found by id, try by slug field
+                if (!team) {
+                    team = teamsData.teams.find((t: any) => 
+                        t.slug === slug || 
+                        t.name?.toLowerCase().replace(/\s+/g, '-') === slug?.toLowerCase() ||
+                        t.name?.toLowerCase().replace(/\s+/g, '') === slug?.toLowerCase()
+                    );
                 }
+
+                if (!team) {
+                    setError('Team not found');
+                    setLoading(false);
+                    return;
+                }
+
+                setTeamData(team);
+                const theme = configThemes[team.theme || 'blue'] || configThemes.blue;
+                setThemeColors(theme);
 
                 // 2. Fetch Merch (if not already loaded)
                 dispatch(fetchMerch());
 
-                // 3. Simulate Match Data (This should come from API in production)
+                // 3. Simulate Match Data
                 const mockMatches = [
                     {
                         id: 'm1',
@@ -78,6 +95,7 @@ export function useTeamData(slug: string | undefined) {
 
             } catch (error) {
                 console.error("Failed to load team data", error);
+                setError('Failed to load team data');
             } finally {
                 setLoading(false);
             }
@@ -90,6 +108,7 @@ export function useTeamData(slug: string | undefined) {
         teamData,
         loading,
         themeColors,
-        upcomingMatches
+        upcomingMatches,
+        error
     };
 }
