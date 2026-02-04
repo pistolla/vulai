@@ -7,12 +7,21 @@ import { apiService } from "@/services/apiService";
 import { db } from "@/services/firebase";
 import { doc, setDoc, collection } from "firebase/firestore";
 import dynamic from 'next/dynamic';
+import { useToast } from "@/components/common/ToastProvider";
+import { FiCalendar, FiMapPin, FiUsers, FiCheckCircle, FiAlertCircle, FiArrowRight, FiX } from 'react-icons/fi';
 
 const ReactQuill = dynamic(() => import('react-quill'), {
   ssr: false,
   loading: () => <div className="h-32 bg-gray-100 dark:bg-gray-700 rounded-lg animate-pulse"></div>
 });
 import 'react-quill/dist/quill.snow.css';
+
+interface TeamOption {
+  id: string;
+  name: string;
+  sport?: string;
+  university?: string;
+}
 
 interface FixtureFormProps {
   fixture?: Fixture | null;
@@ -26,6 +35,7 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
   const state = useAppSelector((state) => state);
   const leagues = useAppSelector((state) => state.correspondent.leagues);
   const fixtures = useAppSelector((state) => state.correspondent.fixtures);
+  const { success, error: showError, warning, info } = useToast();
   const [type, setType] = useState<'league' | 'friendly'>(fixture?.type || (match ? 'league' : 'friendly'));
   const [selectedLeague, setSelectedLeague] = useState<string>(league?.id || '');
   const [selectedMatch, setSelectedMatch] = useState<string>(match?.id || '');
@@ -39,12 +49,14 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
   const [scheduledAt, setScheduledAt] = useState(fixture?.scheduledAt || match?.date || '');
   const [venue, setVenue] = useState(fixture?.venue || match?.venue || '');
   const [blogContent, setBlogContent] = useState(fixture?.blogContent || '');
-  const [teams, setTeams] = useState<any[]>([]);
+  const [teams, setTeams] = useState<TeamOption[]>([]);
+  const [filteredTeams, setFilteredTeams] = useState<TeamOption[]>([]);
   const [selectedSeasonId, setSelectedSeasonId] = useState(fixture?.seasonId || '');
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [selectedSportId, setSelectedSportId] = useState('');
   const [sports, setSports] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     dispatch(fetchLeagues());
@@ -65,9 +77,33 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
   const loadTeams = async () => {
     try {
       const allTeams = await apiService.getTeams();
-      setTeams(allTeams);
+      const formattedTeams: TeamOption[] = allTeams.map((t: any) => ({
+        id: t.id,
+        name: t.name,
+        sport: t.sport,
+        university: t.universityName || t.universityId
+      }));
+      setTeams(formattedTeams);
+      setFilteredTeams(formattedTeams);
     } catch (error) {
       console.error('Failed to load teams:', error);
+    }
+  };
+
+  const filterTeamsBySport = (sportId: string) => {
+    if (!sportId) {
+      setFilteredTeams(teams);
+      return;
+    }
+    const selectedSport = sports.find((s: any) => s.id === sportId);
+    if (selectedSport) {
+      const filtered = teams.filter(t => 
+        !t.sport || t.sport.toLowerCase() === selectedSport.name.toLowerCase()
+      );
+      setFilteredTeams(filtered);
+      if (filtered.length === 0) {
+        info('No teams found', `No teams registered for ${selectedSport.name}. Create teams first.`);
+      }
     }
   };
 
@@ -91,22 +127,30 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
         const sportName = league.sportName;
         if (sportName) {
           const sport = sports.find(s => s.name.toLowerCase() === sportName.toLowerCase());
-          if (sport) loadSeasonsForSport(sport.id);
+          if (sport) {
+            loadSeasonsForSport(sport.id);
+            filterTeamsBySport(sport.id);
+          }
         }
       }
       loadMatches(selectedLeague);
     } else {
-      // Clear seasons when no league is selected
+      // Clear seasons and teams when no league is selected
       setSeasons([]);
       setSelectedSeasonId('');
+      setFilteredTeams(teams);
     }
   }, [selectedLeague, sports]);
 
   useEffect(() => {
     if (type === 'friendly' && selectedSportId) {
       loadSeasonsForSport(selectedSportId);
+      filterTeamsBySport(selectedSportId);
+    } else if (type === 'friendly' && !selectedSportId) {
+      setFilteredTeams(teams);
+      setSeasons([]);
+      setSelectedSeasonId('');
     } else if (type === 'league' && !selectedLeague) {
-      // Clear seasons when switching to league mode without a league selected
       setSeasons([]);
       setSelectedSeasonId('');
     }
@@ -153,55 +197,49 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
     if (selectedMatch && matches.length > 0) {
       const match = matches.find(m => m.id === selectedMatch);
       if (match && match.participants.length >= 2) {
-        // For league matches, use placeholder names or actual if available
         setHomeTeamName(match.participants[0].name || `Team ${match.participants[0].refId}`);
         setAwayTeamName(match.participants[1].name || `Team ${match.participants[1].refId}`);
-        // Try to find actual team IDs if they exist
-        const homeTeam = teams.find((t: any) => t.name === match.participants[0].name);
-        const awayTeam = teams.find((t: any) => t.name === match.participants[1].name);
+        const homeTeam = filteredTeams.find((t: TeamOption) => t.name === match.participants[0].name);
+        const awayTeam = filteredTeams.find((t: TeamOption) => t.name === match.participants[1].name);
         setHomeTeamId(homeTeam?.id || match.participants[0].refId);
         setAwayTeamId(awayTeam?.id || match.participants[1].refId);
         if (match.seasonId) setSelectedSeasonId(match.seasonId);
-        // Set groupId and stageId for bidirectional linking
         if (match.groupId) setSelectedGroupId(match.groupId);
         if (match.stageId) setSelectedStageId(match.stageId);
       }
     }
-  }, [selectedMatch, matches, teams]);
+  }, [selectedMatch, matches, filteredTeams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedSeasonId) {
-      alert("Please select a season.");
+    
+    // Clear previous errors
+    setErrors({});
+    
+    const newErrors: Record<string, string> = {};
+    if (!selectedSeasonId) newErrors.season = 'Season is required';
+    if (!homeTeamId) newErrors.homeTeam = 'Home team is required';
+    if (!awayTeamId) newErrors.awayTeam = 'Away team is required';
+    if (homeTeamId === awayTeamId) newErrors.sameTeam = 'Home and away teams cannot be the same';
+    if (!scheduledAt) newErrors.date = 'Date and time is required';
+    if (!venue.trim()) newErrors.venue = 'Venue is required';
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      warning('Please fill in all required fields', 'Check the highlighted fields below');
       return;
     }
-    if (!homeTeamId || !awayTeamId) {
-      alert("Please select both home and away teams.");
-      return;
-    }
-    if (homeTeamId === awayTeamId) {
-      alert("Home and away teams cannot be same.");
-      return;
-    }
-    if (!scheduledAt) {
-      alert("Please select a date and time for the fixture.");
-      return;
-    }
-    if (!venue) {
-      alert("Please enter a venue for the fixture.");
-      return;
-    }
+    
     setIsLoading(true);
 
     try {
-      // Get team names from selected team IDs
-      const homeTeam = teams.find((t: any) => t.id === homeTeamId);
-      const awayTeam = teams.find((t: any) => t.id === awayTeamId);
+      const homeTeam = filteredTeams.find((t: TeamOption) => t.id === homeTeamId);
+      const awayTeam = filteredTeams.find((t: TeamOption) => t.id === awayTeamId);
 
       // For friendly matches, teams MUST exist in the teams collection
       if (type === 'friendly') {
         if (!homeTeam || !awayTeam) {
-          alert('Selected teams not found in teams collection. Please ensure teams are created first.');
+          warning('Teams not found', 'Selected teams must exist in the teams collection. Create teams first.');
           setIsLoading(false);
           return;
         }
@@ -210,23 +248,21 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
         const selectedSport = sports.find((s: any) => s.id === selectedSportId);
         if (selectedSport) {
           if (homeTeam.sport && homeTeam.sport.toLowerCase() !== selectedSport.name.toLowerCase()) {
-            alert(`Home team sport (${homeTeam.sport}) does not match selected sport (${selectedSport.name}).`);
+            warning('Sport mismatch', `Home team sport (${homeTeam.sport}) does not match selected sport (${selectedSport.name})`);
             setIsLoading(false);
             return;
           }
           if (awayTeam.sport && awayTeam.sport.toLowerCase() !== selectedSport.name.toLowerCase()) {
-            alert(`Away team sport (${awayTeam.sport}) does not match selected sport (${selectedSport.name}).`);
+            warning('Sport mismatch', `Away team sport (${awayTeam.sport}) does not match selected sport (${selectedSport.name})`);
             setIsLoading(false);
             return;
           }
         }
       }
 
-      // For league matches, use team names if teams exist, otherwise use the names already set
       const finalHomeTeamName = homeTeam?.name || homeTeamName;
       const finalAwayTeamName = awayTeam?.name || awayTeamName;
 
-      // For both league and friendly matches, get sport name
       const leagueObj = leagues.find((l: any) => l.id === selectedLeague);
       let sportNameFinal = '';
       if (type === 'league') {
@@ -242,7 +278,7 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
         awayTeamId: awayTeamId,
         sport: sportNameFinal,
         scheduledAt,
-        venue,
+        venue: venue.trim(),
         status: 'scheduled',
         type,
         matchId: type === 'league' ? selectedMatch : undefined,
@@ -253,124 +289,143 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
         seasonId: selectedSeasonId,
       };
 
-      console.log('[FixtureForm] Saving fixture:', fixtureData);
-
       if (fixture) {
         await dispatch(updateFixture({ id: fixture.id, fixture: fixtureData }));
+        success('Fixture updated successfully', 'Changes have been saved', 'Add commentary or view match details');
       } else {
         await dispatch(createFixture(fixtureData));
+        success('Fixture created successfully', 'The fixture is now scheduled', 'Add more fixtures or manage league');
       }
 
       onClose();
     } catch (error) {
       console.error('Failed to save fixture:', error);
-      alert('Failed to save fixture. Please try again.');
+      showError('Failed to save fixture', 'Please try again or contact support');
     } finally {
       setIsLoading(false);
     }
   };
 
+  const InputError = ({ message }: { message?: string }) => (
+    message ? (
+      <div className="flex items-center gap-1 mt-1 text-red-500 dark:text-red-400 text-xs animate-in slide-in-from-top-1">
+        <FiAlertCircle className="w-3 h-3" />
+        <span>{message}</span>
+      </div>
+    ) : null
+  );
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold dark:text-white">
-            {fixture ? 'Edit Fixture' : 'Create Fixture'}
-          </h3>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+          <div>
+            <h3 className="text-xl font-bold dark:text-white flex items-center gap-2">
+              <FiCalendar className="w-5 h-5 text-blue-500" />
+              {fixture ? 'Edit Fixture' : 'Create Fixture'}
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              {fixture ? 'Update fixture details' : 'Schedule a new match'}
+            </p>
+          </div>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-500 transition-all"
           >
-            ✕
+            <FiX className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Fixture Type
-            </label>
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value as 'league' | 'friendly')}
-              className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
-            >
-              <option value="league">League Match</option>
-              <option value="friendly">Friendly Match</option>
-            </select>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">
+                Fixture Type
+              </label>
+              <select
+                value={type}
+                onChange={(e) => setType(e.target.value as 'league' | 'friendly')}
+                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:text-white font-medium"
+              >
+                <option value="league">League Match</option>
+                <option value="friendly">Friendly Match</option>
+              </select>
+            </div>
+
+            {type === 'league' && (
+              <div>
+                <label className="block text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">
+                  Select League <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={selectedLeague}
+                  onChange={(e) => setSelectedLeague(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:text-white font-medium"
+                >
+                  <option value="">Choose League</option>
+                  {leagues.map((l: League) => (
+                    <option key={l.id} value={l.id}>{l.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {type === 'friendly' && (
+              <div>
+                <label className="block text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">
+                  Select Sport <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={selectedSportId}
+                  onChange={(e) => setSelectedSportId(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:text-white font-medium"
+                >
+                  <option value="">Choose Sport</option>
+                  {sports.map((s: any) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
-          {type === 'league' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Select League
-              </label>
-              <select
-                value={selectedLeague}
-                onChange={(e) => setSelectedLeague(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
-              >
-                <option value="">Choose League</option>
-                {leagues.map((league: League) => (
-                  <option key={league.id} value={league.id}>{league.name}</option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {type === 'friendly' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Select Sport
-              </label>
-              <select
-                value={selectedSportId}
-                onChange={(e) => setSelectedSportId(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
-                required
-              >
-                <option value="">Choose Sport</option>
-                {sports.map((s: any) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-            </div>
-          )}
-
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Select Season
+            <label className="block text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">
+              Select Season <span className="text-red-500">*</span>
             </label>
             <select
               value={selectedSeasonId}
               onChange={(e) => setSelectedSeasonId(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
-              required
+              className={`w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border-2 ${errors.season ? 'border-red-300 dark:border-red-600' : 'border-transparent focus:border-blue-500'} dark:text-white font-medium`}
             >
               <option value="">Choose Season</option>
               {seasons.map((s: Season) => (
                 <option key={s.id} value={s.id}>{s.name} {s.isActive ? '(Active)' : ''}</option>
               ))}
             </select>
+            <InputError message={errors.season} />
             {seasons.length === 0 && (selectedLeague || selectedSportId) && (
-              <p className="text-xs text-amber-500 mt-1 italic">No seasons found for this sport. Please create one in Admin Panel.</p>
+              <p className="text-xs text-amber-500 mt-2 flex items-center gap-1">
+                <FiAlertCircle className="w-3 h-3" />
+                No seasons found. Create one in Admin Panel.
+              </p>
             )}
           </div>
 
           {type === 'league' && selectedLeague && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Select Match
+              <label className="block text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">
+                Select Match (Optional)
               </label>
               <select
                 value={selectedMatch}
                 onChange={(e) => setSelectedMatch(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
+                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:text-white font-medium"
               >
-                <option value="">Choose Match</option>
-                {matches.filter((match: Match) => !fixtures.some((f: Fixture) => f.matchId === match.id) && match.participants && match.participants.length >= 2).map((match: Match) => (
-                  <option key={match.id} value={match.id}>
-                    Match #{match.matchNumber} - {match.participants.map(p => p.name || p.refId).join(' vs ')}
+                <option value="">Create new match</option>
+                {matches.filter((m: Match) => !fixtures.some((f: Fixture) => f.matchId === m.id) && m.participants && m.participants.length >= 2).map((m: Match) => (
+                  <option key={m.id} value={m.id}>
+                    Match #{m.matchNumber} - {m.participants.map(p => p.name || p.refId).join(' vs ')}
                   </option>
                 ))}
               </select>
@@ -379,90 +434,129 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Home Team
+              <label className="block text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">
+                Home Team <span className="text-red-500">*</span>
               </label>
               <select
                 value={homeTeamId}
                 onChange={(e) => {
-                  const team = teams.find((t: any) => t.id === e.target.value);
+                  const team = filteredTeams.find((t: TeamOption) => t.id === e.target.value);
                   setHomeTeamId(e.target.value);
                   setHomeTeamName(team?.name || '');
+                  setErrors(prev => ({ ...prev, homeTeam: '', sameTeam: '' }));
                 }}
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
-                required
+                className={`w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border-2 ${errors.homeTeam || errors.sameTeam ? 'border-red-300 dark:border-red-600' : 'border-transparent focus:border-blue-500'} dark:text-white font-medium`}
               >
                 <option value="">Select Home Team</option>
-                {teams.map((team: any) => (
+                {filteredTeams.map((team: TeamOption) => (
                   <option key={team.id} value={team.id}>{team.name}</option>
                 ))}
-                {/* Fallback for placeholder teams from match */}
-                {type === 'league' && homeTeamName && !teams.some((t: any) => t.id === homeTeamId) && (
+                {type === 'league' && homeTeamName && !filteredTeams.some((t: TeamOption) => t.id === homeTeamId) && (
                   <option value={homeTeamId}>{homeTeamName} (Placeholder)</option>
                 )}
               </select>
+              <InputError message={errors.homeTeam} />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Away Team
+              <label className="block text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">
+                Away Team <span className="text-red-500">*</span>
               </label>
               <select
                 value={awayTeamId}
                 onChange={(e) => {
-                  const team = teams.find((t: any) => t.id === e.target.value);
+                  const team = filteredTeams.find((t: TeamOption) => t.id === e.target.value);
                   setAwayTeamId(e.target.value);
                   setAwayTeamName(team?.name || '');
+                  setErrors(prev => ({ ...prev, awayTeam: '', sameTeam: '' }));
                 }}
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
-                required
+                className={`w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border-2 ${errors.awayTeam || errors.sameTeam ? 'border-red-300 dark:border-red-600' : 'border-transparent focus:border-blue-500'} dark:text-white font-medium`}
               >
                 <option value="">Select Away Team</option>
-                {teams.map((team: any) => (
+                {filteredTeams.filter((t: TeamOption) => t.id !== homeTeamId).map((team: TeamOption) => (
                   <option key={team.id} value={team.id}>{team.name}</option>
                 ))}
-                {/* Fallback for placeholder teams from match */}
-                {type === 'league' && awayTeamName && !teams.some((t: any) => t.id === awayTeamId) && (
+                {type === 'league' && awayTeamName && !filteredTeams.some((t: TeamOption) => t.id === awayTeamId) && (
                   <option value={awayTeamId}>{awayTeamName} (Placeholder)</option>
                 )}
               </select>
+              <InputError message={errors.awayTeam} />
             </div>
           </div>
 
+          {errors.sameTeam && (
+            <div className="flex items-center gap-2 text-red-500 dark:text-red-400 text-sm animate-in slide-in-from-top-1">
+              <FiAlertCircle className="w-4 h-4" />
+              <span>{errors.sameTeam}</span>
+            </div>
+          )}
+
+          {homeTeamId && awayTeamId && homeTeamId !== awayTeamId && (
+            <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-green-800 dark:text-green-200">Home</span>
+                  <span className="font-bold text-gray-900 dark:text-white">{filteredTeams.find((t: TeamOption) => t.id === homeTeamId)?.name}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <FiArrowRight className="w-5 h-5 text-green-600" />
+                  <span className="font-black text-xl text-green-600">VS</span>
+                  <FiArrowRight className="w-5 h-5 text-green-600" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-gray-900 dark:text-white">{filteredTeams.find((t: TeamOption) => t.id === awayTeamId)?.name}</span>
+                  <span className="text-sm font-bold text-green-800 dark:text-green-200">Away</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Date & Time
+              <label className="block text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">
+                Date & Time <span className="text-red-500">*</span>
               </label>
-              <input
-                type="datetime-local"
-                value={scheduledAt}
-                onChange={(e) => setScheduledAt(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
-                required
-              />
+              <div className="relative">
+                <FiCalendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="datetime-local"
+                  value={scheduledAt}
+                  onChange={(e) => {
+                    setScheduledAt(e.target.value);
+                    setErrors(prev => ({ ...prev, date: '' }));
+                  }}
+                  className={`w-full pl-12 pr-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border-2 ${errors.date ? 'border-red-300 dark:border-red-600' : 'border-transparent focus:border-blue-500'} dark:text-white font-medium`}
+                />
+              </div>
+              <InputError message={errors.date} />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Venue
+              <label className="block text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">
+                Venue <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                value={venue}
-                onChange={(e) => setVenue(e.target.value)}
-                placeholder="Stadium name"
-                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
-                required
-              />
+              <div className="relative">
+                <FiMapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  value={venue}
+                  onChange={(e) => {
+                    setVenue(e.target.value);
+                    setErrors(prev => ({ ...prev, venue: '' }));
+                  }}
+                  placeholder="Stadium name"
+                  className={`w-full pl-12 pr-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border-2 ${errors.venue ? 'border-red-300 dark:border-red-600' : 'border-transparent focus:border-blue-500'} dark:text-white font-medium`}
+                />
+              </div>
+              <InputError message={errors.venue} />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Blog Content
+            <label className="block text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">
+              Blog Content (Optional)
             </label>
-            <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden border-2 border-transparent focus-within:border-blue-500">
               <ReactQuill
                 value={blogContent}
                 onChange={setBlogContent}
@@ -473,20 +567,30 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
             </div>
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              className="px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl font-bold hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 hover:from-blue-700 hover:to-indigo-700 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 flex items-center gap-2"
             >
-              {isLoading ? 'Saving...' : (fixture ? 'Update' : 'Create')}
+              {isLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <FiCheckCircle className="w-5 h-5" />
+                  <span>{fixture ? 'Update Fixture' : 'Create Fixture'}</span>
+                </>
+              )}
             </button>
           </div>
         </form>

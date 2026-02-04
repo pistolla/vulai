@@ -4,11 +4,13 @@ import { createLeague, createGroup } from "@/store/correspondentThunk";
 import { useState, useEffect } from "react";
 import { useTheme } from "@/components/ThemeProvider";
 import { apiService } from "@/services/apiService";
+import { useToast } from "@/components/common/ToastProvider";
 
 // --- LeagueForm ---
 export const LeagueForm: React.FC<{ onCreate?: (l: League) => void }> = ({ onCreate }) => {
   const dispatch = useAppDispatch();
   const { theme } = useTheme();
+  const { success, error: showError, warning } = useToast();
   const [name, setName] = useState('');
   const [sportType, setSportType] = useState<SportType>('team');
   const [description, setDescription] = useState('');
@@ -36,8 +38,8 @@ export const LeagueForm: React.FC<{ onCreate?: (l: League) => void }> = ({ onCre
 
   const submit = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!name.trim()) return alert('Please provide a league name');
-    if (!selectedSportId) return alert('Please select a sport');
+    if (!name.trim()) return warning('League name required', 'Please enter a name for the league');
+    if (!selectedSportId) return warning('Sport required', 'Please select a sport for the league');
 
     setCreating(true);
     try {
@@ -60,13 +62,14 @@ export const LeagueForm: React.FC<{ onCreate?: (l: League) => void }> = ({ onCre
         if (onCreate) {
           onCreate(res.payload as League);
         }
+        success('League created successfully', 'The league is now active and ready', 'Add teams or create groups');
       }
       setName('');
       setDescription('');
       setSelectedSportId('');
     } catch (error) {
       console.error('Failed to create league:', error);
-      alert('Failed to create league. Please try again.');
+      showError('Failed to create league', 'Please try again or contact support');
     } finally {
       setCreating(false);
     }

@@ -112,7 +112,7 @@ export class ApiService {
     this.listeners.push(unsubFixtures);
   }
 
-  private async fetchWithFallback<T>(endpoint: string, fallbackPath: string): Promise<T> {
+  private async fetchWithCaching<T>(endpoint: string): Promise<T> {
     const startTime = performance.now();
     console.group(`ApiService: Query [${endpoint}]`);
 
@@ -120,15 +120,15 @@ export class ApiService {
     const cached = CacheService.get<T>(endpoint);
     if (cached) {
       const duration = (performance.now() - startTime).toFixed(2);
-      console.log(`[Stage 1/3] Cache HIT - Duration: ${duration}ms`);
+      console.log(`[Stage 1/2] Cache HIT - Duration: ${duration}ms`);
       console.groupEnd();
       return cached;
     }
-    console.log(`[Stage 1/3] Cache MISS`);
+    console.log(`[Stage 1/2] Cache MISS`);
 
     try {
       // 2. Try Firebase first with timeout
-      console.log(`[Stage 2/3] Firebase Fetch START`);
+      console.log(`[Stage 2/2] Firebase Fetch START`);
       const firebaseStartTime = performance.now();
 
       const firebasePromise = this.fetchFromFirebase<T>(endpoint);
@@ -138,43 +138,60 @@ export class ApiService {
 
       const result = await Promise.race([firebasePromise, timeoutPromise]);
       const firebaseDuration = (performance.now() - firebaseStartTime).toFixed(2);
-      console.log(`[Stage 2/3] Firebase Fetch SUCCESS - Duration: ${firebaseDuration}ms`);
+      console.log(`[Stage 2/2] Firebase Fetch SUCCESS - Duration: ${firebaseDuration}ms`);
 
       // 3. Save to Cache on success
       CacheService.set(endpoint, result);
-      console.log(`[Stage 3/3] Cache UPDATE complete`);
+      console.log(`[Stage 2/2] Cache UPDATE complete`);
 
       const totalDuration = (performance.now() - startTime).toFixed(2);
       console.log(`Total Query Duration: ${totalDuration}ms`);
       console.groupEnd();
       return result;
     } catch (firebaseError) {
-      const firebaseDuration = (performance.now() - startTime).toFixed(2);
-      console.warn(`[Stage 2/3] Firebase Fetch FAILED - Error:`, firebaseError);
+      const duration = (performance.now() - startTime).toFixed(2);
+      console.warn(`[Stage 2/2] Firebase Fetch FAILED after ${duration}ms - Error:`, firebaseError);
 
-      // Fallback to JSON file
-      console.log(`[Stage 3/3] Falling back to JSON: ${fallbackPath}`);
-      const fallbackStartTime = performance.now();
-
-      try {
-        const response = await fetch(fallbackPath, { cache: 'no-store' });
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        const result = (await response.json()) as T;
-        const fallbackDuration = (performance.now() - fallbackStartTime).toFixed(2);
-        const totalDuration = (performance.now() - startTime).toFixed(2);
-
-        console.log(`[Stage 3/3] Fallback SUCCESS - Duration: ${fallbackDuration}ms`);
-        console.log(`Total Query Duration (including failure): ${totalDuration}ms`);
-        console.groupEnd();
-        return result;
-      } catch (fallbackError) {
-        console.error(`[Stage 3/3] Fallback Fetch FAILED:`, fallbackError);
-        console.groupEnd();
-        throw new Error(`Failed to load data from both Firebase and fallback for ${endpoint}`);
-      }
+      // Return default empty state instead of crashing
+      console.log(`[Final Stage] Serving default empty state for ${endpoint}`);
+      const defaultData = this.getDefaultData<T>(endpoint);
+      console.groupEnd();
+      return defaultData;
     }
+  }
+
+  private getDefaultData<T>(endpoint: string): T {
+    const defaults: Record<string, any> = {
+      "/api/home": {
+        sports: [],
+        matches: [],
+        stats: { sportsPrograms: 0, studentAthletes: 0, championships: 0, facilities: 0 }
+      },
+      "/api/sports": { sports: [], trainingSchedule: [] },
+      "/api/teams": { teams: [] },
+      "/api/teams/universities": { universities: [] },
+      "/api/schedule": {
+        matches: [],
+        stats: { totalMatches: 0, liveNow: 0, homeGames: 0, expectedAttendance: 0 }
+      },
+      "/api/fixtures": [],
+      "/api/players": { players: [] },
+      "/api/admin": {
+        dashboard: {
+          stats: { users: 0, liveGames: 0, merchSales: 0, pendingReviews: 0 },
+          liveGames: [],
+          upcomingGames: [],
+          recentUsers: []
+        },
+        users: [],
+        merchandise: [],
+        reviews: []
+      },
+      "/api/admin/universities": { universities: [] },
+      "/api/team/universities": { universities: [] }
+    };
+
+    return (defaults[endpoint] || {}) as T;
   }
 
   private async fetchFromFirebase<T>(endpoint: string): Promise<T> {
@@ -279,56 +296,56 @@ export class ApiService {
 
   // 🔹 Data retrieval methods
   async getHomeData(): Promise<HomeData> {
-    return this.fetchWithFallback<HomeData>("/api/home", "/data/home.json");
+    return this.fetchWithCaching<HomeData>("/api/home");
   }
 
   async getSportsData(): Promise<SportsData> {
-    return this.fetchWithFallback<SportsData>("/api/sports", "/data/sports.json");
+    return this.fetchWithCaching<SportsData>("/api/sports");
   }
 
   async getTeamsData(): Promise<TeamsData> {
-    return this.fetchWithFallback<TeamsData>("/api/teams", "/data/teams.json");
+    return this.fetchWithCaching<TeamsData>("/api/teams");
   }
 
   async getScheduleData(): Promise<ScheduleData> {
-    return this.fetchWithFallback<ScheduleData>("/api/schedule", "/data/schedule.json");
+    return this.fetchWithCaching<ScheduleData>("/api/schedule");
   }
 
   async getAdminData(): Promise<AdminData> {
-    return this.fetchWithFallback<AdminData>("/api/admin", "/data/admin.json");
+    return this.fetchWithCaching<AdminData>("/api/admin");
   }
 
   async getUniversities(): Promise<any[]> {
-    const data = await this.fetchWithFallback<any>("/api/admin/universities", "/data/universities.json");
+    const data = await this.fetchWithCaching<any>("/api/admin/universities");
     return data.universities || [];
   }
 
   async getTeams(): Promise<any[]> {
-    const data = await this.fetchWithFallback<any>("/api/teams", "/data/teams.json");
+    const data = await this.fetchWithCaching<any>("/api/teams");
     return data.teams || [];
   }
 
   async getUniversityData(): Promise<any[]> {
-    const data = await this.fetchWithFallback<any>("/api/team/universities", "/data/universities.json");
+    const data = await this.fetchWithCaching<any>("/api/team/universities");
     return data.universities || [];
   }
 
   async getSchedule(): Promise<any[]> {
-    const data = await this.fetchWithFallback<any>("/api/schedule", "/data/schedule.json");
+    const data = await this.fetchWithCaching<any>("/api/schedule");
     return data.matches || [];
   }
 
   async getFixtures(): Promise<any[]> {
-    return this.fetchWithFallback<any[]>("/api/fixtures", "/data/schedule.json");
+    return this.fetchWithCaching<any[]>("/api/fixtures");
   }
 
   async getSports(): Promise<any[]> {
-    const data = await this.fetchWithFallback<any>("/api/sports", "/data/sports.json");
+    const data = await this.fetchWithCaching<any>("/api/sports");
     return data.sports || [];
   }
 
   async getPlayers(): Promise<any[]> {
-    const data = await this.fetchWithFallback<any>("/api/players", "/data/players.json");
+    const data = await this.fetchWithCaching<any>("/api/players");
     return data.players || [];
   }
 

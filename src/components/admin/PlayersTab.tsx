@@ -5,6 +5,9 @@ import { fetchPlayers, fetchUniversities, fetchTeams, createPlayerT, savePlayerT
 import { RootState } from '@/store';
 import { Player, PlayerSocial } from '@/types';
 import { Modal } from '@/components/common/Modal';
+import { useToast } from '@/components/common/ToastProvider';
+import { FiUserPlus, FiEdit2, FiTrash2, FiStar, FiImage, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { confirmDelete } from '@/utils/confirmDialog';
 
 interface PlayerFormData {
   name: string;
@@ -40,6 +43,7 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
     playerAvatars: state.admin.playerAvatars,
     loading: state.admin.loading.players,
   }));
+  const { success, error: showError, warning } = useToast();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showHighlightsModal, setShowHighlightsModal] = useState(false);
@@ -97,8 +101,9 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
       dispatch(fetchPlayers());
       setShowCreateModal(false);
       resetForm();
+      success('Player created successfully', `${formData.name} has been added to the roster`, 'Add another player or manage existing ones');
     } catch (error) {
-      alert('Failed to create player: ' + (error as Error).message);
+      showError('Failed to create player', (error as Error).message);
     }
   };
 
@@ -110,18 +115,22 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
       setShowEditModal(false);
       setSelectedPlayer(null);
       resetForm();
+      success('Player updated successfully', `${formData.name}'s information has been updated`, 'View player profile or continue managing');
     } catch (error) {
-      alert('Failed to update player: ' + (error as Error).message);
+      showError('Failed to update player', (error as Error).message);
     }
   };
 
   const handleDeletePlayer = async (id: string) => {
-    if (confirm('Are you sure you want to delete this player?')) {
+    const player = players.find((p: any) => p.id === id);
+    const confirmed = await confirmDelete(`Are you sure you want to delete ${player?.name || 'this player'}?`);
+    if (confirmed) {
       try {
         await dispatch(removePlayerT(id));
         dispatch(fetchPlayers());
+        success('Player deleted', 'The player has been removed from the roster', 'Add a new player if needed');
       } catch (error) {
-        alert('Failed to delete player: ' + (error as Error).message);
+        showError('Failed to delete player', (error as Error).message);
       }
     }
   };
@@ -145,8 +154,9 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
       setShowHighlightsModal(false);
       setSelectedPlayer(null);
       resetHighlightsForm();
+      success('Highlights updated', `${selectedPlayer.name}'s career highlights have been saved`, 'View player stats or add more');
     } catch (error) {
-      alert('Failed to update highlights: ' + (error as Error).message);
+      showError('Failed to update highlights', (error as Error).message);
     }
   };
 
@@ -155,8 +165,9 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
       await dispatch(createPlayerAvatarT(avatarData));
       setShowAvatarModal(false);
       resetAvatarForm();
+      success('Avatar created', 'Player avatar has been generated', 'View avatar or create another');
     } catch (error) {
-      alert('Failed to create avatar: ' + (error as Error).message);
+      showError('Failed to create avatar', (error as Error).message);
     }
   };
 
@@ -166,17 +177,20 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
       await dispatch(savePlayerAvatarT({ id: avatarData.id, data: avatarData }));
       setShowAvatarModal(false);
       resetAvatarForm();
+      success('Avatar updated', 'Player avatar changes have been saved', 'View avatar or continue editing');
     } catch (error) {
-      alert('Failed to update avatar: ' + (error as Error).message);
+      showError('Failed to update avatar', (error as Error).message);
     }
   };
 
   const handleDeleteAvatar = async (id: string) => {
-    if (confirm('Are you sure you want to delete this avatar?')) {
+    const confirmed = await confirmDelete('Are you sure you want to delete this avatar?');
+    if (confirmed) {
       try {
         await dispatch(removePlayerAvatarT(id));
+        success('Avatar deleted', 'The avatar has been removed', 'Create a new avatar if needed');
       } catch (error) {
-        alert('Failed to delete avatar: ' + (error as Error).message);
+        showError('Failed to delete avatar', (error as Error).message);
       }
     }
   };

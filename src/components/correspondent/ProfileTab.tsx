@@ -3,12 +3,14 @@ import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/services/firebase';
 import { updateUserProfile } from '@/store/authThunk';
+import { useToast } from '@/components/common/ToastProvider';
+import { FiUser, FiCheckCircle, FiAlertCircle, FiUpload } from 'react-icons/fi';
 
 export const ProfileTab: React.FC = () => {
   const user = useAppSelector(s => s.auth.user);
   const dispatch = useAppDispatch();
+  const { success, error: showError } = useToast();
 
-  // Initialize profile with user data or defaults
   const [profile, setProfile] = useState({
     firstName: user?.displayName?.split(' ')[0] || '',
     lastName: user?.displayName?.split(' ')[1] || '',
@@ -43,14 +45,9 @@ export const ProfileTab: React.FC = () => {
             ctx.drawImage(img, 0, 0, 200, 200);
             const resizedBase64 = canvas.toDataURL('image/jpeg', 0.8);
             setAvatar(resizedBase64);
-            // Save to Firestore directly for avatar
             await updateDoc(doc(db, 'users', user.uid), { photoURL: resizedBase64 });
-            // Update local state via thunk or direct dispatch? 
-            // For consistency let's use the thunk even for partial updates if we were doing it properly, 
-            // but here we already have the logic handled partially inline. 
-            // Let's just update the specific field using our new thunk for Redux sync.
             dispatch(updateUserProfile({ photoURL: resizedBase64 }));
-            alert('Avatar updated successfully!');
+            success('Avatar updated', 'Your profile picture has been updated', 'Continue editing profile or close');
           }
         };
         img.src = event.target?.result as string;
@@ -58,7 +55,7 @@ export const ProfileTab: React.FC = () => {
       reader.readAsDataURL(file);
     } catch (error) {
       console.error(error);
-      alert('Failed to upload avatar');
+      showError('Failed to upload avatar', 'Please try again with a smaller image');
     } finally {
       setUploading(false);
     }
@@ -76,12 +73,12 @@ export const ProfileTab: React.FC = () => {
         universityId: profile.university,
         phoneNumber: profile.phoneNumber,
         twoFactorEnabled: profile.twoFactorEnabled
-      })).unwrap(); // unwrap to catch errors from the thunk
+      })).unwrap();
 
-      alert('Profile updated successfully!');
+      success('Profile updated', 'Your profile changes have been saved', 'View profile or continue editing');
     } catch (error: any) {
       console.error('Failed to update profile:', error);
-      alert(`Failed to update profile: ${error.message || 'Unknown error'}`);
+      showError('Failed to update profile', error.message || 'Unknown error');
     } finally {
       setSaving(false);
     }

@@ -6,6 +6,7 @@ import { createGroup } from "@/store/correspondentThunk";
 import { setGroups } from "@/store/slices/correspondentSlice";
 import { useState, useEffect } from "react";
 import { useTheme } from "@/components/ThemeProvider";
+import { useToast } from "@/components/common/ToastProvider";
 
 // --- SubGroupManager Internal Component ---
 const SubGroupManager: React.FC<{ league: League; parentGroup: Group }> = ({ league, parentGroup }) => {
@@ -13,6 +14,7 @@ const SubGroupManager: React.FC<{ league: League; parentGroup: Group }> = ({ lea
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const { success, error: showError, warning } = useToast();
 
   useEffect(() => {
     if (expanded) {
@@ -34,15 +36,16 @@ const SubGroupManager: React.FC<{ league: League; parentGroup: Group }> = ({ lea
 
   const addSubGroup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim()) return warning('Name required', 'Please enter a name for the subgroup');
     setLoading(true);
     try {
       await firebaseLeagueService.createSubGroup(league.id!, parentGroup.id!, { name: name.trim() });
       await loadSubGroups();
       setName('');
+      success('Subgroup created', 'The subgroup has been added', 'Add more subgroups or manage stages');
     } catch (e) {
       console.error(e);
-      alert('Failed to create subgroup');
+      showError('Failed to create subgroup', 'Please try again');
     } finally {
       setLoading(false);
     }
@@ -103,6 +106,7 @@ export const GroupManager: React.FC<{ league: League | null; onGroupSelect?: (gr
   const { theme } = useTheme();
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const { success, error: showError, warning } = useToast();
 
   useEffect(() => {
     if (!league) return;
@@ -123,7 +127,7 @@ export const GroupManager: React.FC<{ league: League | null; onGroupSelect?: (gr
   const submit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!league) return;
-    if (!name.trim()) return alert('Provide group name');
+    if (!name.trim()) return warning('Group name required', 'Please enter a name for the group');
 
     setLoading(true);
     try {
@@ -133,9 +137,10 @@ export const GroupManager: React.FC<{ league: League | null; onGroupSelect?: (gr
       const list = await firebaseLeagueService.listGroups(league.id!);
       dispatch(setGroups({ leagueId: league.id!, groups: list }));
       setName('');
+      success('Group created successfully', 'The group is now ready', 'Add subgroups or create stages');
     } catch (error) {
       console.error('Failed to create group:', error);
-      alert('Failed to create group. Please try again.');
+      showError('Failed to create group', 'Please try again or contact support');
     } finally {
       setLoading(false);
     }

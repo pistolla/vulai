@@ -9,6 +9,9 @@ import { Season } from '@/models';
 import ExportButtons from './ExportButtons';
 
 import { Modal } from '@/components/common/Modal';
+import { useToast } from '@/components/common/ToastProvider';
+import { confirmDelete } from '@/utils/confirmDialog';
+import { FiCalendar, FiMapPin, FiCheckCircle, FiAlertCircle, FiTrash2, FiEdit2, FiPlay, FiSquare, FiUsers } from 'react-icons/fi';
 
 // Game Form Component
 function GameForm({ formData, setFormData, teams, players, sports, onSubmit, submitLabel, leagues, seasons }: any) {
@@ -349,6 +352,7 @@ function PredictionForm({ game, onSave }: { game: any; onSave: (data: any) => vo
 
 export default function GamesTab({ updateScore, startG, endG }: any) {
   const { loading: reduxLoading } = useAppSelector(s => s.admin);
+  const { success, error: showError, warning, info } = useToast();
   const [live, setLive] = useState<any[]>([]);
   const [upcoming, setUpcoming] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
@@ -526,51 +530,46 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
 
   const handleAddGame = async () => {
     if (!newGame.homeTeamId || !newGame.awayTeamId) {
-      alert('Please select both home and away teams');
+      warning('Teams required', 'Please select both home and away teams');
       return;
     }
     if (newGame.homeTeamId === newGame.awayTeamId) {
-      alert('Home and away teams cannot be the same');
+      warning('Invalid matchup', 'Home and away teams cannot be the same');
       return;
     }
     if (!newGame.seasonId) {
-      alert('Please select a season');
+      warning('Season required', 'Please select a season');
       return;
     }
     if (newGame.type === 'league' && !newGame.selectedMatch) {
-      alert('Please select a match for league fixtures');
+      warning('Match required', 'Please select a match for league fixtures');
       return;
     }
     try {
-      // Reload teams to ensure we have the latest data
       const teamsData = await apiService.getTeams();
       setTeams(teamsData);
 
-      // Get team names from selected team IDs
       const homeTeam = teamsData.find((t: any) => t.id === newGame.homeTeamId);
       const awayTeam = teamsData.find((t: any) => t.id === newGame.awayTeamId);
 
-      // For friendly matches, teams MUST exist in the teams collection
       if (newGame.type === 'friendly') {
         if (!homeTeam || !awayTeam) {
-          alert('Selected teams not found in teams collection. Please ensure teams are created first.');
+          warning('Teams not found', 'Selected teams must exist. Create teams first.');
           return;
         }
 
-        // Validate sport
         if (newGame.sport) {
           if (homeTeam.sport && homeTeam.sport.toLowerCase() !== newGame.sport.toLowerCase()) {
-            alert(`Home team sport (${homeTeam.sport}) does not match selected sport (${newGame.sport}).`);
+            warning('Sport mismatch', `Home team sport (${homeTeam.sport}) does not match (${newGame.sport})`);
             return;
           }
           if (awayTeam.sport && awayTeam.sport.toLowerCase() !== newGame.sport.toLowerCase()) {
-            alert(`Away team sport (${awayTeam.sport}) does not match selected sport (${newGame.sport}).`);
+            warning('Sport mismatch', `Away team sport (${awayTeam.sport}) does not match (${newGame.sport})`);
             return;
           }
         }
       }
 
-      // Use team names if teams exist, otherwise use placeholder names for league matches
       const finalHomeTeamName = homeTeam?.name || newGame.homeTeamName;
       const finalAwayTeamName = awayTeam?.name || newGame.awayTeamName;
 
@@ -590,12 +589,9 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
         scheduledAt: `${newGame.date}T${newGame.time}:00`,
         seasonId: newGame.seasonId
       };
-      // Use seasonal path: fixtures/{seasonId}/matches
       const fixtureRef = await addDoc(collection(db, `fixtures/${newGame.seasonId}/matches`), gameData);
-      // Ensure ID is inside the object
       await updateDoc(fixtureRef, { id: fixtureRef.id });
 
-      // If this is a league match with a matchId, create bidirectional linking
       if (newGame.type === 'league' && newGame.selectedMatch && newGame.selectedLeague && newGame.selectedGroup && newGame.selectedStage) {
         try {
           const matchRef = doc(db, `leagues/${newGame.selectedLeague}/groups/${newGame.selectedGroup}/stages/${newGame.selectedStage}/matches/${newGame.selectedMatch}`);
@@ -606,10 +602,11 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
           console.error('Failed to link fixture to match:', error);
         }
       }
-      alert('Game added successfully');
+
+      success('Game added successfully', `${finalHomeTeamName} vs ${finalAwayTeamName} scheduled`, 'Add another game or manage existing fixtures');
       resetNewGame();
       setShowAddModal(false);
-      // Reload fixtures from seasonal paths
+
       const fixturesData: any[] = [];
       for (const season of seasons) {
         const fixturesSnap = await getDocs(collection(db, `fixtures/${season.id}/matches`));
@@ -617,7 +614,7 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
         fixturesData.push(...seasonFixtures);
       }
       setAllFixtures(fixturesData);
-      // Sync again
+
       const liveGamesSnap = await getDocs(collection(doc(db, 'admin'), 'liveGames'));
       const existingLiveIds = liveGamesSnap.docs.map(d => d.data().fixtureId);
       for (const f of fixturesData.filter((f: any) => f.status === 'live' || f.status === 'active')) {
@@ -638,25 +635,24 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
       setLive(liveData);
       setUpcoming(upcomingData);
     } catch (error) {
-      alert('Failed to add game: ' + (error as Error).message);
+      showError('Failed to add game', (error as Error).message);
     }
   };
 
   const handleEditGame = async () => {
     if (!editingGame.homeTeam || !editingGame.awayTeam) {
-      alert('Please select both home and away teams');
+      warning('Teams required', 'Please select both home and away teams');
       return;
     }
     if (editingGame.homeTeam === editingGame.awayTeam) {
-      alert('Home and away teams cannot be the same');
+      warning('Invalid matchup', 'Home and away teams cannot be the same');
       return;
     }
     if (!editingGame.seasonId) {
-      alert('Season ID is required to update game');
+      warning('Season required', 'Season ID is required to update game');
       return;
     }
     try {
-      // Find or create home team
       let homeTeamId = teams.find(t => t.name === editingGame.homeTeam)?.id;
       if (!homeTeamId) {
         const teamRef = await addDoc(collection(db, 'teams'), {
@@ -669,7 +665,6 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
         homeTeamId = teamRef.id;
       }
 
-      // Find or create away team
       let awayTeamId = teams.find(t => t.name === editingGame.awayTeam)?.id;
       if (!awayTeamId) {
         const teamRef = await addDoc(collection(db, 'teams'), {
@@ -690,10 +685,8 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
         awayTeamId: awayTeamId,
         scheduledAt: `${editingGame.date}T${editingGame.time}:00`
       };
-      // Use seasonal path: fixtures/{seasonId}/matches/{fixtureId}
       await updateDoc(doc(db, `fixtures/${editingGame.seasonId}/matches`, editingGame.fixtureId), gameData);
 
-      // If this is a league match with a matchId, update bidirectional linking
       if (editingGame.type === 'league' && editingGame.matchId && editingGame.selectedLeague && editingGame.selectedGroup && editingGame.selectedStage) {
         try {
           const matchRef = doc(db, `leagues/${editingGame.selectedLeague}/groups/${editingGame.selectedGroup}/stages/${editingGame.selectedStage}/matches/${editingGame.matchId}`);
@@ -704,10 +697,11 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
           console.error('Failed to link fixture to match:', error);
         }
       }
-      alert('Game updated successfully');
+
+      success('Game updated successfully', 'Fixture changes have been saved', 'View fixture details or continue managing');
       setShowEditModal(false);
       setEditingGame(null);
-      // Reload fixtures from seasonal paths
+
       const fixturesData: any[] = [];
       for (const season of seasons) {
         const fixturesSnap = await getDocs(collection(db, `fixtures/${season.id}/matches`));
@@ -715,27 +709,26 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
         fixturesData.push(...seasonFixtures);
       }
       setAllFixtures(fixturesData);
-      // Reload
       const liveData = await loadLiveGames();
       const upcomingData = await loadUpcomingGames();
       setLive(liveData);
       setUpcoming(upcomingData);
     } catch (error) {
-      alert('Failed to update game: ' + (error as Error).message);
+      showError('Failed to update game', (error as Error).message);
     }
   };
 
   const handleDeleteGame = async (fixtureId: string, seasonId?: string) => {
-    if (!confirm('Are you sure you want to delete this game?')) return;
+    const confirmed = await confirmDelete(`Are you sure you want to delete this game?`);
+    if (!confirmed) return;
+
     try {
-      // Use seasonal path: fixtures/{seasonId}/matches/{fixtureId}
       if (seasonId) {
         await deleteDoc(doc(db, `fixtures/${seasonId}/matches`, fixtureId));
       } else {
-        // Fallback to legacy path
         await deleteDoc(doc(db, 'fixtures', fixtureId));
       }
-      // Also delete from admin collection
+
       const liveGame = live.find(l => l.fixtureId === fixtureId);
       if (liveGame) {
         await deleteLiveGame(liveGame.id);
@@ -745,7 +738,7 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
           await deleteUpcomingGame(upcomingGame.id);
         }
       }
-      // Reload fixtures from seasonal paths
+
       const fixturesData: any[] = [];
       for (const season of seasons) {
         const fixturesSnap = await getDocs(collection(db, `fixtures/${season.id}/matches`));
@@ -753,26 +746,29 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
         fixturesData.push(...seasonFixtures);
       }
       setAllFixtures(fixturesData);
-      // Reload
       const liveData = await loadLiveGames();
       const upcomingData = await loadUpcomingGames();
       setLive(liveData);
       setUpcoming(upcomingData);
+
+      success('Game deleted', 'The fixture has been removed', 'Create a new fixture if needed');
     } catch (error) {
-      alert('Failed to delete game: ' + (error as Error).message);
+      showError('Failed to delete game', (error as Error).message);
     }
   };
 
   const handleBulkDelete = async () => {
     if (selectedGames.size === 0) return;
-    if (!confirm(`Are you sure you want to delete ${selectedGames.size} games?`)) return;
+    const confirmed = await confirmDelete(`Are you sure you want to delete ${selectedGames.size} games?`);
+    if (!confirmed) return;
+
     try {
       const deletePromises = Array.from(selectedGames).map(id => handleDeleteGame(id));
       await Promise.all(deletePromises);
-      alert('Games deleted successfully');
+      success('Games deleted', `${selectedGames.size} fixtures have been removed`, 'Create new fixtures if needed');
       setSelectedGames(new Set());
     } catch (error) {
-      alert('Failed to delete games: ' + (error as Error).message);
+      showError('Failed to delete games', (error as Error).message);
     }
   };
 
@@ -783,15 +779,15 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
       } else {
         await updateUpcomingGame(selectedGame.id, data);
       }
-      // Reload
       const liveData = await loadLiveGames();
       const upcomingData = await loadUpcomingGames();
       setLive(liveData);
       setUpcoming(upcomingData);
       setShowPredictionModal(false);
       setSelectedGame(null);
+      success('Predictions saved', 'Match predictions have been updated', 'View predictions or continue managing');
     } catch (error) {
-      alert('Failed to save predictions: ' + (error as Error).message);
+      showError('Failed to save predictions', (error as Error).message);
     }
   };
 
@@ -800,10 +796,10 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
     try {
       const startPromises = Array.from(selectedGames).map(id => startG(id));
       await Promise.all(startPromises);
-      alert('Games started successfully');
+      success('Games started', `${selectedGames.size} games are now live`, 'View live games or continue managing');
       setSelectedGames(new Set());
     } catch (error) {
-      alert('Failed to start games: ' + (error as Error).message);
+      showError('Failed to start games', (error as Error).message);
     }
   };
 
@@ -825,14 +821,14 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
   const toggleLiveStatus = async (gameId: string, isLive: boolean) => {
     try {
       if (isLive) {
-        // End the game
         await endG(gameId);
+        success('Game ended', 'The match is now complete', 'View final results or continue managing');
       } else {
-        // Start the game
         await startG(gameId);
+        success('Game started', 'The match is now live', 'View live commentary or continue managing');
       }
     } catch (error) {
-      alert('Failed to toggle game status: ' + (error as Error).message);
+      showError('Failed to toggle game status', (error as Error).message);
     }
   };
 

@@ -4,6 +4,8 @@ import { useAppDispatch } from "@/hooks/redux";
 import { updateFixture } from "@/store/correspondentThunk";
 import { firebaseLeagueService } from "@/services/firebaseCorrespondence";
 import { generateMatchReport } from "@/utils/reportGenerator";
+import { useToast } from "@/components/common/ToastProvider";
+import { FiRefreshCw, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 
 interface FixtureResultPopupProps {
     fixture: Fixture;
@@ -12,6 +14,7 @@ interface FixtureResultPopupProps {
 
 export const FixtureResultPopup: React.FC<FixtureResultPopupProps> = ({ fixture, onClose }) => {
     const dispatch = useAppDispatch();
+    const { success, error: showError, info, warning } = useToast();
     const [score, setScore] = useState({
         home: fixture.score?.home || 0,
         away: fixture.score?.away || 0
@@ -39,11 +42,10 @@ export const FixtureResultPopup: React.FC<FixtureResultPopupProps> = ({ fixture,
             setSyncing(true);
             const commentary = await firebaseLeagueService.getCommentary(fixture.id);
             if (!commentary) {
-                alert('No live commentary found for this match.');
+                warning('No commentary found', 'There is no live commentary for this match yet');
                 return;
             }
 
-            // Extract goals for timings
             const goals = (commentary.events || [])
                 .filter((e: any) => e.type === 'goal')
                 .map((e: any) => ({
@@ -57,10 +59,10 @@ export const FixtureResultPopup: React.FC<FixtureResultPopupProps> = ({ fixture,
 
             setScore({ home: hGoals, away: aGoals });
             setGoalTimings(goals);
-            alert('Data synced from live commentary successfully.');
+            success('Data synced', `${goals.length} goals imported from live commentary`, 'Review and adjust as needed');
         } catch (error) {
             console.error('Failed to sync live data:', error);
-            alert('Failed to sync live data.');
+            showError('Sync failed', 'Could not import data from live commentary');
         } finally {
             setSyncing(false);
         }
@@ -92,14 +94,13 @@ export const FixtureResultPopup: React.FC<FixtureResultPopupProps> = ({ fixture,
                 }
             })).unwrap();
 
-            // Advancement Logic
             if (fixture.matchId && score.home !== score.away) {
                 const match = await firebaseLeagueService.findMatchById(fixture.matchId);
                 if (match && match.nextMatchId) {
                     const winnerId = score.home > score.away ? fixture.homeTeamId : fixture.awayTeamId;
                     const winnerName = score.home > score.away ? fixture.homeTeamName : fixture.awayTeamName;
                     await firebaseLeagueService.advanceWinner(
-                        fixture.sport, // assuming sport name is used as leagueId in some contexts or we need actual leagueId
+                        fixture.sport,
                         winnerId,
                         winnerName,
                         match.nextMatchId,
@@ -108,10 +109,11 @@ export const FixtureResultPopup: React.FC<FixtureResultPopupProps> = ({ fixture,
                 }
             }
 
+            success('Result recorded', `${fixture.homeTeamName} ${score.home} - ${score.away} ${fixture.awayTeamName}`, 'View league standings or record another result');
             onClose();
         } catch (error) {
             console.error('Failed to save result:', error);
-            alert('Failed to save result.');
+            showError('Failed to save', 'Could not record the match result');
         } finally {
             setSaving(false);
         }

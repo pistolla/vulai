@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAppSelector } from '@/hooks/redux';
 import { MerchDocument, DocumentType, MerchType, OrderData, InvoiceData, StockRecordData, TransportDocumentData, ReturnOfGoodsData, PurchaseOrderData, DeliveryNotesData, OrderItem } from '@/models';
 import { FiSave, FiX } from 'react-icons/fi';
+import { useToast } from '@/components/common/ToastProvider';
 
 interface DocumentFormProps {
   document?: MerchDocument;
@@ -19,6 +20,7 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
   onCancel,
 }) => {
   const { items: merchItems } = useAppSelector(state => state.merch);
+  const { success, error: showError } = useToast();
 
   const [formData, setFormData] = useState<any>({});
 
@@ -127,9 +129,10 @@ export const DocumentForm: React.FC<DocumentFormProps> = ({
         status: document?.status || 'draft',
         data: formData,
       });
+      success('Document saved successfully', 'The document has been saved as draft', 'Continue editing or submit for approval');
     } catch (error) {
       console.error('Failed to save document:', error);
-      // TODO: Show error toast
+      showError('Failed to save document', 'Please check your input and try again');
     }
   };
 

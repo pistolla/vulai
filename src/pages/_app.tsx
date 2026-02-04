@@ -4,6 +4,7 @@ import '@/styles/global.css';
 import { Provider } from 'react-redux';
 import { store } from '@/store';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { ToastProvider } from '@/components/common/ToastProvider';
 import { useEffect } from 'react';
 import { subscribeAuth } from '@/services/firebase';
 import { setUser } from '@/store/slices/authSlice';
@@ -77,7 +78,9 @@ export default function App({ Component, pageProps }: AppProps) {
       </Head>
       <Provider store={store}>
         <ThemeProvider>
-          <Component {...pageProps} />
+          <ToastProvider>
+            <Component {...pageProps} />
+          </ToastProvider>
         </ThemeProvider>
       </Provider>
     </>

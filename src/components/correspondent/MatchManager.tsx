@@ -9,6 +9,7 @@ import { toISO } from "@/utils/csvHelpers";
 import { useState, useEffect } from "react";
 import { MatchCard } from "./MatchCard";
 import { useTheme } from "@/components/ThemeProvider";
+import { useToast } from "@/components/common/ToastProvider";
 
 // --- MatchManager ---
 export const MatchManager: React.FC<{ league: League; group?: Group | null; stage: Stage }> = ({ league, group, stage }) => {
@@ -25,6 +26,7 @@ export const MatchManager: React.FC<{ league: League; group?: Group | null; stag
   const [isOpen, setIsOpen] = useState(false);
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [selectedSeasonId, setSelectedSeasonId] = useState<string>('');
+  const { success, error: showError, warning } = useToast();
 
   useEffect(() => {
     (async () => {
@@ -64,6 +66,7 @@ export const MatchManager: React.FC<{ league: League; group?: Group | null; stag
     const name = refId;
 
     setParticipants((s) => [...s, { refType, refId, name, score: 0 }]);
+    success('Participant added', `${name} has been added to the match`, 'Add more participants or create the match');
   };
 
   const removeParticipant = (index: number) => {
@@ -76,7 +79,7 @@ export const MatchManager: React.FC<{ league: League; group?: Group | null; stag
 
   const submit = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!participants || participants.length < 2) return alert('Add at least two participants');
+    if (!participants || participants.length < 2) return warning('Participants required', 'Add at least two participants to create a match');
 
     try {
       setIsLoading(true);
@@ -93,15 +96,15 @@ export const MatchManager: React.FC<{ league: League; group?: Group | null; stag
       // refresh matches
       const list = await firebaseLeagueService.listMatches(league.id!, effectiveGroupId, stage.id!);
       dispatch(setMatches({ leagueId: league.id!, groupId: effectiveGroupId, stageId: stage.id!, matches: list }));
-      setParticipants([]);
 
       // Reset form
       setMatchNumber(matchNumber + 1);
       setVenue('');
       setParticipants([]);
+      success('Match created successfully', 'The match has been scheduled', 'Add more matches or update scores');
     } catch (error) {
       console.error('Failed to create match:', error);
-      alert('Failed to create match. Please try again.');
+      showError('Failed to create match', 'Please try again or contact support');
     } finally {
       setIsLoading(false);
     }

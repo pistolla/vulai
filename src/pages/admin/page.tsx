@@ -3,7 +3,8 @@ import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import AdminGuard from '@/guards/AdminGuard';
 import UserHeader from '@/components/UserHeader';
 import { apiService, AdminData } from '../../services/apiService';
-import { FiGrid, FiUsers, FiMap, FiAward, FiTarget, FiBox, FiCheckCircle, FiCalendar, FiPlus, FiX, FiPackage, FiUser, FiAlertCircle } from 'react-icons/fi';
+import { ToastProvider, useToast } from '@/components/common/ToastProvider';
+import { FiGrid, FiUsers, FiMap, FiAward, FiTarget, FiBox, FiCheckCircle, FiCalendar, FiPlus, FiX, FiPackage, FiUser } from 'react-icons/fi';
 import { Modal } from '@/components/common/Modal';
 import DashboardTab from '../../components/admin/DashboardTab';
 import UsersTab from '../../components/admin/UsersTab';
@@ -51,7 +52,7 @@ import {
 export default function AdminDashboardPage() {
   const dispatch = useAppDispatch();
   const [adminData, setAdminData] = useState<AdminData | null>({} as AdminData);
-  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const { success, error: showError } = useToast();
 
   /* ---------- Redux state ---------- */
   const { stats, universities } = useAppSelector(s => s.admin);
@@ -69,10 +70,13 @@ export default function AdminDashboardPage() {
     profileModal: null as null | { uid: string; user: any },
   });
 
-  /* ---------- Notification helper ---------- */
+  /* ---------- Notification helper (legacy, use toast instead) ---------- */
   const showNotification = (message: string, type: 'success' | 'error') => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 3000);
+    if (type === 'success') {
+      success(message, 'Action completed', 'Continue managing users');
+    } else {
+      showError(message, 'Please try again or contact support');
+    }
   };
 
   /* ---------- Hydrate once ---------- */
@@ -81,7 +85,7 @@ export default function AdminDashboardPage() {
       .then(data => setAdminData(data))
       .catch(error => {
         console.error('Failed to load admin data:', error);
-        showNotification('Failed to load admin data', 'error');
+        showError('Failed to load admin data', 'Please refresh the page to try again');
       });
 
     dispatch(fetchDashboard());
@@ -100,9 +104,9 @@ export default function AdminDashboardPage() {
     try {
       await dispatch(approveUserT(uid)).unwrap();
       dispatch(fetchUsers());
-      showNotification('User approved successfully', 'success');
+      success('User approved successfully', 'The user can now access correspondent features', 'View user details or manage permissions');
     } catch {
-      showNotification('Failed to approve user', 'error');
+      showError('Failed to approve user', 'Please try again or contact support');
     }
   };
 
@@ -110,9 +114,9 @@ export default function AdminDashboardPage() {
     try {
       await dispatch(disapproveUserT(uid)).unwrap();
       dispatch(fetchUsers());
-      showNotification('User disapproved successfully', 'success');
+      success('User disapproved successfully', 'The user has been restricted from correspondent features', 'Re-approve if needed');
     } catch {
-      showNotification('Failed to disapprove user', 'error');
+      showError('Failed to disapprove user', 'Please try again or contact support');
     }
   };
 
@@ -120,72 +124,72 @@ export default function AdminDashboardPage() {
     try {
       await dispatch(deleteUserT(uid)).unwrap();
       dispatch(fetchUsers());
-      showNotification('User deleted successfully', 'success');
+      success('User deleted successfully', 'The user account has been removed', 'Add a new user if needed');
     } catch {
-      showNotification('Failed to delete user', 'error');
+      showError('Failed to delete user', 'Please try again or contact support');
     }
   };
 
   const createMerch = async (item: any) => {
     try {
       await dispatch(createMerchT(item)).unwrap();
-      showNotification('Merchandise created successfully', 'success');
+      success('Merchandise created successfully', 'The item is now available in your store', 'Add more items or manage inventory');
     } catch {
-      showNotification('Failed to create merchandise', 'error');
+      showError('Failed to create merchandise', 'Please check your input and try again');
     }
   };
 
   const removeMerch = async (id: any) => {
     try {
       await dispatch(removeMerchT(id)).unwrap();
-      showNotification('Merchandise removed successfully', 'success');
+      success('Merchandise removed successfully', 'The item has been removed from your store', 'Add new items or view remaining inventory');
     } catch {
-      showNotification('Failed to remove merchandise', 'error');
+      showError('Failed to remove merchandise', 'Please try again or contact support');
     }
   };
 
   const approveReview = async (id: any) => {
     try {
       await dispatch(approveReviewT(id)).unwrap();
-      showNotification('Review approved successfully', 'success');
+      success('Review approved successfully', 'The review is now visible publicly', 'View more reviews or manage settings');
     } catch {
-      showNotification('Failed to approve review', 'error');
+      showError('Failed to approve review', 'Please try again or contact support');
     }
   };
 
   const rejectReview = async (id: any) => {
     try {
       await dispatch(rejectReviewT(id)).unwrap();
-      showNotification('Review rejected successfully', 'success');
+      success('Review rejected successfully', 'The review has been hidden from public view', 'View other reviews or take further action');
     } catch {
-      showNotification('Failed to reject review', 'error');
+      showError('Failed to reject review', 'Please try again or contact support');
     }
   };
 
   const updateScore = async (id: any, home: any, away: any) => {
     try {
       await dispatch(updateScoreT({ id, home, away })).unwrap();
-      showNotification('Score updated successfully', 'success');
+      success('Score updated successfully', 'The match score has been updated live', 'Continue updating or end the game');
     } catch {
-      showNotification('Failed to update score', 'error');
+      showError('Failed to update score', 'Please try again or refresh the page');
     }
   };
 
   const startGame = async (id: any) => {
     try {
       await dispatch(startGameT(id)).unwrap();
-      showNotification('Game started successfully', 'success');
+      success('Game started successfully', 'Live commentary and tracking are now active', 'Update the score or add commentary');
     } catch {
-      showNotification('Failed to start game', 'error');
+      showError('Failed to start game', 'Please try again or contact support');
     }
   };
 
   const endGame = async (id: any) => {
     try {
       await dispatch(endGameT(id)).unwrap();
-      showNotification('Game ended successfully', 'success');
+      success('Game ended successfully', 'Final results have been recorded', 'View match stats or schedule next game');
     } catch {
-      showNotification('Failed to end game', 'error');
+      showError('Failed to end game', 'Please try again or contact support');
     }
   };
 
@@ -193,9 +197,9 @@ export default function AdminDashboardPage() {
     try {
       await dispatch(createUniversityT(uni)).unwrap();
       dispatch(fetchUniversities());
-      showNotification('University created successfully', 'success');
+      success('University created successfully', 'The university is now available for team registration', 'Add teams or create a league');
     } catch {
-      showNotification('Failed to create university', 'error');
+      showError('Failed to create university', 'Please check the input and try again');
     }
   };
 
@@ -203,9 +207,9 @@ export default function AdminDashboardPage() {
     try {
       await dispatch(saveUniversityT({ id, data })).unwrap();
       dispatch(fetchUniversities());
-      showNotification('University updated successfully', 'success');
+      success('University updated successfully', 'Changes have been saved', 'Add more universities or manage existing ones');
     } catch {
-      showNotification('Failed to update university', 'error');
+      showError('Failed to update university', 'Please try again or contact support');
     }
   };
 
@@ -213,9 +217,9 @@ export default function AdminDashboardPage() {
     try {
       await dispatch(removeUniversityT(id)).unwrap();
       dispatch(fetchUniversities());
-      showNotification('University deleted successfully', 'success');
+      success('University deleted successfully', 'The university has been removed', 'Add a new university if needed');
     } catch {
-      showNotification('Failed to delete university', 'error');
+      showError('Failed to delete university', 'Please try again or contact support');
     }
   };
 
@@ -223,9 +227,9 @@ export default function AdminDashboardPage() {
     try {
       await dispatch(createTeamT(team)).unwrap();
       dispatch(fetchTeams());
-      showNotification('Team created successfully', 'success');
+      success('Team created successfully', 'The team is now registered and can join leagues', 'Add players to the team or create more teams');
     } catch {
-      showNotification('Failed to create team', 'error');
+      showError('Failed to create team', 'Please check your input and try again');
     }
   };
 
@@ -233,9 +237,9 @@ export default function AdminDashboardPage() {
     try {
       await dispatch(saveTeamT({ id, data })).unwrap();
       dispatch(fetchTeams());
-      showNotification('Team updated successfully', 'success');
+      success('Team updated successfully', 'Changes have been saved', 'Manage team details or add players');
     } catch {
-      showNotification('Failed to update team', 'error');
+      showError('Failed to update team', 'Please try again or contact support');
     }
   };
 
@@ -243,9 +247,9 @@ export default function AdminDashboardPage() {
     try {
       await dispatch(removeTeamT(id)).unwrap();
       dispatch(fetchTeams());
-      showNotification('Team deleted successfully', 'success');
+      success('Team deleted successfully', 'The team has been removed from the system', 'Create a new team or manage existing ones');
     } catch {
-      showNotification('Failed to delete team', 'error');
+      showError('Failed to delete team', 'Please try again or contact support');
     }
   };
 
@@ -253,9 +257,9 @@ export default function AdminDashboardPage() {
     try {
       await dispatch(addPlayerToTeamT({ teamId, player })).unwrap();
       dispatch(fetchTeams());
-      showNotification('Player added successfully', 'success');
+      success('Player added successfully', 'The player is now part of the team', 'Add more players or update team roster');
     } catch {
-      showNotification('Failed to add player', 'error');
+      showError('Failed to add player', 'Please check the player details and try again');
     }
   };
 
@@ -263,9 +267,9 @@ export default function AdminDashboardPage() {
     try {
       await dispatch(updatePlayerInTeamT({ teamId, playerId, playerData })).unwrap();
       dispatch(fetchTeams());
-      showNotification('Player updated successfully', 'success');
+      success('Player updated successfully', 'Changes have been saved', 'Continue editing or view team roster');
     } catch {
-      showNotification('Failed to update player', 'error');
+      showError('Failed to update player', 'Please try again or contact support');
     }
   };
 
@@ -273,9 +277,9 @@ export default function AdminDashboardPage() {
     try {
       await dispatch(deletePlayerFromTeamT({ teamId, playerId })).unwrap();
       dispatch(fetchTeams());
-      showNotification('Player deleted successfully', 'success');
+      success('Player deleted successfully', 'The player has been removed from the team', 'Add new players if needed');
     } catch {
-      showNotification('Failed to delete player', 'error');
+      showError('Failed to delete player', 'Please try again or contact support');
     }
   };
 
@@ -316,23 +320,12 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <AdminGuard>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-500">
-        <UserHeader />
+    <ToastProvider>
+      <AdminGuard>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-500">
+          <UserHeader />
 
-        <main className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
-          {/* Notification Overlay */}
-          {notification && (
-            <div className={`fixed top-20 right-4 z-50 p-4 rounded-xl shadow-2xl transform transition-all animate-in slide-in-from-right duration-300 ${notification.type === 'success'
-              ? 'bg-green-600 text-white'
-              : 'bg-red-600 text-white'
-              }`}>
-              <div className="flex items-center space-x-3">
-                {notification.type === 'success' ? <FiCheckCircle /> : <FiAlertCircle />}
-                <p className="font-bold">{notification.message}</p>
-              </div>
-            </div>
-          )}
+          <main className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
 
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
             <div>
@@ -364,7 +357,7 @@ export default function AdminDashboardPage() {
       </div>
 
       <Modal isOpen={modals.addUser} title="Add New User" onClose={() => close('addUser')} fullScreen={true}>
-        <AddUserForm close={() => close('addUser')} showNotification={showNotification} universities={universities} dispatch={dispatch} />
+        <AddUserForm close={() => close('addUser')} universities={universities} dispatch={dispatch} />
       </Modal>
 
       <Modal isOpen={!!modals.gameDetails} title="Game Details" onClose={() => close('gameDetails')} fullScreen={true}>
@@ -374,13 +367,13 @@ export default function AdminDashboardPage() {
       <Modal isOpen={!!modals.profileModal} title="Correspondent Profile" onClose={() => close('profileModal')} fullScreen={true}>
         {modals.profileModal && <ProfileContent data={modals.profileModal} />}
       </Modal>
-    </AdminGuard>
+      </AdminGuard>
+    </ToastProvider>
   );
 }
 
-
-
-function AddUserForm({ close, showNotification, universities, dispatch }: any) {
+function AddUserForm({ close, universities, dispatch }: any) {
+  const { success, error: showError } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -398,10 +391,10 @@ function AddUserForm({ close, showNotification, universities, dispatch }: any) {
         universityId: formData.university
       });
       dispatch(fetchUsers());
-      showNotification('User created successfully!', 'success');
+      success('User created successfully', 'The new user can now log in', 'Assign roles or manage permissions');
       close();
     } catch (error) {
-      showNotification('Failed to create user: ' + (error as Error).message, 'error');
+      showError('Failed to create user: ' + (error as Error).message, 'Please check the input and try again');
     }
   };
 

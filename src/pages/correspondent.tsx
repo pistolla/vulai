@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import CorrespondentGuard from '@/guards/CorrespondentGuard';
 import UserHeader from '@/components/UserHeader';
+import { ToastProvider } from '@/components/common/ToastProvider';
 import { ProfileTab } from '@/components/correspondent/ProfileTab';
 import { UploadTeamExcelTab } from '@/components/correspondent/UploadTeamExcelTab';
 import { UploadTeamVideoTab } from '@/components/correspondent/UploadTeamVideoTab';
@@ -120,22 +121,25 @@ export default function CorrespondentDashboardPage() {
 
   if (loading || !dataLoaded) {
     return (
-      <CorrespondentGuard>
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-          <UserHeader />
-          <div className="flex items-center justify-center py-40">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-500 font-medium">Powering up your workspace...</p>
+      <ToastProvider>
+        <CorrespondentGuard>
+          <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+            <UserHeader />
+            <div className="flex items-center justify-center py-40">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-4 text-gray-500 font-medium">Powering up your workspace...</p>
+              </div>
             </div>
           </div>
-        </div>
-      </CorrespondentGuard>
+        </CorrespondentGuard>
+      </ToastProvider>
     );
   }
 
   return (
-    <CorrespondentGuard>
+    <ToastProvider>
+      <CorrespondentGuard>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors duration-500">
         <UserHeader />
 
@@ -222,5 +226,6 @@ export default function CorrespondentDashboardPage() {
         />
       </div>
     </CorrespondentGuard>
+    </ToastProvider>
   );
 }

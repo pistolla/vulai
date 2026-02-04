@@ -7,6 +7,8 @@ import { setStages } from "@/store/slices/correspondentSlice";
 import { useState, useEffect } from "react";
 import { MatchManager } from "./MatchManager";
 import { useTheme } from "@/components/ThemeProvider";
+import { useToast } from "@/components/common/ToastProvider";
+import { FiPlus, FiEdit2, FiTrash2, FiChevronDown, FiChevronRight, FiLayers, FiAward, FiArrowRight, FiX } from "react-icons/fi";
 
 // --- StageManager ---
 export const StageManager: React.FC<{ league: League; group?: Group | null }> = ({ league, group }) => {
@@ -14,340 +16,414 @@ export const StageManager: React.FC<{ league: League; group?: Group | null }> = 
   const effectiveGroupId = group?.id || '_general';
   const stages = useAppSelector((s: RootState) => s.correspondent.stages[`${league.id}_${effectiveGroupId}`] ?? []);
   const { theme } = useTheme();
-  const [name, setName] = useState('');
-  const [type, setType] = useState<StageType>('knockout');
-  const [parentStageId, setParentStageId] = useState<string>('');
-  const [order, setOrder] = useState(1);
-  const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
+  const [addingSubstageTo, setAddingSubstageTo] = useState<string | null>(null);
+  const { success, error: showError, warning } = useToast();
 
   const topLevelStages = stages.filter((s: any) => !s.parentStageId).sort((a: any, b: any) => a.order - b.order);
 
   useEffect(() => {
     (async () => {
-      setLoading(true);
       try {
-        console.log(`[StageManager] Loading stages for league: ${league.id}, group: ${effectiveGroupId}`);
         const list = await firebaseLeagueService.listStages(league.id!, effectiveGroupId);
-        console.log(`[StageManager] Found ${list.length} stages`);
         dispatch(setStages({ leagueId: league.id!, groupId: effectiveGroupId, stages: list }));
       } catch (error) {
         console.error('[StageManager] Failed to load stages:', error);
-      } finally {
-        setLoading(false);
       }
     })();
   }, [league.id, effectiveGroupId, dispatch]);
 
-  const [addingSubstageTo, setAddingSubstageTo] = useState<string | null>(null);
+  // Quick add stage from top
+  const [quickAddName, setQuickAddName] = useState('');
+  const [quickAddType, setQuickAddType] = useState<StageType>('knockout');
+  const [isAddingTopLevel, setIsAddingTopLevel] = useState(false);
 
-  const openSubstageForm = (parentId: string) => {
-    setParentStageId(parentId);
-    setAddingSubstageTo(parentId);
-    setIsOpen(true);
-    // Find highest order for substages
-    const siblings = stages.filter((s: any) => s.parentStageId === parentId);
-    const maxOrder = siblings.reduce((max: number, s: any) => Math.max(max, s.order || 0), 0);
-    setOrder(maxOrder + 1);
-  };
+  const handleQuickAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickAddName.trim()) return warning('Stage name required', 'Please enter a name');
 
-  const submit = async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    if (!name.trim()) return alert('Stage name is required');
-
-    setLoading(true);
     try {
-      console.log(`[StageManager] Creating stage: ${name}, order: ${order}, type: ${type} in group ${effectiveGroupId}`);
+      const nextOrder = topLevelStages.length + 1;
       await dispatch(createStage({
         leagueId: league.id!,
         groupId: effectiveGroupId,
-        stage: {
-          name: name.trim(),
-          order,
-          type,
-          parentStageId: parentStageId || undefined
-        }
+        stage: { name: quickAddName.trim(), order: nextOrder, type: quickAddType }
       })).unwrap();
 
-      // refresh
       const list = await firebaseLeagueService.listStages(league.id!, effectiveGroupId);
       dispatch(setStages({ leagueId: league.id!, groupId: effectiveGroupId, stages: list }));
-      setName('');
-      setParentStageId('');
-      setAddingSubstageTo(null);
-      setOrder(prev => prev + 1);
-      console.log(`[StageManager] Stage created successfully`);
+      setQuickAddName('');
+      setIsAddingTopLevel(false);
+      success('Stage created', `"${quickAddName}" has been added`, 'Add substages or create matches');
     } catch (error) {
-      console.error('[StageManager] Failed to create stage:', error);
-      alert('Failed to create stage. Please check console for details.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Editing state
-  const [editingStageId, setEditingStageId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState('');
-
-  const startEditing = (stage: any) => {
-    setEditingStageId(stage.id);
-    setEditingName(stage.name);
-  };
-
-  const saveStageName = async (stage: any) => {
-    if (!editingName.trim()) return setEditingStageId(null);
-    try {
-      setLoading(true);
-      await dispatch(updateStage({
-        leagueId: league.id!,
-        groupId: effectiveGroupId,
-        stageId: stage.id,
-        data: { name: editingName.trim() }
-      }));
-      setEditingStageId(null);
-    } catch (error) {
-      console.error('Failed to update stage:', error);
-    } finally {
-      setLoading(false);
+      console.error('Failed to create stage:', error);
+      showError('Failed to create stage', 'Please try again');
     }
   };
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl">
+    <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+      {/* Header */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center justify-between p-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 transition-all"
       >
-        <h4 className="font-bold text-gray-900 dark:text-white">Stages ({stages.length})</h4>
-        <svg
-          className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-white/20 rounded-xl">
+            <FiLayers className="w-5 h-5" />
+          </div>
+          <div className="text-left">
+            <h3 className="font-bold text-lg">Tournament Stages</h3>
+            <p className="text-blue-100 text-sm">{stages.length} stages • {topLevelStages.length} top-level</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={(e) => { e.stopPropagation(); setIsAddingTopLevel(true); }}
+            className="flex items-center gap-1 px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors"
+          >
+            <FiPlus className="w-4 h-4" />
+            Add Stage
+          </button>
+          {isExpanded ? <FiChevronDown className="w-5 h-5" /> : <FiChevronRight className="w-5 h-5" />}
+        </div>
       </button>
 
-      {isOpen && (
-        <div className="mt-4 space-y-4 animate-in slide-in-from-top duration-300">
-          <form onSubmit={submit} className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-600">
-            <h5 className="font-bold text-gray-900 dark:text-white mb-3">Add New Stage</h5>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              <div>
-                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest mb-1">Stage Name</label>
-                <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Round of 16"
-                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                  disabled={loading}
-                  required
-                />
+      {isExpanded && (
+        <div className="p-5 space-y-4 animate-in slide-in-from-top-2 duration-300">
+          {/* Quick Add Form */}
+          {isAddingTopLevel && (
+            <form onSubmit={handleQuickAdd} className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 animate-in slide-in-from-top duration-200">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <h4 className="font-bold text-blue-900 dark:text-blue-100">Add New Stage</h4>
+                  <p className="text-blue-700 dark:text-blue-300 text-sm">Create a top-level tournament phase</p>
+                </div>
+                <button type="button" onClick={() => setIsAddingTopLevel(false)} className="text-blue-400 hover:text-blue-600">
+                  <FiX className="w-5 h-5" />
+                </button>
               </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest mb-1">Order</label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <input
-                  value={order}
-                  onChange={(e) => setOrder(Number(e.target.value))}
-                  type="number"
-                  placeholder="1"
-                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
-                  disabled={loading}
-                  min="1"
+                  value={quickAddName}
+                  onChange={(e) => setQuickAddName(e.target.value)}
+                  placeholder="Stage name (e.g., Quarter Finals)"
+                  className="px-4 py-2.5 bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                  autoFocus
                 />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest mb-1">Type</label>
                 <select
-                  value={type}
-                  onChange={(e) => setType(e.target.value as StageType)}
-                  className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white"
-                  disabled={loading}
+                  value={quickAddType}
+                  onChange={(e) => setQuickAddType(e.target.value as StageType)}
+                  className="px-4 py-2.5 bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700 rounded-lg text-gray-900 dark:text-white"
                 >
                   <option value="knockout">Knockout</option>
                   <option value="round_robin">Round Robin</option>
                 </select>
-              </div>
-
-              <div className="md:col-span-1">
-                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest mb-1">Parent Stage</label>
-                <div className="px-3 py-2 bg-gray-100 dark:bg-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300">
-                  {parentStageId ? (
-                    stages.find(s => s.id === parentStageId)?.name || 'Unknown'
-                  ) : 'None (Top Level)'}
-                </div>
-              </div>
-              <div className="flex items-end">
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-bold shadow-lg shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-70"
-                  disabled={loading || !name.trim()}
+                  disabled={!quickAddName.trim()}
+                  className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg font-bold shadow-lg shadow-blue-500/30 transition-all disabled:opacity-50"
                 >
-                  {loading ? 'Adding...' : (addingSubstageTo ? 'Add Substage' : 'Add Stage')}
+                  <FiPlus className="w-4 h-4" />
+                  Create Stage
                 </button>
-                {addingSubstageTo && <button onClick={() => { setAddingSubstageTo(null); setParentStageId(''); }} className="ml-2 text-xs text-red-500 underline">Cancel Substage</button>}
               </div>
-            </div>
-          </form>
+            </form>
+          )}
 
+          {/* Stages Tree */}
           <div className="space-y-3">
-            {loading && stages.length === 0 ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-3 text-gray-500 dark:text-gray-400 font-medium">Loading stages...</p>
+            {stages.length === 0 ? (
+              <div className="text-center py-12 bg-gray-50 dark:bg-gray-800/50 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full mb-4">
+                  <FiAward className="w-8 h-8 text-gray-400" />
+                </div>
+                <h4 className="font-bold text-gray-900 dark:text-white mb-1">No stages yet</h4>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">Create your first stage to organize the tournament</p>
+                <button
+                  onClick={() => setIsAddingTopLevel(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  <FiPlus className="w-4 h-4" />
+                  Add First Stage
+                </button>
               </div>
             ) : (
-              <>
-                {topLevelStages.map((s: any) => (
-                  <StageItem
-                    key={s.id}
-                    stage={s}
+              <div className="relative">
+                {/* Tree connector line */}
+                {topLevelStages.length > 1 && (
+                  <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-400 via-purple-400 to-pink-400 opacity-30" />
+                )}
+                
+                {topLevelStages.map((stage, index) => (
+                  <StageTreeItem
+                    key={stage.id}
+                    stage={stage}
                     allStages={stages}
                     league={league}
                     effectiveGroupId={effectiveGroupId}
-                    onAddSubstage={(parentId) => openSubstageForm(parentId)}
-                    onEdit={startEditing}
-                    onSaveName={saveStageName}
-                    onDelete={(stageId) => {
-                      if (confirm('Are you sure you want to delete this stage?')) {
-                        dispatch(deleteStage({ leagueId: league.id!, groupId: effectiveGroupId, stageId }));
-                      }
-                    }}
-                    editingStageId={editingStageId}
-                    editingName={editingName}
-                    setEditingName={setEditingName}
-                    setEditingStageId={setEditingStageId}
-                    matchManagerProps={{ league, group: group || null }}
+                    index={index}
+                    isLast={index === topLevelStages.length - 1}
+                    onAddSubstage={(parentId) => setAddingSubstageTo(parentId)}
+                    addingSubstageTo={addingSubstageTo}
+                    onCancelSubstage={() => setAddingSubstageTo(null)}
                   />
                 ))}
-                {stages.length === 0 && !loading && (
-                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                    <div className="text-3xl mb-2">🏅</div>
-                    <p className="font-medium">No stages yet.</p>
-                    <p className="text-sm">Add your first stage to organize tournament phases.</p>
-                  </div>
-                )}
-              </>
+              </div>
             )}
           </div>
-        </div >
+        </div>
       )}
-    </div >
+    </div>
   );
 };
 
-// Internal recursive component for Stage Item
-const StageItem: React.FC<{
+// --- StageTreeItem Component ---
+const StageTreeItem: React.FC<{
   stage: any;
   allStages: any[];
   league: League;
   effectiveGroupId: string;
+  index: number;
+  isLast: boolean;
   onAddSubstage: (parentId: string) => void;
-  onEdit: (s: any) => void;
-  onSaveName: (s: any) => void;
-  onDelete: (id: string) => void;
-  editingStageId: string | null;
-  editingName: string;
-  setEditingName: (n: string) => void;
-  setEditingStageId: (id: string | null) => void;
-  matchManagerProps: { league: League; group: Group | null };
-}> = ({ stage, allStages, league, effectiveGroupId, onAddSubstage, onEdit, onSaveName, onDelete, editingStageId, editingName, setEditingName, setEditingStageId, matchManagerProps }) => {
-
-  // Find children
+  addingSubstageTo: string | null;
+  onCancelSubstage: () => void;
+}> = ({ stage, allStages, league, effectiveGroupId, index, isLast, onAddSubstage, addingSubstageTo, onCancelSubstage }) => {
+  const dispatch = useAppDispatch();
+  const { success, error: showError, warning } = useToast();
+  
   const substages = allStages.filter(s => s.parentStageId === stage.id).sort((a, b) => a.order - b.order);
+  const [isExpanded, setIsExpanded] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(stage.name);
+  const [isAddingSubstage, setIsAddingSubstage] = useState(false);
+  const [substageName, setSubstageName] = useState('');
+  const [substageType, setSubstageType] = useState<StageType>('knockout');
+
+  // Substage form submission
+  const handleAddSubstage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!substageName.trim()) return warning('Substage name required', 'Please enter a name');
+
+    try {
+      const nextOrder = substages.length + 1;
+      await dispatch(createStage({
+        leagueId: league.id!,
+        groupId: effectiveGroupId,
+        stage: { name: substageName.trim(), order: nextOrder, type: substageType, parentStageId: stage.id }
+      })).unwrap();
+
+      const list = await firebaseLeagueService.listStages(league.id!, effectiveGroupId);
+      dispatch(setStages({ leagueId: league.id!, groupId: effectiveGroupId, stages: list }));
+      setSubstageName('');
+      setIsAddingSubstage(false);
+      success('Substage created', `"${substageName}" added to ${stage.name}`, 'Continue adding or manage matches');
+    } catch (error) {
+      console.error('Failed to create substage:', error);
+      showError('Failed to create substage', 'Please try again');
+    }
+  };
+
+  const handleSaveName = async () => {
+    if (!editName.trim()) return;
+    try {
+      await dispatch(updateStage({
+        leagueId: league.id!,
+        groupId: effectiveGroupId,
+        stageId: stage.id,
+        data: { name: editName.trim() }
+      }));
+      setIsEditing(false);
+      success('Stage updated', 'Name changed successfully');
+    } catch (error) {
+      console.error('Failed to update stage:', error);
+      showError('Failed to update', 'Please try again');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm(`Delete "${stage.name}" and all its substages?`)) return;
+    try {
+      // Delete all substages first
+      for (const substage of substages) {
+        await dispatch(deleteStage({ leagueId: league.id!, groupId: effectiveGroupId, stageId: substage.id }));
+      }
+      await dispatch(deleteStage({ leagueId: league.id!, groupId: effectiveGroupId, stageId: stage.id }));
+      success('Stage deleted', `${stage.name} and ${substages.length} substages removed`);
+    } catch (error) {
+      console.error('Failed to delete:', error);
+      showError('Failed to delete', 'Please try again');
+    }
+  };
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-100 dark:border-gray-600 shadow-sm hover:shadow-md transition-shadow mb-4">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3 mb-1">
-            <span className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-xs font-bold">
-              {stage.order}
-            </span>
-            {editingStageId === stage.id ? (
-              <div className="flex items-center gap-2 flex-1">
+    <div className="relative">
+      {/* Connector line to parent */}
+      {!isLast && (
+        <div className="absolute left-6 top-10 w-0.5 h-full bg-gray-200 dark:bg-gray-700" />
+      )}
+
+      <div className={`
+        relative bg-white dark:bg-gray-800 rounded-xl border-2 transition-all duration-200
+        ${isEditing ? 'border-blue-400 shadow-lg shadow-blue-500/20' : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'}
+        ${substages.length > 0 ? 'mb-4' : 'mb-2'}
+      `}>
+        {/* Stage Header */}
+        <div className="flex items-center gap-4 p-4">
+          {/* Expand/Collapse Toggle */}
+          {substages.length > 0 && (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              {isExpanded ? <FiChevronDown className="w-5 h-5 text-gray-500" /> : <FiChevronRight className="w-5 h-5 text-gray-500" />}
+            </button>
+          )}
+          
+          {/* Stage Number Badge */}
+          <div className={`
+            w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0
+            ${stage.type === 'knockout' 
+              ? 'bg-gradient-to-br from-red-500 to-orange-500 text-white' 
+              : 'bg-gradient-to-br from-green-500 to-teal-500 text-white'}
+          `}>
+            {index + 1}
+          </div>
+
+          {/* Stage Info */}
+          <div className="flex-1 min-w-0">
+            {isEditing ? (
+              <div className="flex items-center gap-2">
                 <input
-                  value={editingName}
-                  onChange={(e) => setEditingName(e.target.value)}
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="flex-1 px-3 py-2 bg-blue-50 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
                   autoFocus
-                  className="flex-1 px-3 py-1 bg-gray-50 dark:bg-gray-700 border border-blue-500 rounded-lg text-sm focus:outline-none"
-                  onKeyDown={(e) => e.key === 'Enter' && onSaveName(stage)}
                 />
-                <button onClick={() => onSaveName(stage)} className="p-1 text-green-600 hover:bg-green-50 rounded">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                <button onClick={handleSaveName} className="p-2 bg-green-500 hover:bg-green-600 text-white rounded-lg">
+                  <FiArrowRight className="w-4 h-4" />
                 </button>
-                <button onClick={() => setEditingStageId(null)} className="p-1 text-gray-400 hover:bg-gray-50 rounded">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                <button onClick={() => { setIsEditing(false); setEditName(stage.name); }} className="p-2 bg-gray-400 hover:bg-gray-500 text-white rounded-lg">
+                  <FiX className="w-4 h-4" />
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2 group flex-1">
-                <h5 className="font-bold text-lg text-gray-900 dark:text-white truncate">{stage.name}</h5>
-                <button
-                  onClick={() => onEdit(stage)}
-                  className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
-                  title="Edit Name"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                </button>
+              <div>
+                <h4 className="font-bold text-gray-900 dark:text-white text-lg">{stage.name}</h4>
+                <div className="flex items-center gap-3 mt-1">
+                  <span className={`
+                    px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide
+                    ${stage.type === 'knockout'
+                      ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                      : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'}
+                  `}>
+                    {stage.type.replace('_', ' ')}
+                  </span>
+                  {substages.length > 0 && (
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      {substages.length} substages
+                    </span>
+                  )}
+                </div>
               </div>
             )}
           </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600 dark:text-gray-400">
-            <span className="capitalize px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs font-medium">
-              {stage.type.replace('_', ' ')}
-            </span>
+
+          {/* Actions */}
+          <div className="flex items-center gap-2 shrink-0">
+            {!isEditing && (
+              <>
+                <button
+                  onClick={() => setIsAddingSubstage(!isAddingSubstage)}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/50 rounded-lg text-xs font-bold transition-colors"
+                >
+                  <FiPlus className="w-3.5 h-3.5" />
+                  Substage
+                </button>
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                >
+                  <FiEdit2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                >
+                  <FiTrash2 className="w-4 h-4" />
+                </button>
+              </>
+            )}
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Add Substage Button */}
-          <button
-            onClick={() => onAddSubstage(stage.id)}
-            className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-bold transition-colors"
-          >
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-            Substage
-          </button>
+        {/* Substage Add Form */}
+        {isAddingSubstage && (
+          <form onSubmit={handleAddSubstage} className="px-4 pb-4 animate-in slide-in-from-top duration-200">
+            <div className="ml-14 p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl">
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-bold text-purple-900 dark:text-purple-100">Add Substage to "{stage.name}"</span>
+                <button type="button" onClick={() => setIsAddingSubstage(false)} className="text-purple-400 hover:text-purple-600">
+                  <FiX className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <input
+                  value={substageName}
+                  onChange={(e) => setSubstageName(e.target.value)}
+                  placeholder="Substage name"
+                  className="px-3 py-2 bg-white dark:bg-gray-800 border border-purple-200 dark:border-purple-700 rounded-lg focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white"
+                  autoFocus
+                />
+                <select
+                  value={substageType}
+                  onChange={(e) => setSubstageType(e.target.value as StageType)}
+                  className="px-3 py-2 bg-white dark:bg-gray-800 border border-purple-200 dark:border-purple-700 rounded-lg text-gray-900 dark:text-white"
+                >
+                  <option value="knockout">Knockout</option>
+                  <option value="round_robin">Round Robin</option>
+                </select>
+                <button
+                  type="submit"
+                  disabled={!substageName.trim()}
+                  className="flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-bold transition-all disabled:opacity-50"
+                >
+                  <FiPlus className="w-4 h-4" />
+                  Add Substage
+                </button>
+              </div>
+            </div>
+          </form>
+        )}
 
-          <button
-            onClick={() => onDelete(stage.id)}
-            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
-            title="Delete Stage"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
-          <div className="h-8 w-px bg-gray-200 dark:bg-gray-700 hidden md:block"></div>
-          <MatchManager league={matchManagerProps.league} group={matchManagerProps.group} stage={stage} />
+        {/* Match Manager */}
+        <div className="px-4 pb-4">
+          <div className="ml-14">
+            <MatchManager league={league} group={null} stage={stage} />
+          </div>
         </div>
       </div>
 
-      {/* Recursively render substages */}
-      {substages.length > 0 && (
-        <div className="ml-8 mt-2 border-l-2 border-gray-100 dark:border-gray-700 pl-4 space-y-3">
-          {substages.map(child => (
-            <StageItem
-              key={child.id}
-              stage={child}
+      {/* Sub-stages (nested) */}
+      {isExpanded && substages.length > 0 && (
+        <div className="ml-14 space-y-2 animate-in slide-in-from-top-2 duration-300">
+          {substages.map((substage, subIndex) => (
+            <StageTreeItem
+              key={substage.id}
+              stage={substage}
               allStages={allStages}
               league={league}
               effectiveGroupId={effectiveGroupId}
+              index={subIndex}
+              isLast={subIndex === substages.length - 1}
               onAddSubstage={onAddSubstage}
-              onEdit={onEdit}
-              onSaveName={onSaveName}
-              onDelete={onDelete}
-              editingStageId={editingStageId}
-              editingName={editingName}
-              setEditingName={setEditingName}
-              setEditingStageId={setEditingStageId}
-              matchManagerProps={matchManagerProps}
+              addingSubstageTo={addingSubstageTo}
+              onCancelSubstage={onCancelSubstage}
             />
           ))}
         </div>
       )}
     </div>
   );
-}
+};
