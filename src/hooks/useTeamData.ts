@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { apiService } from '@/services/apiService';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { fetchMerch } from '@/store/adminThunk';
@@ -14,6 +15,7 @@ export const configThemes: Record<string, { primary: string; secondary: string; 
 };
 
 export function useTeamData(slug: string | undefined) {
+    const router = useRouter();
     const dispatch = useAppDispatch();
     const [teamData, setTeamData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -33,6 +35,14 @@ export function useTeamData(slug: string | undefined) {
                 // 1. Fetch Team Data
                 const teamsData = await apiService.getTeamsData();
                 
+                // If no teams exist at all, redirect to /teams page
+                if (!teamsData.teams || teamsData.teams.length === 0) {
+                    console.warn('No teams found in database, redirecting to /teams');
+                    router.replace('/teams');
+                    setLoading(false);
+                    return;
+                }
+                
                 // Try to find team by id first, then by slug field
                 let team = teamsData.teams.find((t: any) => t.id === slug);
                 
@@ -46,7 +56,9 @@ export function useTeamData(slug: string | undefined) {
                 }
 
                 if (!team) {
-                    setError('Team not found');
+                    // Team not found, redirect to /teams page
+                    console.warn(`Team not found for slug: ${slug}, redirecting to /teams`);
+                    router.replace('/teams');
                     setLoading(false);
                     return;
                 }
@@ -102,7 +114,7 @@ export function useTeamData(slug: string | undefined) {
         };
 
         loadData();
-    }, [slug, dispatch]);
+    }, [slug, dispatch, router]);
 
     return {
         teamData,

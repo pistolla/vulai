@@ -23,19 +23,25 @@ export const MerchandiseCard: React.FC<MerchandiseCardProps> = ({
   const [mounted, setMounted] = useState(false);
   const [selectedSize, setSelectedSize] = useState<string>('');
 
+  // Ensure images is always an array
+  const images = item.images || [];
+  const hasImages = images.length > 0;
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const nextImage = () => {
+    if (!hasImages) return;
     setCurrentImageIndex((prev) =>
-      prev === item.images.length - 1 ? 0 : prev + 1
+      prev === images.length - 1 ? 0 : prev + 1
     );
   };
 
   const prevImage = () => {
+    if (!hasImages) return;
     setCurrentImageIndex((prev) =>
-      prev === 0 ? item.images.length - 1 : prev - 1
+      prev === 0 ? images.length - 1 : prev - 1
     );
   };
 
@@ -100,60 +106,70 @@ export const MerchandiseCard: React.FC<MerchandiseCardProps> = ({
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
       {/* Image Slider */}
       <div className="relative h-64 overflow-hidden">
-        <div
-          className="flex transition-transform duration-300 ease-in-out h-full"
-          style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
-        >
-          {item.images.map((image, index) => (
-            <img
-              key={index}
-              src={image}
-              alt={`${item.name} - Image ${index + 1}`}
-              className="w-full h-full object-cover flex-shrink-0"
-            />
-          ))}
-        </div>
-
-        {/* Navigation Arrows */}
-        {item.images.length > 1 && (
+        {/* Placeholder when no images */}
+        {!hasImages ? (
+          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+            <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+        ) : (
           <>
-            <button
-              onClick={prevImage}
-              className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-opacity"
-              aria-label="Previous image"
+            <div
+              className="flex transition-transform duration-300 ease-in-out h-full"
+              style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <button
-              onClick={nextImage}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-opacity"
-              aria-label="Next image"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+              {images.map((image, index) => (
+                <img
+                  key={index}
+                  src={image}
+                  alt={`${item.name} - Image ${index + 1}`}
+                  className="w-full h-full object-cover flex-shrink-0"
+                />
+              ))}
+            </div>
+
+            {/* Navigation Arrows */}
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={prevImage}
+                  className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-opacity"
+                  aria-label="Previous image"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={nextImage}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-opacity"
+                  aria-label="Next image"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </>
+            )}
+
+            {/* Image Indicators */}
+            {images.length > 1 && (
+              <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                {images.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => goToImage(index)}
+                    className={`w-2 h-2 rounded-full transition-colors ${index === currentImageIndex ? 'bg-white' : 'bg-white bg-opacity-50'}`}
+                    aria-label={`Go to image ${index + 1}`}
+                  />
+                ))}
+              </div>
+            )}
           </>
         )}
 
-        {/* Image Indicators */}
-        {item.images.length > 1 && (
-          <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2">
-            {item.images.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => goToImage(index)}
-                className={`w-2 h-2 rounded-full transition-colors ${index === currentImageIndex ? 'bg-white' : 'bg-white bg-opacity-50'
-                  }`}
-                aria-label={`Go to image ${index + 1}`}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Stock Status */}
+      {/* Stock Status */}
         {!item.inStock && (
           <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold">
             Out of Stock

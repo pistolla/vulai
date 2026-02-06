@@ -172,7 +172,6 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
                   : 'border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20'
               } text-gray-900 dark:text-white font-bold placeholder-gray-400`}
               placeholder="e.g. Eagles FC"
-              autoFocus
             />
             {formData.name && !errors.name && (
               <FiCheckCircle className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
