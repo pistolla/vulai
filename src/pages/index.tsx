@@ -5,7 +5,6 @@ import { Sport } from '../types';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { addToCart } from '../store/slices/cartSlice';
 import { useTheme } from '../components/ThemeProvider';
-import banner from '../images/banner.gif';
 import MerchandiseCard from '../components/MerchandiseCard';
 import { loadLiveGames, loadUpcomingGames } from '../services/firestoreAdmin';
 import { Fixture, MerchItem } from '../models';
@@ -207,8 +206,17 @@ const HomePage: React.FC = () => {
   }
   return (
     <Layout title="Home" description="Discover excellence in university athletics at Unill Sports">
-      {/* Hero Section */}
-      <section className={`min-h-screen flex items-center justify-center relative overflow-hidden ${mounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-100 via-mauve-50 to-mauve-200' : ''}`} style={{ backgroundImage: `url(${banner.src})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+      {/* Hero Section with Video Background */}
+      <section className={`min-h-screen flex items-center justify-center relative overflow-hidden ${mounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-100 via-mauve-50 to-mauve-200' : ''}`}>
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+        >
+          <source src="/images/banner.webm" type="video/webm" />
+        </video>
         <div className="absolute inset-0 bg-black opacity-30"></div>
         <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
           <div className="animate-float">

@@ -35,20 +35,28 @@ export const MatchManager: React.FC<{ league: League; group?: Group | null; stag
         const list = await firebaseLeagueService.listMatches(league.id!, effectiveGroupId, stage.id!);
         dispatch(setMatches({ leagueId: league.id!, groupId: effectiveGroupId, stageId: stage.id!, matches: list }));
 
-        // Fetch seasons for the sport
+        // Fetch seasons for the sport - ensure sports are loaded first
         const sports: Sport[] = await apiService.getSports();
-        // Improved sport matching heuristic
-        const sport = sports.find(s =>
-          s.name.toLowerCase() === league.sportType.toLowerCase() ||
-          s.name.toLowerCase() === league.name.toLowerCase() ||
+        
+        // Improved sport matching heuristic - match by sportName field in league
+        const sportName = league.sportName || '';
+        const sport = sports.find(s => 
+          s.name.toLowerCase().trim() === sportName.toLowerCase().trim() ||
+          s.name.toLowerCase().trim() === (league.sportType || '').toLowerCase().trim() ||
+          s.name.toLowerCase().trim() === league.name.toLowerCase().trim() ||
           league.name.toLowerCase().includes(s.name.toLowerCase())
         );
 
         if (sport) {
           const leagueSeasons = await firebaseLeagueService.listSeasons(sport.id);
           setSeasons(leagueSeasons);
+          if (leagueSeasons.length === 0) {
+            console.warn('No seasons found for sport:', sport.name, 'sportId:', sport.id, 'Create seasons in Admin Panel');
+          }
           const active = leagueSeasons.find(s => s.isActive);
           if (active) setSelectedSeasonId(active.id);
+        } else {
+          console.warn('Sport not found for league:', league.name, 'sportName:', sportName, 'sportType:', league.sportType, 'available sports:', sports.map(s => s.name));
         }
       } catch (error) {
         console.error('Failed to load match manager data:', error);
@@ -56,7 +64,7 @@ export const MatchManager: React.FC<{ league: League; group?: Group | null; stag
         setIsLoading(false);
       }
     })();
-  }, [league.id, effectiveGroupId, stage.id, dispatch, league.sportType, league.name]);
+  }, [league.id, effectiveGroupId, stage.id, dispatch, league.sportType, league.name, league.sportName]);
 
 
   const addParticipant = () => {

@@ -21,9 +21,21 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
   const { warning } = useToast();
 
   useEffect(() => {
-    apiService.getUniversities().then(setUniversities).catch(console.error);
-    apiService.getSports().then(setSports).catch(console.error);
-    firebaseLeagueService.listLeagues().then(setLeagues).catch(console.error);
+    const loadData = async () => {
+      try {
+        const [uniData, sportData, leagueData] = await Promise.all([
+          apiService.getUniversities(),
+          apiService.getSports(),
+          firebaseLeagueService.listLeagues()
+        ]);
+        setUniversities(uniData);
+        setSports(sportData);
+        setLeagues(leagueData);
+      } catch (error) {
+        console.error('Failed to load form data:', error);
+      }
+    };
+    loadData();
   }, []);
 
   useEffect(() => {

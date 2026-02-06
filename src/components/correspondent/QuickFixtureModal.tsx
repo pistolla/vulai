@@ -70,15 +70,42 @@ export const QuickFixtureModal: React.FC<QuickFixtureModalProps> = ({ isOpen, on
     const loadSeasons = async () => {
         try {
             const sports: Sport[] = await apiService.getSports();
-            const sport = sports.find(s => s.name.toLowerCase() === league?.sportName?.toLowerCase() || s.name.toLowerCase() === league?.name?.toLowerCase());
+            
+            // Try multiple matching strategies
+            const sportName = league?.sportName || '';
+            const leagueName = league?.name || '';
+            
+            // First try exact match on sportName
+            let sport = sports.find(s => s.name.toLowerCase().trim() === sportName.toLowerCase().trim());
+            
+            // If not found, try exact match on leagueName
+            if (!sport && leagueName) {
+                sport = sports.find(s => s.name.toLowerCase().trim() === leagueName.toLowerCase().trim());
+            }
+            
+            // If still not found, try partial matching
+            if (!sport && sportName) {
+                sport = sports.find(s => 
+                    s.name.toLowerCase().includes(sportName.toLowerCase().trim()) ||
+                    sportName.toLowerCase().includes(s.name.toLowerCase().trim())
+                );
+            }
+            
             if (sport) {
                 const leagueSeasons = await firebaseLeagueService.listSeasons(sport.id);
                 setSeasons(leagueSeasons);
                 const active = leagueSeasons.find(s => s.isActive);
                 if (active) setSelectedSeasonId(active.id);
+                if (leagueSeasons.length === 0) {
+                    console.warn('No seasons found for sport:', sport.name, 'sportId:', sport.id, 'Create seasons in Admin Panel');
+                }
+            } else {
+                console.warn('Sport not found for league:', league?.name, 'sportName:', sportName, 'available sports:', sports.map(s => s.name));
+                setSeasons([]);
             }
         } catch (error) {
             console.error('Failed to load seasons:', error);
+            setSeasons([]);
         }
     };
 

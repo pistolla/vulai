@@ -51,10 +51,6 @@ class FirebaseLeagueService {
     });
   }
 
-  async deleteLeague(leagueId: string) {
-    await deleteDoc(doc(db, 'leagues', leagueId));
-  }
-
   async listLeagues(): Promise<League[]> {
     try {
       const snap = await getDocs(collection(db, 'leagues'));
@@ -417,6 +413,112 @@ class FirebaseLeagueService {
           }
         }
       }
+    }
+  }
+
+  /**
+   * Get league statistics: groups, stages, matches, participants counts
+   */
+  async getLeagueStats(leagueId: string): Promise<{
+    totalGroups: number;
+    totalStages: number;
+    totalMatches: number;
+    totalParticipants: number;
+    updatedAt: string | null;
+  }> {
+    let totalGroups = 0;
+    let totalStages = 0;
+    let totalMatches = 0;
+    let totalParticipants = 0;
+    let updatedAt: string | null = null;
+
+    try {
+      const groupsSnap = await getDocs(collection(db, `leagues/${leagueId}/groups`));
+      totalGroups = groupsSnap.size;
+
+      for (const groupDoc of groupsSnap.docs) {
+        const stagesSnap = await getDocs(collection(db, `leagues/${leagueId}/groups/${groupDoc.id}/stages`));
+        totalStages += stagesSnap.size;
+
+        for (const stageDoc of stagesSnap.docs) {
+          const matchesSnap = await getDocs(collection(db, `leagues/${leagueId}/groups/${groupDoc.id}/stages/${stageDoc.id}/matches`));
+          totalMatches += matchesSnap.size;
+
+          for (const matchDoc of matchesSnap.docs) {
+            const matchData = matchDoc.data() as Match;
+            totalParticipants += matchData.participants?.length || 0;
+          }
+        }
+      }
+
+      // Get league's updatedAt
+      const leagueSnap = await getDoc(doc(db, 'leagues', leagueId));
+      if (leagueSnap.exists()) {
+        updatedAt = leagueSnap.data().updatedAt?.toDate?.()?.toISOString() || leagueSnap.data().updatedAt || null;
+      }
+    } catch (error) {
+      console.error('Failed to get league stats:', error);
+    }
+
+    return { totalGroups, totalStages, totalMatches, totalParticipants, updatedAt };
+  }
+
+  /**
+   * Get total fixtures for a league
+   */
+  async getLeagueFixturesCount(leagueId: string): Promise<number> {
+    try {
+      const fixturesQuery = query(
+        collection(db, 'fixtures'),
+        where('leagueId', '==', leagueId)
+      );
+      const fixturesSnap = await getDocs(fixturesQuery);
+      return fixturesSnap.size;
+    } catch (error) {
+      console.error('Failed to get league fixtures count:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Hide/unhide a league
+   */
+  async toggleLeagueVisibility(leagueId: string, isHidden: boolean) {
+    await updateDoc(doc(db, 'leagues', leagueId), {
+      isHidden,
+      updatedAt: Timestamp.now(),
+    });
+  }
+
+  /**
+   * Delete a league and all its subcollections
+   */
+  async deleteLeague(leagueId: string) {
+    try {
+      // Delete all groups, stages, and matches recursively
+      const groupsSnap = await getDocs(collection(db, `leagues/${leagueId}/groups`));
+      
+      for (const groupDoc of groupsSnap.docs) {
+        const stagesSnap = await getDocs(collection(db, `leagues/${leagueId}/groups/${groupDoc.id}/stages`));
+        
+        for (const stageDoc of stagesSnap.docs) {
+          const matchesSnap = await getDocs(collection(db, `leagues/${leagueId}/groups/${groupDoc.id}/stages/${stageDoc.id}/matches`));
+          
+          for (const matchDoc of matchesSnap.docs) {
+            await deleteDoc(matchDoc.ref);
+          }
+          
+          await deleteDoc(stageDoc.ref);
+        }
+        
+        await deleteDoc(groupDoc.ref);
+      }
+
+      // Delete the league itself
+      await deleteDoc(doc(db, 'leagues', leagueId));
+    } catch (error) {
+      console.error('Failed to delete league:', error);
+      throw error;
     }
   }
 }

@@ -18,6 +18,7 @@ import ManagerTab from '../../components/admin/ManagerTab';
 import ReviewTab from '../../components/admin/ReviewTab';
 import GamesTab from '../../components/admin/GamesTab';
 import { ImportedDataTab } from '../../components/admin/ImportedDataTab';
+import LeaguesTab from '../../components/admin/LeaguesTab';
 import {
   fetchDashboard,
   fetchUsers,
@@ -62,7 +63,7 @@ export default function AdminDashboardPage() {
   const { live, upcoming } = useAppSelector(s => s.games);
 
   /* ---------- Local UI state ---------- */
-  type TabId = 'dashboard' | 'users' | 'universities' | 'teams' | 'players' | 'sports' | 'merchandise' | 'store' | 'manager' | 'review' | 'games' | 'importedData';
+  type TabId = 'dashboard' | 'users' | 'universities' | 'teams' | 'players' | 'sports' | 'merchandise' | 'store' | 'manager' | 'review' | 'games' | 'importedData' | 'leagues';
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [modals, setModals] = useState({
     addUser: false,
@@ -299,6 +300,7 @@ export default function AdminDashboardPage() {
     { id: 'review', label: 'Reviews', icon: FiCheckCircle },
     { id: 'games', label: 'Live Games', icon: FiCalendar },
     { id: 'importedData', label: 'Data Imports', icon: FiBox },
+    { id: 'leagues', label: 'Leagues', icon: FiTarget },
   ];
 
   const renderContent = () => {
@@ -315,6 +317,7 @@ export default function AdminDashboardPage() {
       case 'review': return <ReviewTab rows={reviews} approve={approveReview} reject={rejectReview} adminData={adminData} />;
       case 'games': return <GamesTab live={live} upcoming={upcoming} updateScore={updateScore} startG={startGame} endG={endGame} />;
       case 'importedData': return <ImportedDataTab />;
+      case 'leagues': return <LeaguesTab adminData={adminData} />;
       default: return null;
     }
   };

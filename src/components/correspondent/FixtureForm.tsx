@@ -121,16 +121,39 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
   };
 
   useEffect(() => {
+    // Ensure sports are loaded before proceeding
+    if (sports.length === 0) return;
+    
     if (selectedLeague) {
       const league = leagues.find(l => l.id === selectedLeague);
       if (league) {
         const sportName = league.sportName;
-        if (sportName) {
-          const sport = sports.find(s => s.name.toLowerCase() === sportName.toLowerCase());
-          if (sport) {
-            loadSeasonsForSport(sport.id);
-            filterTeamsBySport(sport.id);
-          }
+        const leagueName = league.name;
+        
+        // Try multiple matching strategies
+        let sport = sports.find(s => s.name.toLowerCase().trim() === sportName?.toLowerCase().trim());
+        
+        // If not found by sportName, try matching by league name
+        if (!sport && leagueName) {
+          sport = sports.find(s => s.name.toLowerCase().trim() === leagueName.toLowerCase().trim());
+        }
+        
+        // If still not found, try partial matching
+        if (!sport && sportName) {
+          sport = sports.find(s => 
+            s.name.toLowerCase().includes(sportName.toLowerCase().trim()) ||
+            sportName.toLowerCase().includes(s.name.toLowerCase().trim())
+          );
+        }
+        
+        if (sport) {
+          loadSeasonsForSport(sport.id);
+          filterTeamsBySport(sport.id);
+        } else {
+          // If sport not found, log for debugging
+          console.warn('Sport not found for league:', league.name, 'sportName:', sportName, 'available sports:', sports.map(s => s.name));
+          setSeasons([]);
+          setFilteredTeams(teams);
         }
       }
       loadMatches(selectedLeague);
@@ -140,7 +163,7 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
       setSelectedSeasonId('');
       setFilteredTeams(teams);
     }
-  }, [selectedLeague, sports]);
+  }, [selectedLeague, sports, leagues]);
 
   useEffect(() => {
     if (type === 'friendly' && selectedSportId) {
