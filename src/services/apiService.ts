@@ -226,7 +226,7 @@ export class ApiService {
 
       case "/api/teams": {
         const snap = await getDocs(collection(db, "teams"));
-        result = { teams: snap.docs.map(d => d.data()) };
+        result = { teams: snap.docs.map(d => ({ id: d.id, ...d.data() })) };
         break;
       }
 

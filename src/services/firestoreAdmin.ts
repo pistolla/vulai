@@ -119,8 +119,11 @@ export const loadTeams = async (): Promise<Team[]> => {
   return snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as Team));
 };
 
-export const addTeam = async (team: Omit<Team, 'id'> & { logoURL?: string }) =>
-  addDoc(collection(db, 'teams'), { ...team, createdAt: serverTimestamp() });
+export const addTeam = async (team: Omit<Team, 'id'> & { logoURL?: string }) => {
+  const ref = doc(collection(db, 'teams'));
+  await setDoc(ref, { ...team, id: ref.id, createdAt: serverTimestamp() });
+  return { id: ref.id, ...team };
+};
 
 export const updateTeam = async (id: string, data: Partial<Team & { logoURL?: string }>) =>
   updateDoc(doc(db, 'teams', id), data);
