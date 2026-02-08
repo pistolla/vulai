@@ -374,10 +374,11 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
   );
 }
 
-export default function TeamsTab({ adminData, create, update, deleteU, players = [] }: any) {
+export default function TeamsTab({ adminData, create, update, deleteU }: any) {
   const user = useAppSelector(state => state.auth.user);
   const teams = useAppSelector(state => state.admin.teams);
   const universities = useAppSelector(state => state.admin.universities);
+  const players = useAppSelector(state => state.admin.players);
   const dispatch = useAppDispatch();
   const { success, error: showError, warning } = useToast();
 
