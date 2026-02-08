@@ -7,22 +7,23 @@ import { University, League } from '../models';
 import { useTheme } from '../components/ThemeProvider';
 import { useRouter } from 'next/router';
 import { fetchLeagues } from '../store/correspondentThunk';
+import { generateTeamSlug } from '../utils/slugUtils';
 
 const TeamsPage: React.FC = () => {
   const dispatch = useAppDispatch();
-   const { theme, mounted: themeMounted } = useTheme();
-   const router = useRouter();
-   const user = useAppSelector(s => s.auth.user);
-   const { leagues } = useAppSelector((state) => state.leagues);
-   const [ universities, setUniversities ] = useState<University[] | null>(null);
-   const [data, setData] = useState<TeamsData | null>(null);
-   const [loading, setLoading] = useState(true);
-   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
-   const [positionFilter, setPositionFilter] = useState<string>('all');
-   const [searchQuery, setSearchQuery] = useState<string>('');
-   const [teamSearchQuery, setTeamSearchQuery] = useState<string>('');
-   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
-   const [selectedUniversity, setSelectedUniversity] = useState<string>('all');
+  const { theme, mounted: themeMounted } = useTheme();
+  const router = useRouter();
+  const user = useAppSelector(s => s.auth.user);
+  const { leagues } = useAppSelector((state) => state.leagues);
+  const [universities, setUniversities] = useState<University[] | null>(null);
+  const [data, setData] = useState<TeamsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [positionFilter, setPositionFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [teamSearchQuery, setTeamSearchQuery] = useState<string>('');
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const [selectedUniversity, setSelectedUniversity] = useState<string>('all');
 
   useEffect(() => {
     let isMounted = true;
@@ -47,24 +48,24 @@ const TeamsPage: React.FC = () => {
         }
 
         // Load university data
-         try {
-           const universityData: any = await apiService.getUniversityData();
-           console.log(universityData);
-           if (isMounted) {
-             setUniversities(universityData);
-           }
-         } catch (universityError) {
-           console.error('Failed to load university data:', universityError);
-           // Don't fail the whole page if universities fail
-         }
+        try {
+          const universityData: any = await apiService.getUniversityData();
+          console.log(universityData);
+          if (isMounted) {
+            setUniversities(universityData);
+          }
+        } catch (universityError) {
+          console.error('Failed to load university data:', universityError);
+          // Don't fail the whole page if universities fail
+        }
 
-         // Load leagues data
-         try {
-           await dispatch(fetchLeagues()).unwrap();
-         } catch (leaguesError) {
-           console.error('Failed to load leagues data:', leaguesError);
-           // Don't fail the whole page if leagues fail
-         }
+        // Load leagues data
+        try {
+          await dispatch(fetchLeagues()).unwrap();
+        } catch (leaguesError) {
+          console.error('Failed to load leagues data:', leaguesError);
+          // Don't fail the whole page if leagues fail
+        }
 
         if (isMounted) {
           setLoading(false);
@@ -296,7 +297,7 @@ const TeamsPage: React.FC = () => {
           </h1>
         </div>
       </section>
-      
+
       {/* Team Selection */}
       <section className={`py-4 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -304,9 +305,8 @@ const TeamsPage: React.FC = () => {
           <div className="mb-6">
             <div className="flex flex-wrap gap-3 justify-center">
               <button
-                className={`px-4 py-2 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 hover:bg-gray-200' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20'} transition-all ${
-                  selectedUniversity === 'all' ? 'ring-2 ring-unill-yellow-400' : ''
-                }`}
+                className={`px-4 py-2 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 hover:bg-gray-200' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20'} transition-all ${selectedUniversity === 'all' ? 'ring-2 ring-unill-yellow-400' : ''
+                  }`}
                 onClick={() => setSelectedUniversity('all')}
               >
                 All Universities
@@ -314,9 +314,8 @@ const TeamsPage: React.FC = () => {
               {universities && universities.map((university) => (
                 <button
                   key={university.id}
-                  className={`px-4 py-2 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 hover:bg-gray-200' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20'} transition-all ${
-                    selectedUniversity === university.id ? 'ring-2 ring-unill-yellow-400' : ''
-                  }`}
+                  className={`px-4 py-2 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 hover:bg-gray-200' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20'} transition-all ${selectedUniversity === university.id ? 'ring-2 ring-unill-yellow-400' : ''
+                    }`}
                   onClick={() => setSelectedUniversity(university.id)}
                 >
                   {university.name}
@@ -359,14 +358,13 @@ const TeamsPage: React.FC = () => {
               </p>
             </div>
           )}
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
             {filteredTeams.map((team) => (
-              <div 
+              <div
                 key={team.id}
-                className={`team-card bg-white/10 backdrop-blur-md rounded-lg p-8 cursor-pointer border border-white/20 transition-all hover:bg-white/15 hover:transform hover:scale-105 hover:shadow-2xl ${
-                  currentSelectedTeam.id === team.id ? 'ring-2 ring-unill-yellow-400' : ''
-                }`}
+                className={`team-card bg-white/10 backdrop-blur-md rounded-lg p-8 cursor-pointer border border-white/20 transition-all hover:bg-white/15 hover:transform hover:scale-105 hover:shadow-2xl ${currentSelectedTeam.id === team.id ? 'ring-2 ring-unill-yellow-400' : ''
+                  }`}
                 onClick={() => handleTeamSelect(team)}
               >
                 <div className="text-center mb-6">
@@ -410,10 +408,11 @@ const TeamsPage: React.FC = () => {
                   <div className="flex gap-2 mt-4">
                     <button
                       onClick={() => {
+                        const teamSlug = generateTeamSlug(team.name);
                         if (user) {
-                          router.push(`/team/fan/${team.id}`);
+                          router.push(`/team/fan/${teamSlug}`);
                         } else {
-                          router.push(`/team/${team.id}`);
+                          router.push(`/team/${teamSlug}`);
                         }
                       }}
                       className="flex-1 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 text-white px-4 py-2 rounded-lg font-semibold hover:from-unill-yellow-500 hover:to-unill-purple-600 transition-all"
@@ -435,7 +434,7 @@ const TeamsPage: React.FC = () => {
           </div>
         </div>
       </section>
-      
+
       {/* Player Roster Section */}
       <section id="team-roster" className={`py-16 bg-black/20 backdrop-blur-sm ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -445,59 +444,54 @@ const TeamsPage: React.FC = () => {
             </h2>
             <p className="text-xl text-gray-700">Meet our talented student-athletes</p>
           </div>
-          
+
           {/* Filter and Search */}
           <div className="mb-8">
             <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
               {/* Position Filter */}
               <div className="flex flex-wrap gap-3">
                 <button
-                  className={`filter-btn active px-4 py-2 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 hover:bg-gray-200' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20'} transition-all ${
-                    positionFilter === 'all' ? 'active' : ''
-                  }`}
+                  className={`filter-btn active px-4 py-2 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 hover:bg-gray-200' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20'} transition-all ${positionFilter === 'all' ? 'active' : ''
+                    }`}
                   onClick={() => setPositionFilter('all')}
                 >
                   All Positions
                 </button>
                 <button
-                  className={`filter-btn px-4 py-2 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 hover:bg-gray-200' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20'} transition-all ${
-                    positionFilter === 'quarterback' ? 'active' : ''
-                  }`}
+                  className={`filter-btn px-4 py-2 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 hover:bg-gray-200' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20'} transition-all ${positionFilter === 'quarterback' ? 'active' : ''
+                    }`}
                   onClick={() => setPositionFilter('quarterback')}
                 >
                   Quarterback
                 </button>
                 <button
-                  className={`filter-btn px-4 py-2 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 hover:bg-gray-200' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20'} transition-all ${
-                    positionFilter === 'running-back' ? 'active' : ''
-                  }`}
+                  className={`filter-btn px-4 py-2 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 hover:bg-gray-200' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20'} transition-all ${positionFilter === 'running-back' ? 'active' : ''
+                    }`}
                   onClick={() => setPositionFilter('running-back')}
                 >
                   Running Back
                 </button>
                 <button
-                  className={`filter-btn px-4 py-2 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 hover:bg-gray-200' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20'} transition-all ${
-                    positionFilter === 'wide-receiver' ? 'active' : ''
-                  }`}
+                  className={`filter-btn px-4 py-2 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 hover:bg-gray-200' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20'} transition-all ${positionFilter === 'wide-receiver' ? 'active' : ''
+                    }`}
                   onClick={() => setPositionFilter('wide-receiver')}
                 >
                   Wide Receiver
                 </button>
                 <button
-                  className={`filter-btn px-4 py-2 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 hover:bg-gray-200' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20'} transition-all ${
-                    positionFilter === 'defensive' ? 'active' : ''
-                  }`}
+                  className={`filter-btn px-4 py-2 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 hover:bg-gray-200' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20'} transition-all ${positionFilter === 'defensive' ? 'active' : ''
+                    }`}
                   onClick={() => setPositionFilter('defensive')}
                 >
                   Defense
                 </button>
               </div>
-              
+
               {/* Search */}
               <div className="relative">
-                <input 
-                  type="text" 
-                  placeholder="Search players..." 
+                <input
+                  type="text"
+                  placeholder="Search players..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className={`w-full px-4 py-2 pl-10 ${themeMounted && theme === 'light' ? 'bg-gray-100 border border-gray-400 text-gray-700 placeholder-gray-500' : 'bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-gray-300'} focus:outline-none focus:ring-2 focus:ring-unill-yellow-400 focus:border-transparent`}
@@ -508,11 +502,11 @@ const TeamsPage: React.FC = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Players Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredPlayers.map((player, index) => (
-              <div 
+              <div
                 key={index}
                 className="player-card bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20 cursor-pointer transition-all hover:bg-white/15 hover:transform hover:-translate-y-2 hover:scale-105 hover:shadow-2xl"
                 onClick={() => showPlayerModal(player)}
@@ -542,7 +536,7 @@ const TeamsPage: React.FC = () => {
           </div>
         </div>
       </section>
-      
+
       {/* Team Statistics */}
       <section className={`py-16 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -588,7 +582,7 @@ const TeamsPage: React.FC = () => {
                     <p className="text-gray-700">{selectedPlayer.position}</p>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={closePlayerModal}
                   className="text-gray-400 hover:text-white"
                 >
@@ -597,7 +591,7 @@ const TeamsPage: React.FC = () => {
                   </svg>
                 </button>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-6 mb-6">
                 <div className="bg-gradient-to-r from-unill-purple-500/20 to-unill-yellow-500/20 border border-unill-yellow-400/30 rounded-lg p-4">
                   <h4 className="font-semibold mb-2">Physical Stats</h4>
@@ -620,7 +614,7 @@ const TeamsPage: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="bg-gradient-to-r from-unill-purple-500/20 to-unill-yellow-500/20 border border-unill-yellow-400/30 rounded-lg p-4">
                   <h4 className="font-semibold mb-2">Performance</h4>
                   <div className="space-y-2 text-sm">
@@ -643,16 +637,16 @@ const TeamsPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="mb-6">
                 <h4 className="font-semibold mb-3">Biography</h4>
                 <p className="text-gray-700 text-sm leading-relaxed">
-                  {selectedPlayer.name} is a standout {selectedPlayer.position} known for their exceptional skills and dedication to the sport. 
+                  {selectedPlayer.name} is a standout {selectedPlayer.position} known for their exceptional skills and dedication to the sport.
                   With a strong work ethic and natural talent, they have become a key player for the {currentSelectedTeam.name}.
                   Their commitment to both athletics and academics makes them a true student-athlete role model.
                 </p>
               </div>
-              
+
               <div className="flex gap-4">
                 <a
                   href="/contact"

@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { apiService } from '@/services/apiService';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { fetchMerch } from '@/store/adminThunk';
+import { findTeamBySlug } from '@/utils/slugUtils';
 
 export const configThemes: Record<string, { primary: string; secondary: string; accent: string }> = {
     quantum: { primary: '#6a11cb', secondary: '#2575fc', accent: '#00d4ff' },
@@ -31,10 +32,10 @@ export function useTeamData(slug: string | undefined) {
             try {
                 setLoading(true);
                 setError(null);
-                
+
                 // 1. Fetch Team Data
                 const teamsData = await apiService.getTeamsData();
-                
+
                 // If no teams exist at all, redirect to /teams page
                 if (!teamsData.teams || teamsData.teams.length === 0) {
                     console.warn('No teams found in database, redirecting to /teams');
@@ -42,18 +43,9 @@ export function useTeamData(slug: string | undefined) {
                     setLoading(false);
                     return;
                 }
-                
-                // Try to find team by id first, then by slug field
-                let team = teamsData.teams.find((t: any) => t.id === slug);
-                
-                // If not found by id, try by slug field
-                if (!team) {
-                    team = teamsData.teams.find((t: any) => 
-                        t.slug === slug || 
-                        t.name?.toLowerCase().replace(/\s+/g, '-') === slug?.toLowerCase() ||
-                        t.name?.toLowerCase().replace(/\s+/g, '') === slug?.toLowerCase()
-                    );
-                }
+
+                // Find team using the shared utility function for consistent slug matching
+                const team = findTeamBySlug(teamsData.teams, slug);
 
                 if (!team) {
                     // Team not found, redirect to /teams page

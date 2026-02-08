@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import { useTheme } from './ThemeProvider';
 import { useAppSelector } from '../hooks/redux';
 import { signOut } from '../services/firebase';
-import { FiShoppingCart, FiMenu, FiX, FiUser, FiLogOut, FiSettings } from 'react-icons/fi';
+import { FiShoppingCart, FiMenu, FiX, FiUser, FiLogOut, FiSettings, FiSearch } from 'react-icons/fi';
 import { RealtimeProvider, useRealtime } from '@/hooks/useRealtime';
 import { GameTicker } from '@/components/team/GameTicker';
 import { LiveEventPop } from '@/components/team/LiveEventPop';
@@ -204,6 +204,14 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
                     }`} />
                 </a>
               ))}
+              {/* Search Button */}
+              <a
+                href="/search"
+                className="p-2 text-white hover:text-unill-yellow-400 transition-colors"
+                title="Search Fixtures"
+              >
+                <FiSearch className="w-6 h-6" />
+              </a>
               {/* Theme Toggle */}
               <button
                 onClick={toggleTheme}
