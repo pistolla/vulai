@@ -413,7 +413,7 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
 
   // Filter players based on search
   const filteredPlayers = players.filter((player: any) =>
-    player.name.toLowerCase().includes(playerSearchQuery.toLowerCase()) ||
+    player.name?.toLowerCase().includes(playerSearchQuery.toLowerCase()) ||
     player.position?.toLowerCase().includes(playerSearchQuery.toLowerCase()) ||
     player.number?.toString().includes(playerSearchQuery)
   );

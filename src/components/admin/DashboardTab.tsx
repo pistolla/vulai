@@ -35,11 +35,10 @@ function KenyaMap({ live, upcoming, onPin }: any) {
         const matchesData = await apiService.getSchedule();
         if (matchesData && matchesData.length > 0) {
           setMatches(matchesData);
-        } else {
-          throw new Error('Empty Firebase matches data');
         }
+        // If matchesData is empty or null, fall back to local data silently
       } catch (error) {
-        console.error('Failed to load matches from Firebase:', error);
+        console.warn('Firebase matches data not available, using local data');
         try {
           const response = await fetch('/data/schedule.json');
           if (!response.ok) throw new Error('Failed to load schedule data');
