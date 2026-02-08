@@ -88,11 +88,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
     }
   };
 
-  const handleBlur = (name: string) => {
-    setTouched(prev => ({ ...prev, [name]: true }));
-    const error = validateField(name, formData[name]);
-    setErrors(prev => ({ ...prev, [name]: error }));
-  };
+  // Validation only happens on submit - removed blur validation
 
   const handleChange = (name: string, value: string) => {
     setFormData((prev: any) => ({ ...prev, [name]: value }));
@@ -168,7 +164,6 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
               type="text"
               value={formData.name}
               onChange={(e) => handleChange('name', e.target.value)}
-              onBlur={() => handleBlur('name')}
               className={`w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 transition-all ${
                 errors.name 
                   ? 'border-red-300 dark:border-red-600 focus:ring-4 focus:ring-red-500/20' 
@@ -187,7 +182,6 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
             <select
               value={formData.sport}
               onChange={(e) => handleChange('sport', e.target.value)}
-              onBlur={() => handleBlur('sport')}
               className={`w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 transition-all appearance-none ${
                 errors.sport
                   ? 'border-red-300 dark:border-red-600 focus:ring-4 focus:ring-red-500/20'
@@ -208,7 +202,6 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
             <select
               value={formData.universityId}
               onChange={(e) => handleChange('universityId', e.target.value)}
-              onBlur={() => handleBlur('universityId')}
               className={`w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 transition-all appearance-none ${
                 errors.universityId
                   ? 'border-red-300 dark:border-red-600 focus:ring-4 focus:ring-red-500/20'
@@ -230,7 +223,6 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
             type="text"
             value={formData.coach}
             onChange={(e) => handleChange('coach', e.target.value)}
-            onBlur={() => handleBlur('coach')}
             className={`w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 transition-all ${
               errors.coach
                 ? 'border-red-300 dark:border-red-600 focus:ring-4 focus:ring-red-500/20'
@@ -245,7 +237,6 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
             type="number"
             value={formData.foundedYear}
             onChange={(e) => handleChange('foundedYear', e.target.value)}
-            onBlur={() => handleBlur('foundedYear')}
             className={`w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 transition-all ${
               errors.foundedYear
                 ? 'border-red-300 dark:border-red-600 focus:ring-4 focus:ring-red-500/20'
