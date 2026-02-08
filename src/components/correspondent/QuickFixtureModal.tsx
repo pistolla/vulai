@@ -269,7 +269,7 @@ export const QuickFixtureModal: React.FC<QuickFixtureModalProps> = ({ isOpen, on
                                 setErrors(prev => ({ ...prev, season: '' }));
                             }}
                             className={`w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-2 ${
-                                errors.season ? 'border-red-300 dark:border-red-600' : 'border-transparent focus:border-blue-500'
+                                errors.season ? 'border-red-300 dark:border-red-600' : 'border-transparent focus:border-unill-purple-500'
                             } dark:text-white font-bold appearance-none`}
                         >
                             <option value="">Select Season</option>

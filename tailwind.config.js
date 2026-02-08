@@ -45,6 +45,7 @@ module.exports = {
         'float': 'float 6s ease-in-out infinite',
         'pulse-glow': 'pulse-glow 2s ease-in-out infinite alternate',
         'pulse-live': 'pulse-live 1.5s ease-in-out infinite',
+        'fade-in': 'fadeIn 0.2s ease-in-out',
       },
       keyframes: {
         float: {
@@ -58,6 +59,10 @@ module.exports = {
         'pulse-live': {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.7' },
+        },
+        fadeIn: {
+          '0%': { opacity: '0', transform: 'translateY(-10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
         },
       },
     },

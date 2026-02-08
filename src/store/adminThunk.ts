@@ -13,7 +13,7 @@ import {
   loadPlayerAvatars, addPlayerAvatar, updatePlayerAvatar, deletePlayerAvatar,
   loadSports, addSport, updateSport, deleteSport,
   loadImportedData, processImportedData, saveProcessedDocument,
-  addSeasonToSport, loadSeasons
+  addSeasonToSport, loadSeasons, updateSeason, deleteSeason
 } from '@/services/firestoreAdmin';
 import { Season } from '@/models';
 
@@ -97,6 +97,14 @@ export const fetchSeasons = createAsyncThunk('seasons/fetch', async (sportId: st
 export const createSeasonT = createAsyncThunk('seasons/create', async ({ sportId, season }: { sportId: string; season: Omit<Season, 'id'> }) => {
   const res = await addSeasonToSport(sportId, season);
   return { id: res.id, ...season };
+});
+export const updateSeasonT = createAsyncThunk('seasons/update', async ({ sportId, seasonId, data }: { sportId: string; seasonId: string; data: Partial<Season> }) => {
+  await updateSeason(sportId, seasonId, data);
+  return { id: seasonId, ...data };
+});
+export const removeSeasonT = createAsyncThunk('seasons/delete', async ({ sportId, seasonId }: { sportId: string; seasonId: string }) => {
+  await deleteSeason(sportId, seasonId);
+  return seasonId;
 });
 
 /* ---------- imported data ---------- */

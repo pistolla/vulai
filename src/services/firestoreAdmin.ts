@@ -269,6 +269,12 @@ export const deleteSport = async (id: string) =>
 export const addSeasonToSport = async (sportId: string, season: Omit<Season, 'id'>) =>
   addDoc(collection(db, `sports/${sportId}/seasons`), { ...season, createdAt: serverTimestamp() });
 
+export const updateSeason = async (sportId: string, seasonId: string, data: Partial<Season>) =>
+  updateDoc(doc(db, `sports/${sportId}/seasons`, seasonId), data);
+
+export const deleteSeason = async (sportId: string, seasonId: string) =>
+  deleteDoc(doc(db, `sports/${sportId}/seasons`, seasonId));
+
 export const loadSeasons = async (sportId: string): Promise<Season[]> => {
   const snap = await getDocs(collection(db, `sports/${sportId}/seasons`));
   return snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as Season));

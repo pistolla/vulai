@@ -104,11 +104,12 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
 
   const isCorrespondent = user?.role === 'correspondent';
 
+  // Initialize universityId only once when form first loads (not on every render)
   useEffect(() => {
-    if (isCorrespondent && user?.universityId) {
+    if (isCorrespondent && user?.universityId && !formData.universityId) {
       setFormData((prev: any) => ({ ...prev, universityId: user.universityId }));
     }
-  }, [isCorrespondent, user?.universityId, setFormData]);
+  }, [isCorrespondent, user?.universityId]); // Removed formData and setFormData from dependencies
 
   const validateAll = () => {
     const newErrors: Record<string, string> = {};
@@ -171,7 +172,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
               className={`w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 transition-all ${
                 errors.name 
                   ? 'border-red-300 dark:border-red-600 focus:ring-4 focus:ring-red-500/20' 
-                  : 'border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20'
+                  : 'border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20'
               } text-gray-900 dark:text-white font-bold placeholder-gray-400`}
               placeholder="e.g. Eagles FC"
             />
@@ -190,7 +191,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
               className={`w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 transition-all appearance-none ${
                 errors.sport
                   ? 'border-red-300 dark:border-red-600 focus:ring-4 focus:ring-red-500/20'
-                  : 'border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20'
+                  : 'border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20'
               } text-gray-900 dark:text-white font-bold`}
             >
               <option value="">Select Sport</option>
@@ -211,7 +212,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
               className={`w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 transition-all appearance-none ${
                 errors.universityId
                   ? 'border-red-300 dark:border-red-600 focus:ring-4 focus:ring-red-500/20'
-                  : 'border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20'
+                  : 'border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20'
               } text-gray-900 dark:text-white font-bold ${isCorrespondent ? 'opacity-70 cursor-not-allowed' : ''}`}
               disabled={isCorrespondent}
             >
@@ -233,7 +234,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
             className={`w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 transition-all ${
               errors.coach
                 ? 'border-red-300 dark:border-red-600 focus:ring-4 focus:ring-red-500/20'
-                : 'border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20'
+                : 'border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20'
             } text-gray-900 dark:text-white font-bold placeholder-gray-400`}
             placeholder="e.g. John Smith"
           />
@@ -248,7 +249,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
             className={`w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 transition-all ${
               errors.foundedYear
                 ? 'border-red-300 dark:border-red-600 focus:ring-4 focus:ring-red-500/20'
-                : 'border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20'
+                : 'border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20'
             } text-gray-900 dark:text-white font-bold placeholder-gray-400`}
             placeholder="e.g. 2020"
           />
@@ -259,17 +260,18 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
             <select
               value={formData.league}
               onChange={(e) => setFormData({ ...formData, league: e.target.value })}
-              className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold appearance-none"
-              disabled={!formData.sport}
+              className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20 text-gray-900 dark:text-white font-bold appearance-none"
             >
-              <option value="">Select League</option>
+              <option value="">Select League (Optional)</option>
               {filteredLeagues.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
+              {filteredLeagues.length === 0 && (
+                <option value="" disabled>No leagues available for selected sport</option>
+              )}
             </select>
             {!formData.sport && (
-              <div className="flex items-center gap-1 mt-2 text-amber-500 dark:text-amber-400 text-xs">
-                <FiAlertCircle className="w-3 h-3" />
-                <span>Select a sport first</span>
-              </div>
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                Select a sport to see available leagues, or leave empty
+              </p>
             )}
           </div>
         </InputWrapper>
@@ -279,7 +281,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
             type="text"
             value={formData.record}
             onChange={(e) => setFormData({ ...formData, record: e.target.value })}
-            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400"
             placeholder="e.g. 11-0-1"
           />
         </InputWrapper>
@@ -289,7 +291,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
             type="text"
             value={formData.championships}
             onChange={(e) => setFormData({ ...formData, championships: e.target.value })}
-            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400"
             placeholder="e.g. Count or list"
           />
         </InputWrapper>
@@ -299,7 +301,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
             type="text"
             value={formData.season}
             onChange={(e) => setFormData({ ...formData, season: e.target.value })}
-            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400"
             placeholder="e.g. 2024/25"
           />
         </InputWrapper>
@@ -355,7 +357,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
         <button
           type="submit"
           disabled={isSubmitting}
-          className="flex-[2] py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black shadow-lg shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2"
+          className="flex-[2] py-4 bg-unill-purple-600 hover:bg-unill-purple-700 text-white rounded-2xl font-black shadow-lg shadow-unill-purple-500/30 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100 flex items-center justify-center gap-2"
         >
           {isSubmitting ? (
             <>
@@ -569,7 +571,7 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
           </div>
           <button
             onClick={() => { resetNewTeam(); setShowAddModal(true); }}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-bold shadow-lg shadow-blue-500/30 transition-all active:scale-95"
+            className="flex items-center gap-2 bg-unill-purple-600 hover:bg-unill-purple-700 text-white px-4 py-2 rounded-xl font-bold shadow-lg shadow-unill-purple-500/30 transition-all active:scale-95"
           >
             <FiPlus className="w-5 h-5" />
             Add Team
@@ -588,7 +590,7 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
               <p className="text-gray-500 dark:text-gray-400 mb-6">Get started by adding your first team</p>
               <button
                 onClick={() => { resetNewTeam(); setShowAddModal(true); }}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 transition-all active:scale-95"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-unill-purple-600 hover:bg-unill-purple-700 text-white rounded-xl font-bold shadow-lg shadow-unill-purple-500/30 transition-all active:scale-95"
               >
                 <FiPlus className="w-5 h-5" />
                 Add First Team
@@ -673,8 +675,8 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
         />
       </Modal>
 
-      {/* Edit Team Modal */}
-      <Modal isOpen={showEditModal && !!editingTeam} title="Edit Team" onClose={() => { setShowEditModal(false); setEditingTeam(null); }} fullScreen={true}>
+      {/* Edit Team Modal - uses separate state for isOpen to prevent re-renders during typing */}
+      <Modal isOpen={showEditModal} title="Edit Team" onClose={() => { setShowEditModal(false); setEditingTeam(null); }} fullScreen={true}>
         {editingTeam && (
           <TeamForm
             formData={editingTeam}

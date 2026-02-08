@@ -419,7 +419,7 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
             <select
               value={selectedSeasonId}
               onChange={(e) => setSelectedSeasonId(e.target.value)}
-              className={`w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border-2 ${errors.season ? 'border-red-300 dark:border-red-600' : 'border-transparent focus:border-blue-500'} dark:text-white font-medium`}
+              className={`w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border-2 ${errors.season ? 'border-red-300 dark:border-red-600' : 'border-transparent focus:border-unill-purple-500'} dark:text-white font-medium`}
             >
               <option value="">Choose Season</option>
               {seasons.map((s: Season) => (
