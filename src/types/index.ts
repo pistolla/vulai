@@ -50,6 +50,7 @@ export interface Player {
   avatar: string;
   universityId: string;
   sportId: string;
+  teamId?: string; // Reference to team for querying
   stats?: PlayerStats;
   social?: PlayerSocial;
   bio?: string;
@@ -64,11 +65,20 @@ export interface Player {
   kitNumber?: number;
 }
 
+// Player reference document stored in team subcollections (current_squad, bench_squad, retired_squad, current_formation)
+export interface PlayerReference {
+  playerId: string; // Reference to main players collection
+  squadType: 'current_squad' | 'bench_squad' | 'retired_squad' | 'current_formation';
+  addedAt: string;
+  addedBy?: string;
+  notes?: string;
+}
+
 export interface Team {
   id: string;
   name: string;
+  slug: string; // Human-readable URL slug for team pages
   sport: string;
-  players: Player[];
   coach?: string;
   founded?: number;
   league?: string;
@@ -76,6 +86,9 @@ export interface Team {
   championships?: number;
   theme?: TeamTheme;
   logoURL?: string;
+  // Players are now stored in root 'players' collection with teamId reference
+  // This field may be populated for backward compatibility or denormalized queries
+  players?: Player[];
 }
 
 export interface Match {

@@ -131,39 +131,59 @@ export const updateTeam = async (id: string, data: Partial<Team & { logoURL?: st
 export const deleteTeam = async (id: string) =>
   deleteDoc(doc(db, 'teams', id));
 
-export const addPlayerToTeam = async (teamId: string, player: any) => {
-  const teamRef = doc(db, 'teams', teamId);
-  const teamSnap = await getDoc(teamRef);
-  if (!teamSnap.exists()) throw new Error('Team not found');
-  const teamData = teamSnap.data();
-  const players = teamData.players || [];
-  players.push({ ...player, id: Date.now().toString() }); // Simple ID generation
-  await updateDoc(teamRef, { players });
+/* ---------- team squad subcollections (current_squad, bench_squad, retired_squad, current_formation) ---------- */
+// Players are stored in root 'players' collection, teams reference them via subcollection documents
+
+export type SquadType = 'current_squad' | 'bench_squad' | 'retired_squad' | 'current_formation';
+
+export const addPlayerToSquad = async (teamId: string, playerId: string, squadType: SquadType, addedBy?: string, notes?: string) => {
+  const squadRef = doc(collection(db, `teams/${teamId}/${squadType}`), playerId);
+  await setDoc(squadRef, {
+    playerId,
+    squadType,
+    addedAt: new Date().toISOString(),
+    addedBy,
+    notes
+  });
+  return { teamId, playerId, squadType };
 };
 
-export const updatePlayerInTeam = async (teamId: string, playerId: string, playerData: any) => {
-  const teamRef = doc(db, 'teams', teamId);
-  const teamSnap = await getDoc(teamRef);
-  if (!teamSnap.exists()) throw new Error('Team not found');
-  const teamData = teamSnap.data();
-  const players = teamData.players || [];
-  const playerIndex = players.findIndex((p: any) => p.id === playerId);
-  if (playerIndex === -1) throw new Error('Player not found');
-  players[playerIndex] = { ...players[playerIndex], ...playerData };
-  await updateDoc(teamRef, { players });
+export const removePlayerFromSquad = async (teamId: string, playerId: string, squadType: SquadType) => {
+  await deleteDoc(doc(db, `teams/${teamId}/${squadType}`, playerId));
+  return { teamId, playerId, squadType };
 };
 
-export const deletePlayerFromTeam = async (teamId: string, playerId: string) => {
-  const teamRef = doc(db, 'teams', teamId);
-  const teamSnap = await getDoc(teamRef);
-  if (!teamSnap.exists()) throw new Error('Team not found');
-  const teamData = teamSnap.data();
-  const players = teamData.players || [];
-  const filteredPlayers = players.filter((p: any) => p.id !== playerId);
-  await updateDoc(teamRef, { players: filteredPlayers });
+export const getTeamSquads = async (teamId: string) => {
+  const [currentSquadSnap, benchSquadSnap, retiredSquadSnap, formationSnap] = await Promise.all([
+    getDocs(collection(db, `teams/${teamId}/current_squad`)),
+    getDocs(collection(db, `teams/${teamId}/bench_squad`)),
+    getDocs(collection(db, `teams/${teamId}/retired_squad`)),
+    getDocs(collection(db, `teams/${teamId}/current_formation`)),
+  ]);
+  
+  return {
+    current_squad: currentSquadSnap.docs.map(d => ({ id: d.id, ...d.data() })),
+    bench_squad: benchSquadSnap.docs.map(d => ({ id: d.id, ...d.data() })),
+    retired_squad: retiredSquadSnap.docs.map(d => ({ id: d.id, ...d.data() })),
+    current_formation: formationSnap.docs.map(d => ({ id: d.id, ...d.data() })),
+  };
 };
 
-/* ---------- players ---------- */
+export const movePlayerBetweenSquads = async (teamId: string, playerId: string, fromSquad: SquadType, toSquad: SquadType, addedBy?: string) => {
+  // Remove from old squad
+  await deleteDoc(doc(db, `teams/${teamId}/${fromSquad}`, playerId));
+  
+  // Add to new squad
+  const squadRef = doc(collection(db, `teams/${teamId}/${toSquad}`), playerId);
+  await setDoc(squadRef, {
+    playerId,
+    squadType: toSquad,
+    movedAt: new Date().toISOString(),
+    addedBy,
+  });
+  
+  return { teamId, playerId, fromSquad, toSquad };
+};
 export const loadPlayers = async (): Promise<any[]> => {
   const snap = await getDocs(collection(db, 'players'));
   return snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() }));

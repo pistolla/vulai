@@ -7,7 +7,7 @@ import {
   loadGames, updateFixtureScore, startGame, endGame,
   loadUniversities, addUniversity, updateUniversity, deleteUniversity,
   loadTeams, addTeam, updateTeam, deleteTeam,
-  addPlayerToTeam, updatePlayerInTeam, deletePlayerFromTeam,
+  addPlayerToSquad, removePlayerFromSquad, getTeamSquads, movePlayerBetweenSquads,
   loadPlayers, addPlayer, updatePlayer, deletePlayer,
   addPlayerHighlight, updatePlayerHighlight, deletePlayerHighlight,
   loadPlayerAvatars, addPlayerAvatar, updatePlayerAvatar, deletePlayerAvatar,
@@ -48,9 +48,23 @@ export const fetchTeams = createAsyncThunk('teams/fetch', loadTeams);
 export const createTeamT = createAsyncThunk('teams/create', addTeam);
 export const saveTeamT = createAsyncThunk('teams/save', ({ id, data }: { id: string; data: Partial<Team> }) => updateTeam(id, data));
 export const removeTeamT = createAsyncThunk('teams/delete', deleteTeam);
-export const addPlayerToTeamT = createAsyncThunk('teams/addPlayer', ({ teamId, player }: { teamId: string; player: any }) => addPlayerToTeam(teamId, player));
-export const updatePlayerInTeamT = createAsyncThunk('teams/updatePlayer', ({ teamId, playerId, playerData }: { teamId: string; playerId: string; playerData: any }) => updatePlayerInTeam(teamId, playerId, playerData));
-export const deletePlayerFromTeamT = createAsyncThunk('teams/deletePlayer', ({ teamId, playerId }: { teamId: string; playerId: string }) => deletePlayerFromTeam(teamId, playerId));
+
+/* ---------- team squad subcollections (current_squad, bench_squad, retired_squad, current_formation) ---------- */
+export const addPlayerToSquadT = createAsyncThunk('teams/addPlayerToSquad', 
+  ({ teamId, playerId, squadType, addedBy, notes }: { teamId: string; playerId: string; squadType: string; addedBy?: string; notes?: string }) => 
+    addPlayerToSquad(teamId, playerId, squadType as any, addedBy, notes)
+);
+export const removePlayerFromSquadT = createAsyncThunk('teams/removePlayerFromSquad',
+  ({ teamId, playerId, squadType }: { teamId: string; playerId: string; squadType: string }) =>
+    removePlayerFromSquad(teamId, playerId, squadType as any)
+);
+export const fetchTeamSquadsT = createAsyncThunk('teams/fetchSquads', getTeamSquads);
+export const movePlayerBetweenSquadsT = createAsyncThunk('teams/movePlayer',
+  ({ teamId, playerId, fromSquad, toSquad, addedBy }: { teamId: string; playerId: string; fromSquad: string; toSquad: string; addedBy?: string }) =>
+    movePlayerBetweenSquads(teamId, playerId, fromSquad as any, toSquad as any, addedBy)
+);
+
+/* ---------- players - stored in root 'players' collection ---------- */
 
 /* ---------- games ---------- */
 export const fetchGames = createAsyncThunk('games/fetch', loadGames);

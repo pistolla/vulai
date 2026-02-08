@@ -44,9 +44,6 @@ import {
   createTeamT,
   saveTeamT,
   removeTeamT,
-  addPlayerToTeamT,
-  updatePlayerInTeamT,
-  deletePlayerFromTeamT,
   fetchImportedData,
 } from '@/store/adminThunk';
 
@@ -254,35 +251,7 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const addPlayerToTeam = async (teamId: string, player: any) => {
-    try {
-      await dispatch(addPlayerToTeamT({ teamId, player })).unwrap();
-      dispatch(fetchTeams());
-      success('Player added successfully', 'The player is now part of the team', 'Add more players or update team roster');
-    } catch {
-      showError('Failed to add player', 'Please check the player details and try again');
-    }
-  };
-
-  const updatePlayerInTeam = async (teamId: string, playerId: string, playerData: any) => {
-    try {
-      await dispatch(updatePlayerInTeamT({ teamId, playerId, playerData })).unwrap();
-      dispatch(fetchTeams());
-      success('Player updated successfully', 'Changes have been saved', 'Continue editing or view team roster');
-    } catch {
-      showError('Failed to update player', 'Please try again or contact support');
-    }
-  };
-
-  const deletePlayerFromTeam = async (teamId: string, playerId: string) => {
-    try {
-      await dispatch(deletePlayerFromTeamT({ teamId, playerId })).unwrap();
-      dispatch(fetchTeams());
-      success('Player deleted successfully', 'The player has been removed from the team', 'Add new players if needed');
-    } catch {
-      showError('Failed to delete player', 'Please try again or contact support');
-    }
-  };
+  // Player management is now done through the PlayersTab with players stored in root 'players' collection
 
   const open = (k: keyof typeof modals, v: any = true) => setModals(p => ({ ...p, [k]: v }));
   const close = (k: keyof typeof modals) => setModals(p => ({ ...p, [k]: k === 'gameDetails' ? null : false }));
@@ -308,7 +277,7 @@ export default function AdminDashboardPage() {
       case 'dashboard': return <DashboardTab stats={stats} live={live} users={users} upcoming={upcoming} openGame={(g: any) => open('gameDetails', g)} adminData={adminData} />;
       case 'users': return <UsersTab rows={users} approve={approveUser} disapprove={disapproveUser} deleteU={deleteUser} openAdd={() => open('addUser')} adminData={adminData} viewProfile={(uid: string) => open('profileModal', { uid, user: users.find((u: any) => u.uid === uid) })} />;
       case 'universities': return <UniversitiesTab adminData={adminData} create={createUniversity} update={updateUniversity} deleteU={deleteUniversity} />;
-      case 'teams': return <TeamsTab adminData={adminData} create={createTeam} update={updateTeam} deleteU={deleteTeam} addPlayer={addPlayerToTeam} updatePlayer={updatePlayerInTeam} deletePlayer={deletePlayerFromTeam} />;
+      case 'teams': return <TeamsTab adminData={adminData} create={createTeam} update={updateTeam} deleteU={deleteTeam} players={useAppSelector(s => s.admin.players)} />;
       case 'players': return <PlayersTab adminData={adminData} />;
       case 'sports': return <SportsTab adminData={adminData} />;
       case 'merchandise': return <MerchTab items={merch} create={createMerch} remove={removeMerch} adminData={adminData} />;

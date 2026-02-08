@@ -14,6 +14,7 @@ export interface Team {
   id: string;
   universityId: string;
   name: string;
+  slug: string; // Human-readable URL slug for team pages
   sport: string;
   logoURL?: string;
   foundedYear?: number;
@@ -23,7 +24,7 @@ export interface Team {
   championships?: string;
   season?: string;
   stats?: any;
-  players?: any[];
+  // Players are now stored in root 'players' collection with teamId reference
 }
 
 export interface Athlete {

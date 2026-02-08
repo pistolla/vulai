@@ -6,8 +6,10 @@ import { University, League } from '@/models';
 import { firebaseLeagueService } from '@/services/firebaseCorrespondence';
 import { useToast } from '@/components/common/ToastProvider';
 import { Modal } from '@/components/common/Modal';
-import { useAppSelector } from '@/hooks/redux';
-import { FiPlus, FiEdit2, FiTrash2, FiUsers, FiAward, FiCalendar, FiCheckCircle, FiAlertCircle, FiUploadCloud } from 'react-icons/fi';
+import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { addPlayerToSquadT } from '@/store/adminThunk';
+import { FiPlus, FiEdit2, FiTrash2, FiUsers, FiAward, FiCalendar, FiCheckCircle, FiAlertCircle, FiUploadCloud, FiSearch, FiX } from 'react-icons/fi';
+import { generateTeamSlug } from '@/utils/slugUtils';
 
 // Team Form Component with Validation
 function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel }: any) {
@@ -372,20 +374,18 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
   );
 }
 
-export default function TeamsTab({ adminData, create, update, deleteU, addPlayer, updatePlayer, deletePlayer }: any) {
+export default function TeamsTab({ adminData, create, update, deleteU, players = [] }: any) {
   const user = useAppSelector(state => state.auth.user);
   const teams = useAppSelector(state => state.admin.teams);
   const universities = useAppSelector(state => state.admin.universities);
+  const dispatch = useAppDispatch();
   const { success, error: showError, warning } = useToast();
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showPlayersModal, setShowPlayersModal] = useState(false);
-  const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
-  const [showEditPlayerModal, setShowEditPlayerModal] = useState(false);
-  const [editingTeam, setEditingTeam] = useState<any>(null);
+  const [showSquadModal, setShowSquadModal] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
-  const [editingPlayer, setEditingPlayer] = useState<any>(null);
+  const [editingTeam, setEditingTeam] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [newTeam, setNewTeam] = useState({
@@ -402,17 +402,33 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
     stats: {}
   });
 
-  const [newPlayer, setNewPlayer] = useState({
-    name: '',
-    position: '',
-    year: '',
-    number: '',
-    height: '',
-    weight: '',
-    team: '',
-    university: '',
-    avatar: ''
-  });
+  // Player assignment state
+  const [playerSearchQuery, setPlayerSearchQuery] = useState('');
+  const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
+  const [selectedSquadType, setSelectedSquadType] = useState<'current_squad' | 'bench_squad' | 'retired_squad' | 'current_formation'>('current_squad');
+  const [assigningPlayer, setAssigningPlayer] = useState(false);
+
+  // Filter players based on search
+  const filteredPlayers = players.filter((player: any) =>
+    player.name.toLowerCase().includes(playerSearchQuery.toLowerCase()) ||
+    player.position?.toLowerCase().includes(playerSearchQuery.toLowerCase()) ||
+    player.number?.toString().includes(playerSearchQuery)
+  );
+
+  // Squad type labels
+  const squadTypeLabels: Record<string, string> = {
+    current_squad: 'Current Squad',
+    bench_squad: 'Bench Squad',
+    retired_squad: 'Retired Squad',
+    current_formation: 'Current Formation'
+  };
+
+  const squadTypeColors: Record<string, string> = {
+    current_squad: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+    bench_squad: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
+    retired_squad: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300',
+    current_formation: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+  };
 
   const resetNewTeam = () => {
     setNewTeam({
@@ -430,24 +446,44 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
     });
   };
 
-  const resetNewPlayer = () => {
-    setNewPlayer({
-      name: '',
-      position: '',
-      year: '',
-      number: '',
-      height: '',
-      weight: '',
-      team: '',
-      university: '',
-      avatar: ''
-    });
+  const openSquadManager = (team: any) => {
+    setSelectedTeam(team);
+    setPlayerSearchQuery('');
+    setSelectedPlayer(null);
+    setSelectedSquadType('current_squad');
+    setShowSquadModal(true);
+  };
+
+  const handleAssignPlayerToSquad = async () => {
+    if (!selectedTeam || !selectedPlayer) {
+      warning('Select a player', 'Please search and select a player first');
+      return;
+    }
+
+    setAssigningPlayer(true);
+    try {
+      await dispatch(addPlayerToSquadT({
+        teamId: selectedTeam.id,
+        playerId: selectedPlayer.id,
+        squadType: selectedSquadType,
+        addedBy: user?.uid
+      })).unwrap();
+
+      success('Player assigned', `${selectedPlayer.name} added to ${squadTypeLabels[selectedSquadType]}`);
+      setSelectedPlayer(null);
+      setPlayerSearchQuery('');
+    } catch (err) {
+      showError('Failed to assign player', 'Please try again');
+    } finally {
+      setAssigningPlayer(false);
+    }
   };
 
   const handleAddTeam = async () => {
     try {
       await create({
         name: newTeam.name,
+        slug: generateTeamSlug(newTeam.name), // Generate human-readable slug
         sport: newTeam.sport,
         universityId: newTeam.universityId,
         coach: newTeam.coach,
@@ -472,6 +508,7 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
     try {
       await update(editingTeam.id, {
         name: editingTeam.name,
+        slug: generateTeamSlug(editingTeam.name), // Update slug if name changes
         sport: editingTeam.sport,
         universityId: editingTeam.universityId,
         coach: editingTeam.coach,
@@ -505,47 +542,6 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
     }
   };
 
-  const handleAddPlayer = async () => {
-    if (!newPlayer.name.trim()) {
-      warning('Player name required', 'Please enter the player\'s name');
-      return;
-    }
-    try {
-      await addPlayer(selectedTeam.id, newPlayer);
-      resetNewPlayer();
-      setShowAddPlayerModal(false);
-      success('Player added successfully', `${newPlayer.name} is now on the team roster`, 'Add more players or manage team');
-    } catch (error) {
-      console.error('Failed to add player:', error);
-      showError('Failed to add player', 'Please check the player details and try again');
-    }
-  };
-
-  const handleEditPlayer = async () => {
-    try {
-      await updatePlayer(selectedTeam.id, editingPlayer.id, editingPlayer);
-      setEditingPlayer(null);
-      setShowEditPlayerModal(false);
-      success('Player updated successfully', 'Changes have been saved', 'Continue editing or view roster');
-    } catch (error) {
-      console.error('Failed to update player:', error);
-      showError('Failed to update player', 'Please try again');
-    }
-  };
-
-  const handleDeletePlayer = async (teamId: string, playerId: string) => {
-    const player = selectedTeam?.players?.find((p: any) => p.id === playerId);
-    if (confirm(`Are you sure you want to remove "${player?.name}" from the team?`)) {
-      try {
-        await deletePlayer(teamId, playerId);
-        success('Player removed', `${player?.name} has been removed from the team`, 'Add new players if needed');
-      } catch (error) {
-        console.error('Failed to delete player:', error);
-        showError('Failed to remove player', 'Please try again');
-      }
-    }
-  };
-
   const totalPages = Math.ceil(teams.length / itemsPerPage);
   const paginatedTeams = teams.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
@@ -553,14 +549,14 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
     setCurrentPage(page);
   };
 
+  // Export data - players are now managed in root 'players' collection
   const exportData = teams.map((team: any) => ({
     name: team.name,
     sport: team.sport,
     university: universities.find((u: University) => u.id === team.universityId)?.name || 'N/A',
-    coach: team.coach,
-    players: team.players?.length || 0
+    coach: team.coach
   }));
-  const exportHeaders = ['name', 'sport', 'university', 'coach', 'players'];
+  const exportHeaders = ['name', 'sport', 'university', 'coach'];
 
   return (
     <>
@@ -578,94 +574,6 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
             Add Team
           </button>
         </div>
-
-        {showPlayersModal && selectedTeam && (
-          <div className="bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 rounded-xl mb-6 animate-in slide-in-from-top-2">
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex items-center gap-3">
-                {selectedTeam.logoURL && (
-                  <img src={selectedTeam.logoURL} alt={selectedTeam.name} className="w-10 h-10 rounded-lg object-cover" />
-                )}
-                <div>
-                  <h3 className="text-lg font-bold dark:text-white">{selectedTeam.name}</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{selectedTeam.sport} • {universities.find((u: University) => u.id === selectedTeam.universityId)?.name}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowPlayersModal(false)}
-                className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                <FiTrash2 className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="font-bold dark:text-white flex items-center gap-2">
-                <FiUsers className="w-5 h-5" />
-                Players ({selectedTeam.players?.length || 0})
-              </h4>
-              <button
-                onClick={() => { resetNewPlayer(); setShowAddPlayerModal(true); }}
-                className="flex items-center gap-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-bold transition-colors"
-              >
-                <FiPlus className="w-4 h-4" />
-                Add Player
-              </button>
-            </div>
-
-            <div className="overflow-x-auto custom-scrollbar">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-100 dark:bg-gray-800">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Position</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Year</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Number</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {selectedTeam.players && selectedTeam.players.map((player: any, index: number) => (
-                    <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{player.name}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{player.position || '-'}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{player.year || '-'}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{player.number || '-'}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                          onClick={() => { setEditingPlayer(player); setShowEditPlayerModal(true); }}
-                          className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 mr-3"
-                        >
-                          <FiEdit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeletePlayer(selectedTeam.id, player.id)}
-                          className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
-                        >
-                          <FiTrash2 className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {(!selectedTeam.players || selectedTeam.players.length === 0) && (
-                    <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-                        <FiUsers className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                        <p>No players on this team yet</p>
-                        <button
-                          onClick={() => { resetNewPlayer(); setShowAddPlayerModal(true); }}
-                          className="mt-2 text-blue-600 dark:text-blue-400 hover:underline font-medium"
-                        >
-                          Add the first player
-                        </button>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
 
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-2 sm:p-6">
           {teams.length > 0 && <ExportButtons data={exportData} headers={exportHeaders} filename="teams" />}
@@ -696,7 +604,6 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Sport</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">University</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Coach</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Players</th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
@@ -724,20 +631,7 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
                           {universities.find((u: University) => u.id === team.universityId)?.name || 'N/A'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{team.coach || '-'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                          <span className="flex items-center gap-1">
-                            <FiUsers className="w-4 h-4" />
-                            {team.players?.length || 0}
-                          </span>
-                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <button
-                            onClick={() => { setSelectedTeam(team); setShowPlayersModal(true); }}
-                            className="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 mr-3 inline-flex items-center gap-1"
-                            title="View Players"
-                          >
-                            <FiUsers className="w-4 h-4" />
-                          </button>
                           <button
                             onClick={() => { setEditingTeam(team); setShowEditModal(true); }}
                             className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 mr-3"
@@ -789,119 +683,6 @@ export default function TeamsTab({ adminData, create, update, deleteU, addPlayer
             user={user}
             onCancel={() => { setShowEditModal(false); setEditingTeam(null); }}
           />
-        )}
-      </Modal>
-
-      {/* Add Player Modal */}
-      <Modal isOpen={showAddPlayerModal} title="Add New Player" onClose={() => { setShowAddPlayerModal(false); resetNewPlayer(); }} fullScreen={true}>
-        <form onSubmit={(e) => { e.preventDefault(); handleAddPlayer(); }} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name *</label>
-              <input
-                type="text"
-                required
-                value={newPlayer.name}
-                onChange={(e) => setNewPlayer({ ...newPlayer, name: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 text-gray-900 dark:text-white"
-                placeholder="Player name"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Position</label>
-              <input
-                type="text"
-                value={newPlayer.position}
-                onChange={(e) => setNewPlayer({ ...newPlayer, position: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 text-gray-900 dark:text-white"
-                placeholder="e.g. Forward, Goalkeeper"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Year</label>
-              <select
-                value={newPlayer.year}
-                onChange={(e) => setNewPlayer({ ...newPlayer, year: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 text-gray-900 dark:text-white appearance-none"
-              >
-                <option value="">Select Year</option>
-                <option value="Freshman">Freshman</option>
-                <option value="Sophomore">Sophomore</option>
-                <option value="Junior">Junior</option>
-                <option value="Senior">Senior</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Number</label>
-              <input
-                type="text"
-                value={newPlayer.number}
-                onChange={(e) => setNewPlayer({ ...newPlayer, number: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 text-gray-900 dark:text-white"
-                placeholder="Jersey number"
-              />
-            </div>
-          </div>
-          <div className="flex space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <button
-              type="button"
-              onClick={() => { setShowAddPlayerModal(false); resetNewPlayer(); }}
-              className="flex-1 py-3 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex-[2] py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg shadow-green-500/30 transition-all active:scale-95 flex items-center justify-center gap-2"
-            >
-              <FiPlus className="w-4 h-4" />
-              Add Player
-            </button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Edit Player Modal */}
-      <Modal isOpen={showEditPlayerModal && !!editingPlayer} title="Edit Player" onClose={() => { setShowEditPlayerModal(false); setEditingPlayer(null); }} fullScreen={true}>
-        {editingPlayer && (
-          <form onSubmit={(e) => { e.preventDefault(); handleEditPlayer(); }} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
-                <input
-                  type="text"
-                  value={editingPlayer.name}
-                  onChange={(e) => setEditingPlayer({ ...editingPlayer, name: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 text-gray-900 dark:text-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Position</label>
-                <input
-                  type="text"
-                  value={editingPlayer.position}
-                  onChange={(e) => setEditingPlayer({ ...editingPlayer, position: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 text-gray-900 dark:text-white"
-                />
-              </div>
-            </div>
-            <div className="flex space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <button
-                type="button"
-                onClick={() => { setShowEditPlayerModal(false); setEditingPlayer(null); }}
-                className="flex-1 py-3 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="flex-[2] py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 transition-all active:scale-95 flex items-center justify-center gap-2"
-              >
-                <FiCheckCircle className="w-4 h-4" />
-                Save Changes
-              </button>
-            </div>
-          </form>
         )}
       </Modal>
     </>

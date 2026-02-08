@@ -18,6 +18,7 @@ interface PlayerFormData {
   weight: string;
   universityId: string;
   sportId: string;
+  teamId: string; // Reference to root 'players' collection
   avatar: string;
   bodyFat: number;
   status: string;
@@ -58,6 +59,7 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
     weight: '',
     universityId: '',
     sportId: '',
+    teamId: '', // Players stored in root 'players' collection with team reference
     avatar: '',
     bodyFat: 0,
     status: 'active',
@@ -205,6 +207,7 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
       weight: '',
       universityId: '',
       sportId: '',
+      teamId: '',
       avatar: '',
       bodyFat: 0,
       status: 'active',
@@ -253,6 +256,7 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
       weight: player.weight,
       universityId: player.universityId,
       sportId: player.sportId,
+      teamId: player.teamId || '',
       avatar: player.avatar,
       bodyFat: player.bodyFat || 0,
       status: player.status || 'active',
@@ -347,7 +351,9 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-white">{player.position}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-white">{player.team}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-white">
+                    {teams.find((t: any) => t.id === player.teamId)?.name || '-'}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-white">{player.university}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-white">{player.year}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
@@ -519,6 +525,19 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
             <option value="">Select University</option>
             {universities.map((university: any) => (
               <option key={university.id} value={university.id}>{university.name}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Team</label>
+          <select
+            value={formData.teamId}
+            onChange={(e) => setFormData({ ...formData, teamId: e.target.value })}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          >
+            <option value="">Select Team</option>
+            {teams.map((team: any) => (
+              <option key={team.id} value={team.id}>{team.name}</option>
             ))}
           </select>
         </div>
