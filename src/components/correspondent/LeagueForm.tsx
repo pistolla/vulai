@@ -31,8 +31,9 @@ export const LeagueForm: React.FC<{ onCreate?: (l: League) => void }> = ({ onCre
     setSelectedSportId(id);
     const sport = sports.find(s => s.id === id);
     if (sport) {
-      setSportName(sport.id);
+      setSportName(sport.name); // Store sport name for display
       setSportType(sport.category as SportType);
+      // Note: sportId is stored in selectedSportId
     }
   };
 
@@ -43,10 +44,12 @@ export const LeagueForm: React.FC<{ onCreate?: (l: League) => void }> = ({ onCre
 
     setCreating(true);
     try {
+      const sport = sports.find(s => s.id === selectedSportId);
       const res = await dispatch(createLeague({
         name: name.trim(),
         sportType,
-        sportName,
+        sportId: selectedSportId, // Store sport ID for proper matching
+        sportName: sport?.name, // Also store name for display
         description: description.trim(),
         hasGroups
       }));

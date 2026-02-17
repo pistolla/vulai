@@ -108,15 +108,45 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
   };
 
   const loadSeasonsForSport = async (sportId: string) => {
+    if (!sportId) {
+      setSeasons([]);
+      return;
+    }
     try {
-      const list = await firebaseLeagueService.listSeasons(sportId);
+      // Try the subcollection path first: sports/{sportId}/seasons
+      let list = await firebaseLeagueService.listSeasons(sportId);
+      
+      // If no seasons found in subcollection, try root-level seasons collection
+      if (list.length === 0) {
+        console.log('[FixtureForm] No seasons in subcollection, trying root collection for sport:', sportId);
+        list = await firebaseLeagueService.listSeasonsFromRoot(sportId);
+      }
+      
+      // If still no seasons, try finding by sport name
+      if (list.length === 0) {
+        const sport = sports.find((s: any) => s.id === sportId);
+        if (sport) {
+          console.log('[FixtureForm] Trying to load seasons by sport name:', sport.name);
+          list = await firebaseLeagueService.listSeasonsBySportName(sport.name);
+        }
+      }
+      
       setSeasons(list);
-      if (!selectedSeasonId) {
+      console.log('[FixtureForm] Loaded seasons:', list.length, 'for sport:', sportId);
+      
+      // Auto-select active season if none selected
+      if (!selectedSeasonId && list.length > 0) {
         const active = list.find(s => s.isActive);
-        if (active) setSelectedSeasonId(active.id);
+        if (active) {
+          setSelectedSeasonId(active.id);
+        } else if (list.length > 0) {
+          // Default to first season if no active one
+          setSelectedSeasonId(list[0].id);
+        }
       }
     } catch (e) {
       console.error('Failed to load seasons:', e);
+      setSeasons([]);
     }
   };
 
@@ -124,21 +154,32 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
     // Ensure sports are loaded before proceeding
     if (sports.length === 0) return;
     
-    if (selectedLeague) {
+    // Don't proceed if we don't have the necessary data
+    if (!selectedLeague && type === 'league') return;
+    
+    if (selectedLeague && leagues.length > 0) {
       const league = leagues.find(l => l.id === selectedLeague);
       if (league) {
+        const sportId = league.sportId;
         const sportName = league.sportName;
         const leagueName = league.name;
         
-        // Try multiple matching strategies
-        let sport = sports.find(s => s.name.toLowerCase().trim() === sportName?.toLowerCase().trim());
+        console.log('[FixtureForm] Looking for sport - league:', league.name, 'sportId:', sportId, 'sportName:', sportName, 'available sports:', sports.map(s => ({ id: s.id, name: s.name })));
         
-        // If not found by sportName, try matching by league name
+        // First try: Match by sportId (most reliable)
+        let sport = sportId ? sports.find(s => s.id === sportId) : null;
+        
+        // Second try: Match by sportName
+        if (!sport && sportName) {
+          sport = sports.find(s => s.name.toLowerCase().trim() === sportName.toLowerCase().trim());
+        }
+        
+        // Third try: Match by league name
         if (!sport && leagueName) {
           sport = sports.find(s => s.name.toLowerCase().trim() === leagueName.toLowerCase().trim());
         }
         
-        // If still not found, try partial matching
+        // Fourth try: Partial matching
         if (!sport && sportName) {
           sport = sports.find(s => 
             s.name.toLowerCase().includes(sportName.toLowerCase().trim()) ||
@@ -147,23 +188,24 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
         }
         
         if (sport) {
+          console.log('[FixtureForm] Found matching sport:', sport.id, sport.name);
           loadSeasonsForSport(sport.id);
           filterTeamsBySport(sport.id);
         } else {
           // If sport not found, log for debugging
-          console.warn('Sport not found for league:', league.name, 'sportName:', sportName, 'available sports:', sports.map(s => s.name));
+          console.warn('Sport not found for league:', league.name, 'sportId:', sportId, 'sportName:', sportName, 'available sports:', sports.map(s => s.name));
           setSeasons([]);
           setFilteredTeams(teams);
         }
       }
       loadMatches(selectedLeague);
-    } else {
+    } else if (!selectedLeague) {
       // Clear seasons and teams when no league is selected
       setSeasons([]);
       setSelectedSeasonId('');
       setFilteredTeams(teams);
     }
-  }, [selectedLeague, sports, leagues]);
+  }, [selectedLeague, sports, leagues, type]);
 
   useEffect(() => {
     if (type === 'friendly' && selectedSportId) {

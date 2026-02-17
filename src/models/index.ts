@@ -227,7 +227,8 @@ export interface League {
   id?: string;
   name: string;
   sportType: SportType;
-  sportName?: string;
+  sportId?: string; // The sport document ID
+  sportName?: string; // The sport name (for display)
   description?: string;
   hasGroups: boolean; // Toggle for groups/divisions
   createdAt?: any;

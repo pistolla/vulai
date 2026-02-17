@@ -85,7 +85,11 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
                 {leaguesData.filter((l: any) => {
                   if (!formData.sport) return true;
                   const sportLower = formData.sport.toLowerCase();
-                  return (l.sportName?.toLowerCase() === sportLower) || (l.sportType?.toLowerCase() === sportLower);
+                  // Match by sportId (most reliable), then sportName
+                  return (l.sportId && l.sportId.toLowerCase() === sportLower) || 
+                         (l.sportName?.toLowerCase() === sportLower) ||
+                         (l.sportName?.toLowerCase().includes(sportLower)) ||
+                         (sportLower.includes(l.sportName?.toLowerCase() || ''));
                 }).map((l: any) => (
                   <option key={l.id} value={l.id}>{l.name}</option>
                 ))}

@@ -3,6 +3,7 @@ import { University, Team, Sport, ImportedData } from '@/models';
 import {
   loadAdminDashboard, loadUsers, approveUser, disapproveUser, deleteUserDoc,
   loadMerch, addMerch, updateMerch, deleteMerch,
+  loadOrders, updateOrderStatus,
   loadReviews, approveReview, rejectReview,
   loadGames, updateFixtureScore, startGame, endGame,
   loadUniversities, addUniversity, updateUniversity, deleteUniversity,
@@ -31,6 +32,12 @@ export const fetchMerch = createAsyncThunk('merch/fetch', loadMerch);
 export const createMerchT = createAsyncThunk('merch/create', addMerch);
 export const saveMerchT = createAsyncThunk('merch/save', ({ id, data }: { id: string; data: Partial<any> }) => updateMerch(id, data));
 export const removeMerchT = createAsyncThunk('merch/delete', deleteMerch);
+
+/* ---------- orders ---------- */
+export const fetchOrders = createAsyncThunk('orders/fetch', loadOrders);
+export const updateOrderStatusT = createAsyncThunk('orders/updateStatus', ({ orderId, status }: { orderId: string; status: string }) => 
+  updateOrderStatus(orderId, status)
+);
 
 /* ---------- reviews ---------- */
 export const fetchReviews = createAsyncThunk('review/fetch', loadReviews);

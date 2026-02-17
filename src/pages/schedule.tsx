@@ -147,7 +147,15 @@ const SchedulePage: React.FC = () => {
     const fetchSeasonsForSport = async (sportName: string) => {
       try {
         const sportsData: any[] = await apiService.getSports();
-        const sport = sportsData.find(s => s.name.toLowerCase() === sportName.toLowerCase());
+        // First try exact match
+        let sport = sportsData.find(s => s.name.toLowerCase() === sportName.toLowerCase());
+        // Try partial match if exact fails
+        if (!sport) {
+          sport = sportsData.find(s => 
+            s.name.toLowerCase().includes(sportName.toLowerCase()) ||
+            sportName.toLowerCase().includes(s.name.toLowerCase())
+          );
+        }
         if (sport) {
           const res = await firebaseLeagueService.listSeasons(sport.id);
           if (isMounted) {

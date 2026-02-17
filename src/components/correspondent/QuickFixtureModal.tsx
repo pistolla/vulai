@@ -48,10 +48,17 @@ export const QuickFixtureModal: React.FC<QuickFixtureModalProps> = ({ isOpen, on
         try {
             const allTeams = await apiService.getTeams();
             // Filter teams by sport if league has a sport
+            const sportId = league?.sportId;
             const sportName = league?.sportName?.toLowerCase() || '';
+            
             const filteredTeams = allTeams.filter((t: any) => {
-                if (!sportName) return true;
-                return t.sport?.toLowerCase() === sportName || t.sportName?.toLowerCase() === sportName;
+                // First try: match by sportId
+                if (sportId && t.sportId === sportId) return true;
+                // Second try: match by sport name
+                if (!sportId && sportName) {
+                    return t.sport?.toLowerCase() === sportName || t.sportName?.toLowerCase() === sportName;
+                }
+                return !sportId && !sportName; // Return all if no filter criteria
             });
             
             // Format teams with university info
@@ -75,15 +82,20 @@ export const QuickFixtureModal: React.FC<QuickFixtureModalProps> = ({ isOpen, on
             const sportName = league?.sportName || '';
             const leagueName = league?.name || '';
             
-            // First try exact match on sportName
-            let sport = sports.find(s => s.name.toLowerCase().trim() === sportName.toLowerCase().trim());
+            // First try: match by sportId (most reliable with new leagues)
+            let sport = league?.sportId ? sports.find(s => s.id === league.sportId) : null;
             
-            // If not found, try exact match on leagueName
+            // Second try: exact match on sportName
+            if (!sport && sportName) {
+                sport = sports.find(s => s.name.toLowerCase().trim() === sportName.toLowerCase().trim());
+            }
+            
+            // Third try: exact match on leagueName
             if (!sport && leagueName) {
                 sport = sports.find(s => s.name.toLowerCase().trim() === leagueName.toLowerCase().trim());
             }
             
-            // If still not found, try partial matching
+            // Fourth try: partial matching
             if (!sport && sportName) {
                 sport = sports.find(s => 
                     s.name.toLowerCase().includes(sportName.toLowerCase().trim()) ||

@@ -65,7 +65,16 @@ const LeagueExplorerPage: React.FC = () => {
         // 2. Fetch seasonal fixtures
         try {
           const sportsData: any[] = await apiService.getSports();
-          const sport = sportsData.find(s => s.name.toLowerCase() === league.sportType.toLowerCase());
+          // First try: match by sportId (most reliable)
+          let sport = league.sportId ? sportsData.find(s => s.id === league.sportId) : null;
+          // Second try: match by sportName
+          if (!sport && league.sportName) {
+            sport = sportsData.find(s => s.name.toLowerCase() === league.sportName!.toLowerCase());
+          }
+          // Third try: match by league name
+          if (!sport) {
+            sport = sportsData.find(s => s.name.toLowerCase() === league.name.toLowerCase());
+          }
           if (sport) {
             const leagueSeasons = await firebaseLeagueService.listSeasons(sport.id);
             for (const season of leagueSeasons) {
@@ -117,7 +126,16 @@ const LeagueExplorerPage: React.FC = () => {
         // Load seasons for the sport
         try {
           const sportsData: any[] = await apiService.getSports();
-          const sport = sportsData.find(s => s.name.toLowerCase() === league.sportType.toLowerCase());
+          // First try: match by sportId (most reliable)
+          let sport = league.sportId ? sportsData.find(s => s.id === league.sportId) : null;
+          // Second try: match by sportName
+          if (!sport && league.sportName) {
+            sport = sportsData.find(s => s.name.toLowerCase() === league.sportName!.toLowerCase());
+          }
+          // Third try: match by league name
+          if (!sport) {
+            sport = sportsData.find(s => s.name.toLowerCase() === league.name.toLowerCase());
+          }
           if (sport) {
             const leagueSeasons = await firebaseLeagueService.listSeasons(sport.id);
             setSeasons(leagueSeasons);

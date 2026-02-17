@@ -4,6 +4,7 @@ import {
   fetchDashboard,
   fetchUsers,
   fetchMerch,
+  fetchOrders,
   fetchReviews,
   fetchGames,
   fetchUniversities,
@@ -25,11 +26,13 @@ interface AdminState {
   playerAvatars: PlayerAvatar[];
   sports: Sport[];
   importedData: ImportedData[];
+  orders: any[]; // Merchandise orders
   stats: { users: number; liveGames: number; merchSales: number; pendingReviews: number };
   loading: {
     dashboard: boolean;
     users: boolean;
     merch: boolean;
+    orders: boolean;
     reviews: boolean;
     games: boolean;
     players: boolean;
@@ -44,11 +47,13 @@ const initialState: AdminState = {
   playerAvatars: [],
   sports: [],
   importedData: [],
+  orders: [],
   stats: { users: 0, liveGames: 0, merchSales: 0, pendingReviews: 0 },
   loading: {
     dashboard: false,
     users: false,
     merch: false,
+    orders: false,
     reviews: false,
     games: false,
     players: false,
@@ -102,6 +107,19 @@ const adminSlice = createSlice({
       })
       .addCase(fetchMerch.rejected, (state) => {
         state.loading.merch = false;
+      })
+      
+      // Orders loading states
+      builder
+      .addCase(fetchOrders.pending, (state) => {
+        state.loading.orders = true;
+      })
+      .addCase(fetchOrders.fulfilled, (state, action) => {
+        state.loading.orders = false;
+        state.orders = action.payload;
+      })
+      .addCase(fetchOrders.rejected, (state) => {
+        state.loading.orders = false;
       });
 
     // Reviews loading states

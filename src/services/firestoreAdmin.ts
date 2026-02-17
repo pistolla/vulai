@@ -77,6 +77,23 @@ export const updateMerch = async (id: string, data: Partial<MerchItem>) =>
 export const deleteMerch = async (id: string) =>
   deleteDoc(doc(db, 'merchandise', id));
 
+// Load orders from merchandise_documents collection
+export const loadOrders = async (): Promise<any[]> => {
+  const snap = await getDocs(query(collection(db, 'merchandise_documents'), where('type', '==', 'order')));
+  return snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({
+    id: d.id,
+    ...d.data()
+  }));
+};
+
+// Update order status
+export const updateOrderStatus = async (orderId: string, status: string) => {
+  await updateDoc(doc(db, 'merchandise_documents', orderId), {
+    status,
+    updatedAt: new Date().toISOString()
+  });
+};
+
 /* ---------- reviews ---------- */
 export const loadReviews = async (): Promise<ReviewRow[]> => {
   const snap = await getDocs(query(collection(db, 'reviews'), where('status', '==', 'pending')));

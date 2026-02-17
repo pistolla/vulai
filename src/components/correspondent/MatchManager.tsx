@@ -38,14 +38,23 @@ export const MatchManager: React.FC<{ league: League; group?: Group | null; stag
         // Fetch seasons for the sport - ensure sports are loaded first
         const sports: Sport[] = await apiService.getSports();
         
-        // Improved sport matching heuristic - match by sportName field in league
+        // Improved sport matching heuristic - match by sportId first, then sportName
         const sportName = league.sportName || '';
-        const sport = sports.find(s => 
-          s.name.toLowerCase().trim() === sportName.toLowerCase().trim() ||
-          s.name.toLowerCase().trim() === (league.sportType || '').toLowerCase().trim() ||
-          s.name.toLowerCase().trim() === league.name.toLowerCase().trim() ||
-          league.name.toLowerCase().includes(s.name.toLowerCase())
-        );
+        // First try: match by sportId (most reliable with new leagues)
+        let sport = league.sportId ? sports.find(s => s.id === league.sportId) : null;
+        // Second try: match by sportName
+        if (!sport && sportName) {
+          sport = sports.find(s => 
+            s.name.toLowerCase().trim() === sportName.toLowerCase().trim()
+          );
+        }
+        // Third try: match by league name
+        if (!sport) {
+          sport = sports.find(s => 
+            s.name.toLowerCase().trim() === league.name.toLowerCase().trim() ||
+            league.name.toLowerCase().includes(s.name.toLowerCase())
+          );
+        }
 
         if (sport) {
           const leagueSeasons = await firebaseLeagueService.listSeasons(sport.id);

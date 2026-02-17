@@ -41,17 +41,34 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
   }, []);
 
   useEffect(() => {
-    if (formData.sport) {
-      const selectedSport = formData.sport.toLowerCase();
-      const filtered = leagues.filter(l =>
-        (l.sportName?.toLowerCase() === selectedSport) ||
-        (l.sportType?.toLowerCase() === selectedSport)
-      );
+    if (formData.sport && leagues.length > 0 && sports.length > 0) {
+      // formData.sport contains the sport name (from the select option value)
+      const selectedSportName = formData.sport.toLowerCase();
+      
+      // Find the sport to get its ID for matching
+      const selectedSport = sports.find(s => s.name.toLowerCase() === selectedSportName);
+      
+      const filtered = leagues.filter(l => {
+        // First try: match by sportId (most reliable)
+        if (selectedSport && l.sportId && l.sportId === selectedSport.id) {
+          return true;
+        }
+        // Second try: match by sportName
+        if (l.sportName?.toLowerCase() === selectedSportName) {
+          return true;
+        }
+        // Third try: partial match on sportName
+        if (l.sportName?.toLowerCase().includes(selectedSportName) || 
+            selectedSportName.includes(l.sportName?.toLowerCase() || '')) {
+          return true;
+        }
+        return false;
+      });
       setFilteredLeagues(filtered);
     } else {
       setFilteredLeagues([]);
     }
-  }, [formData.sport, leagues]);
+  }, [formData.sport, leagues, sports]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

@@ -28,6 +28,39 @@ class FirebaseLeagueService {
     const snap = await getDocs(collection(db, `sports/${sportId}/seasons`));
     return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Season));
   }
+
+  // Fallback: Try to get seasons from root-level seasons collection
+  async listSeasonsFromRoot(sportId: string): Promise<Season[]> {
+    try {
+      const q = query(collection(db, 'seasons'), where('sportId', '==', sportId));
+      const snap = await getDocs(q);
+      return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Season));
+    } catch (e) {
+      // If query fails (collection doesn't exist or no index), try getting all
+      console.warn('listSeasonsFromRoot query failed, trying collection scan:', e);
+      try {
+        const snap = await getDocs(collection(db, 'seasons'));
+        const data = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Season & { sportId?: string; sport?: string }));
+        return data.filter(s => s.sportId === sportId || s.sport === sportId);
+      } catch (e2) {
+        console.warn('listSeasonsFromRoot collection scan failed:', e2);
+        return [];
+      }
+    }
+  }
+
+  // Fallback: Try to get seasons by sport name
+  async listSeasonsBySportName(sportName: string): Promise<Season[]> {
+    try {
+      const q = query(collection(db, 'seasons'), where('sport', '==', sportName));
+      const snap = await getDocs(q);
+      return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Season));
+    } catch (e) {
+      console.warn('listSeasonsBySportName query failed:', e);
+      return [];
+    }
+  }
+
   // ---------------- LEAGUE CRUD ---------------- //
 
   async createLeague(data: Omit<League, 'id'>): Promise<string> {

@@ -216,10 +216,21 @@ export class ApiService {
           result = { sports: [], trainingSchedule: [] };
         } else if (snap.docs.length === 1 && snap.docs[0].data().sports) {
           // If single document has sports field
-          result = snap.docs[0].data();
+          const data = snap.docs[0].data();
+          // Include ID for each sport if it's an array
+          if (Array.isArray(data.sports)) {
+            data.sports = data.sports.map((s: any, idx: number) => ({
+              ...s,
+              id: s.id || `sport_${idx}`
+            }));
+          }
+          result = data;
         } else {
-          // Multiple documents, each is a sport
-          result = { sports: snap.docs.map(d => d.data()), trainingSchedule: [] };
+          // Multiple documents, each is a sport - include document ID
+          result = { 
+            sports: snap.docs.map(d => ({ id: d.id, ...d.data() })), 
+            trainingSchedule: [] 
+          };
         }
         break;
       }
