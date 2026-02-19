@@ -110,10 +110,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
 
   const handleChange = (name: string, value: string) => {
     setFormData((prev: any) => ({ ...prev, [name]: value }));
-    if (touched[name]) {
-      const error = validateField(name, value);
-      setErrors(prev => ({ ...prev, [name]: error }));
-    }
+    // Validation only happens on submit, not on character change
   };
 
   const isCorrespondent = user?.role === 'correspondent';
