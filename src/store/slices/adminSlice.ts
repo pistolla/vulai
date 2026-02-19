@@ -5,6 +5,7 @@ import {
   fetchUsers,
   fetchMerch,
   fetchOrders,
+  fetchContactMessages,
   fetchReviews,
   fetchGames,
   fetchUniversities,
@@ -27,12 +28,14 @@ interface AdminState {
   sports: Sport[];
   importedData: ImportedData[];
   orders: any[]; // Merchandise orders
+  contactMessages: any[]; // Contact form messages
   stats: { users: number; liveGames: number; merchSales: number; pendingReviews: number };
   loading: {
     dashboard: boolean;
     users: boolean;
     merch: boolean;
     orders: boolean;
+    contactMessages: boolean;
     reviews: boolean;
     games: boolean;
     players: boolean;
@@ -48,12 +51,14 @@ const initialState: AdminState = {
   sports: [],
   importedData: [],
   orders: [],
+  contactMessages: [],
   stats: { users: 0, liveGames: 0, merchSales: 0, pendingReviews: 0 },
   loading: {
     dashboard: false,
     users: false,
     merch: false,
     orders: false,
+    contactMessages: false,
     reviews: false,
     games: false,
     players: false,
@@ -120,6 +125,19 @@ const adminSlice = createSlice({
       })
       .addCase(fetchOrders.rejected, (state) => {
         state.loading.orders = false;
+      });
+
+    // Contact Messages loading states
+    builder
+      .addCase(fetchContactMessages.pending, (state) => {
+        state.loading.contactMessages = true;
+      })
+      .addCase(fetchContactMessages.fulfilled, (state, action) => {
+        state.loading.contactMessages = false;
+        state.contactMessages = action.payload;
+      })
+      .addCase(fetchContactMessages.rejected, (state) => {
+        state.loading.contactMessages = false;
       });
 
     // Reviews loading states

@@ -1,7 +1,7 @@
 import { db } from './firebase';
 import {
   collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc,
-  query, where, serverTimestamp, Timestamp, collectionGroup, QueryDocumentSnapshot, DocumentData
+  query, where, orderBy, serverTimestamp, Timestamp, collectionGroup, QueryDocumentSnapshot, DocumentData
 } from 'firebase/firestore';
 import { University, Team, Fixture, PlayerAvatar, Sport, ImportedData, Season, MerchItem } from '@/models';
 import { AdminUserRow } from '@/store/slices/usersSlice';
@@ -89,6 +89,23 @@ export const loadOrders = async (): Promise<any[]> => {
 // Update order status
 export const updateOrderStatus = async (orderId: string, status: string) => {
   await updateDoc(doc(db, 'merchandise_documents', orderId), {
+    status,
+    updatedAt: new Date().toISOString()
+  });
+};
+
+// Load contact messages from contactMessages collection
+export const loadContactMessages = async (): Promise<any[]> => {
+  const snap = await getDocs(query(collection(db, 'contactMessages'), orderBy('createdAt', 'desc')));
+  return snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({
+    id: d.id,
+    ...d.data()
+  }));
+};
+
+// Update contact message status
+export const updateContactMessageStatus = async (messageId: string, status: string) => {
+  await updateDoc(doc(db, 'contactMessages', messageId), {
     status,
     updatedAt: new Date().toISOString()
   });

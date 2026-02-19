@@ -4,6 +4,7 @@ import {
   loadAdminDashboard, loadUsers, approveUser, disapproveUser, deleteUserDoc,
   loadMerch, addMerch, updateMerch, deleteMerch,
   loadOrders, updateOrderStatus,
+  loadContactMessages, updateContactMessageStatus,
   loadReviews, approveReview, rejectReview,
   loadGames, updateFixtureScore, startGame, endGame,
   loadUniversities, addUniversity, updateUniversity, deleteUniversity,
@@ -37,6 +38,12 @@ export const removeMerchT = createAsyncThunk('merch/delete', deleteMerch);
 export const fetchOrders = createAsyncThunk('orders/fetch', loadOrders);
 export const updateOrderStatusT = createAsyncThunk('orders/updateStatus', ({ orderId, status }: { orderId: string; status: string }) => 
   updateOrderStatus(orderId, status)
+);
+
+/* ---------- contact messages ---------- */
+export const fetchContactMessages = createAsyncThunk('contactMessages/fetch', loadContactMessages);
+export const updateContactMessageStatusT = createAsyncThunk('contactMessages/updateStatus', ({ messageId, status }: { messageId: string; status: string }) => 
+  updateContactMessageStatus(messageId, status)
 );
 
 /* ---------- reviews ---------- */

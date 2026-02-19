@@ -4,7 +4,7 @@ import AdminGuard from '@/guards/AdminGuard';
 import UserHeader from '@/components/UserHeader';
 import { apiService, AdminData } from '../../services/apiService';
 import { ToastProvider, useToast } from '@/components/common/ToastProvider';
-import { FiGrid, FiUsers, FiMap, FiAward, FiTarget, FiBox, FiCheckCircle, FiCalendar, FiPlus, FiX, FiPackage, FiUser } from 'react-icons/fi';
+import { FiGrid, FiUsers, FiMap, FiAward, FiTarget, FiBox, FiCheckCircle, FiCalendar, FiPlus, FiX, FiPackage, FiUser, FiMail } from 'react-icons/fi';
 import { Modal } from '@/components/common/Modal';
 import DashboardTab from '../../components/admin/DashboardTab';
 import UsersTab from '../../components/admin/UsersTab';
@@ -19,10 +19,14 @@ import ReviewTab from '../../components/admin/ReviewTab';
 import GamesTab from '../../components/admin/GamesTab';
 import { ImportedDataTab } from '../../components/admin/ImportedDataTab';
 import LeaguesTab from '../../components/admin/LeaguesTab';
+import OrdersTab from '../../components/admin/OrdersTab';
+import ContactTab from '../../components/admin/ContactTab';
 import {
   fetchDashboard,
   fetchUsers,
   fetchMerch,
+  fetchOrders,
+  fetchContactMessages,
   fetchReviews,
   fetchGames,
   fetchUniversities,
@@ -45,6 +49,8 @@ import {
   saveTeamT,
   removeTeamT,
   fetchImportedData,
+  updateOrderStatusT,
+  updateContactMessageStatusT,
 } from '@/store/adminThunk';
 
 export default function AdminDashboardPage() {
@@ -53,14 +59,14 @@ export default function AdminDashboardPage() {
   const { success, error: showError } = useToast();
 
   /* ---------- Redux state ---------- */
-  const { stats, universities } = useAppSelector(s => s.admin);
+  const { stats, universities, orders, contactMessages } = useAppSelector(s => s.admin);
   const users = useAppSelector(s => s.users.rows);
   const merch = useAppSelector(s => s.merch.items);
   const reviews = useAppSelector(s => s.review.rows);
   const { live, upcoming } = useAppSelector(s => s.games);
 
   /* ---------- Local UI state ---------- */
-  type TabId = 'dashboard' | 'users' | 'universities' | 'teams' | 'players' | 'sports' | 'merchandise' | 'store' | 'manager' | 'review' | 'games' | 'importedData' | 'leagues';
+  type TabId = 'dashboard' | 'users' | 'universities' | 'teams' | 'players' | 'sports' | 'merchandise' | 'store' | 'manager' | 'orders' | 'contact' | 'games' | 'importedData' | 'leagues';
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [modals, setModals] = useState({
     addUser: false,
@@ -89,6 +95,8 @@ export default function AdminDashboardPage() {
     dispatch(fetchDashboard());
     dispatch(fetchUsers());
     dispatch(fetchMerch());
+    dispatch(fetchOrders());
+    dispatch(fetchContactMessages());
     dispatch(fetchReviews());
     dispatch(fetchGames());
     dispatch(fetchUniversities());
@@ -161,6 +169,26 @@ export default function AdminDashboardPage() {
       success('Review rejected successfully', 'The review has been hidden from public view', 'View other reviews or take further action');
     } catch {
       showError('Failed to reject review', 'Please try again or contact support');
+    }
+  };
+
+  const updateOrderStatus = async (orderId: string, status: string) => {
+    try {
+      await dispatch(updateOrderStatusT({ orderId, status })).unwrap();
+      dispatch(fetchOrders());
+      success('Order status updated successfully', `Order is now ${status}`, 'View other orders or manage settings');
+    } catch {
+      showError('Failed to update order status', 'Please try again or contact support');
+    }
+  };
+
+  const updateContactStatus = async (messageId: string, status: string) => {
+    try {
+      await dispatch(updateContactMessageStatusT({ messageId, status })).unwrap();
+      dispatch(fetchContactMessages());
+      success('Contact message status updated successfully', `Message is now ${status}`, 'View other messages or manage settings');
+    } catch {
+      showError('Failed to update message status', 'Please try again or contact support');
     }
   };
 
@@ -266,7 +294,8 @@ export default function AdminDashboardPage() {
     { id: 'merchandise', label: 'Merchandise', icon: FiBox },
     { id: 'store', label: 'Store Stock', icon: FiPackage },
     { id: 'manager', label: 'Manager', icon: FiUser },
-    { id: 'review', label: 'Reviews', icon: FiCheckCircle },
+    { id: 'orders', label: 'Orders', icon: FiPackage },
+    { id: 'contact', label: 'Contact', icon: FiMail },
     { id: 'games', label: 'Live Games', icon: FiCalendar },
     { id: 'importedData', label: 'Data Imports', icon: FiBox },
     { id: 'leagues', label: 'Leagues', icon: FiTarget },
@@ -283,7 +312,8 @@ export default function AdminDashboardPage() {
       case 'merchandise': return <MerchTab items={merch} create={createMerch} remove={removeMerch} adminData={adminData} />;
       case 'store': return <StoreTab adminData={adminData} />;
       case 'manager': return <ManagerTab adminData={adminData} />;
-      case 'review': return <ReviewTab rows={reviews} approve={approveReview} reject={rejectReview} adminData={adminData} />;
+      case 'orders': return <OrdersTab orders={orders} updateStatus={updateOrderStatus} adminData={adminData} />;
+      case 'contact': return <ContactTab messages={contactMessages} updateStatus={updateContactStatus} adminData={adminData} />;
       case 'games': return <GamesTab live={live} upcoming={upcoming} updateScore={updateScore} startG={startGame} endG={endGame} />;
       case 'importedData': return <ImportedDataTab />;
       case 'leagues': return <LeaguesTab adminData={adminData} />;
