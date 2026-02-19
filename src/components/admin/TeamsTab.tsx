@@ -18,7 +18,6 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
   const [leagues, setLeagues] = useState<League[]>([]);
   const [filteredLeagues, setFilteredLeagues] = useState<League[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { warning } = useToast();
 
@@ -131,13 +130,6 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
     newErrors.coach = validateField('coach', formData.coach);
     newErrors.foundedYear = validateField('foundedYear', formData.foundedYear);
     setErrors(newErrors);
-    setTouched({
-      name: true,
-      sport: true,
-      universityId: true,
-      coach: true,
-      foundedYear: true
-    });
     return !Object.values(newErrors).some(e => e);
   };
 
