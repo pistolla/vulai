@@ -1,5 +1,13 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { MerchDocument } from '@/models';
+import {
+  fetchMerchDocuments,
+  createMerchDocument,
+  updateMerchDocument,
+  deleteMerchDocument,
+  approveMerchDocument,
+  rejectMerchDocument
+} from '../correspondentThunk';
 
 interface State {
   documents: MerchDocument[];
@@ -41,6 +49,60 @@ const slice = createSlice({
       s.error = a.payload;
       s.loading = false;
     },
+  },
+  extraReducers: (builder) => {
+    // fetchMerchDocuments
+    builder.addCase(fetchMerchDocuments.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(fetchMerchDocuments.fulfilled, (state, action) => {
+      state.documents = action.payload;
+      state.loading = false;
+      state.error = null;
+    });
+    builder.addCase(fetchMerchDocuments.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || 'Failed to fetch documents';
+    });
+
+    // createMerchDocument
+    builder.addCase(createMerchDocument.fulfilled, (state, action) => {
+      state.documents.push(action.payload);
+    });
+
+    // updateMerchDocument
+    builder.addCase(updateMerchDocument.fulfilled, (state, action) => {
+      const index = state.documents.findIndex(d => d.id === action.payload.id);
+      if (index !== -1) {
+        state.documents[index] = action.payload;
+      }
+    });
+
+    // deleteMerchDocument
+    builder.addCase(deleteMerchDocument.fulfilled, (state, action) => {
+      state.documents = state.documents.filter(d => d.id !== action.payload);
+    });
+
+    // approveMerchDocument
+    builder.addCase(approveMerchDocument.fulfilled, (state, action) => {
+      const doc = state.documents.find(d => d.id === action.payload.id);
+      if (doc) {
+        doc.status = 'approved';
+        doc.approvals = doc.approvals || [];
+        doc.approvals.push(action.payload.approval);
+      }
+    });
+
+    // rejectMerchDocument
+    builder.addCase(rejectMerchDocument.fulfilled, (state, action) => {
+      const doc = state.documents.find(d => d.id === action.payload.id);
+      if (doc) {
+        doc.status = 'rejected';
+        doc.approvals = doc.approvals || [];
+        doc.approvals.push(action.payload.approval);
+      }
+    });
   },
 });
 
