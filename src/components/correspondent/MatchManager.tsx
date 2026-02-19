@@ -57,13 +57,28 @@ export const MatchManager: React.FC<{ league: League; group?: Group | null; stag
         }
 
         if (sport) {
-          const leagueSeasons = await firebaseLeagueService.listSeasons(sport.id);
+          // Try multiple paths to load seasons
+          let leagueSeasons = await firebaseLeagueService.listSeasons(sport.id);
+          
+          // Fallback: Try root-level seasons collection
+          if (leagueSeasons.length === 0) {
+            console.log('[MatchManager] No seasons in subcollection, trying root collection for sport:', sport.id);
+            leagueSeasons = await firebaseLeagueService.listSeasonsFromRoot(sport.id);
+          }
+          
+          // Fallback: Try by sport name
+          if (leagueSeasons.length === 0) {
+            console.log('[MatchManager] Trying to load seasons by sport name:', sport.name);
+            leagueSeasons = await firebaseLeagueService.listSeasonsBySportName(sport.name);
+          }
+          
           setSeasons(leagueSeasons);
           if (leagueSeasons.length === 0) {
             console.warn('No seasons found for sport:', sport.name, 'sportId:', sport.id, 'Create seasons in Admin Panel');
           }
           const active = leagueSeasons.find(s => s.isActive);
           if (active) setSelectedSeasonId(active.id);
+          else if (leagueSeasons.length > 0) setSelectedSeasonId(leagueSeasons[0].id);
         } else {
           console.warn('Sport not found for league:', league.name, 'sportName:', sportName, 'sportType:', league.sportType, 'available sports:', sports.map(s => s.name));
         }
@@ -73,7 +88,7 @@ export const MatchManager: React.FC<{ league: League; group?: Group | null; stag
         setIsLoading(false);
       }
     })();
-  }, [league.id, effectiveGroupId, stage.id, dispatch, league.sportType, league.name, league.sportName]);
+  }, [league.id, effectiveGroupId, stage.id, dispatch, league.sportType, league.name, league.sportName, league.sportId]);
 
 
   const addParticipant = () => {

@@ -68,14 +68,15 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
     } else {
       setFilteredLeagues([]);
     }
-  }, [formData.sport, leagues, sports]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.sport, leagues.length, sports.length]); // Use .length to prevent object reference changes
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
-        setFormData({ ...formData, logoURL: reader.result as string });
+        handleChange('logoURL', reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -117,12 +118,13 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
 
   const isCorrespondent = user?.role === 'correspondent';
 
-  // Initialize universityId only once when form first loads (not on every render)
+  // Initialize universityId only once when form first loads
   useEffect(() => {
     if (isCorrespondent && user?.universityId && !formData.universityId) {
       setFormData((prev: any) => ({ ...prev, universityId: user.universityId }));
     }
-  }, [isCorrespondent, user?.universityId]); // Removed formData and setFormData from dependencies
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCorrespondent, user?.universityId]); // Intentionally exclude formData to prevent re-renders
 
   const validateAll = () => {
     const newErrors: Record<string, string> = {};
@@ -267,7 +269,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
           <div className="relative">
             <select
               value={formData.league}
-              onChange={(e) => setFormData({ ...formData, league: e.target.value })}
+              onChange={(e) => handleChange('league', e.target.value)}
               className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20 text-gray-900 dark:text-white font-bold appearance-none"
             >
               <option value="">Select League (Optional)</option>
@@ -288,7 +290,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
           <input
             type="text"
             value={formData.record}
-            onChange={(e) => setFormData({ ...formData, record: e.target.value })}
+            onChange={(e) => handleChange('record', e.target.value)}
             className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400"
             placeholder="e.g. 11-0-1"
           />
@@ -298,7 +300,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
           <input
             type="text"
             value={formData.championships}
-            onChange={(e) => setFormData({ ...formData, championships: e.target.value })}
+            onChange={(e) => handleChange('championships', e.target.value)}
             className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400"
             placeholder="e.g. Count or list"
           />
@@ -308,7 +310,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
           <input
             type="text"
             value={formData.season}
-            onChange={(e) => setFormData({ ...formData, season: e.target.value })}
+            onChange={(e) => handleChange('season', e.target.value)}
             className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400"
             placeholder="e.g. 2024/25"
           />
@@ -328,7 +330,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
                   <p className="text-green-600 dark:text-green-400 font-bold text-sm">Logo uploaded</p>
                   <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, logoURL: '' })}
+                    onClick={() => handleChange('logoURL', '')}
                     className="text-red-500 hover:text-red-700 text-xs font-medium mt-1"
                   >
                     Remove logo

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAppSelector } from '@/hooks/redux';
 import { apiService } from '@/services/apiService';
 import { db } from '@/services/firebase';
-import { addDoc, collection, updateDoc, deleteDoc, doc, getDocs, setDoc, serverTimestamp } from 'firebase/firestore';
+import { addDoc, collection, updateDoc, deleteDoc, doc, getDocs, setDoc, serverTimestamp, query, where } from 'firebase/firestore';
 import { loadLiveGames, loadUpcomingGames, addLiveGame, addUpcomingGame, updateLiveGame, updateUpcomingGame, deleteLiveGame, deleteUpcomingGame, syncAdminGameCollections } from '@/services/firestoreAdmin';
 import { firebaseLeagueService } from '@/services/firebaseCorrespondence';
 import { Season } from '@/models';
@@ -418,16 +418,42 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
     });
   };
 
-  // Load seasons for a specific sport
+  // Load seasons for a specific sport with fallback mechanisms
   const loadSeasonsForSport = async (sportId: string) => {
     try {
-      const seasonsSnap = await getDocs(collection(db, `sports/${sportId}/seasons`));
-      const sportSeasons = seasonsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Season));
+      // First try: sports/{sportId}/seasons subcollection
+      let seasonsSnap = await getDocs(collection(db, `sports/${sportId}/seasons`));
+      let sportSeasons = seasonsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Season));
+      
+      // Fallback: Try root-level seasons collection
+      if (sportSeasons.length === 0) {
+        console.log('[GamesTab] No seasons in subcollection, trying root collection for sport:', sportId);
+        const rootSeasonsQuery = query(collection(db, 'seasons'), where('sportId', '==', sportId));
+        const rootSeasonsSnap = await getDocs(rootSeasonsQuery);
+        sportSeasons = rootSeasonsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Season));
+      }
+      
+      // Fallback: Try by sport name
+      if (sportSeasons.length === 0) {
+        const sport = sports.find(s => s.id === sportId);
+        if (sport) {
+          console.log('[GamesTab] Trying to load seasons by sport name:', sport.name);
+          const nameQuery = query(collection(db, 'seasons'), where('sport', '==', sport.name));
+          const nameSeasonsSnap = await getDocs(nameQuery);
+          sportSeasons = nameSeasonsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Season));
+        }
+      }
+      
       setSeasons(sportSeasons);
       // Auto-select active season if none selected
       if (!newGame.seasonId) {
         const active = sportSeasons.find(s => s.isActive);
         if (active) setNewGame({ ...newGame, seasonId: active.id });
+        else if (sportSeasons.length > 0) setNewGame({ ...newGame, seasonId: sportSeasons[0].id });
+      }
+      
+      if (sportSeasons.length === 0) {
+        console.warn('[GamesTab] No seasons found for sport:', sportId);
       }
     } catch (e) {
       console.error('Failed to load seasons for sport:', e);
@@ -517,12 +543,27 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
         loadSeasonsForSport(sport.id);
       }
     } else if (newGame.type === 'league' && newGame.selectedLeague) {
-      // Load seasons based on league's sportName
+      // Load seasons based on league's sportId first, then sportName
       const league = leagues.find(l => l.id === newGame.selectedLeague);
       if (league) {
-        const sport = sports.find(s => s.name.toLowerCase() === league.sportName.toLowerCase());
+        // First try: match by sportId (most reliable)
+        let sport = league.sportId ? sports.find(s => s.id === league.sportId) : null;
+        // Second try: match by sportName
+        if (!sport && league.sportName) {
+          sport = sports.find(s => s.name.toLowerCase() === league.sportName.toLowerCase());
+        }
+        // Third try: match by league name
+        if (!sport) {
+          sport = sports.find(s => 
+            s.name.toLowerCase() === league.name.toLowerCase() ||
+            league.name.toLowerCase().includes(s.name.toLowerCase())
+          );
+        }
         if (sport) {
           loadSeasonsForSport(sport.id);
+        } else {
+          console.warn('[GamesTab] Sport not found for league:', league.name, 'sportId:', league.sportId, 'sportName:', league.sportName);
+          setSeasons([]);
         }
       }
     } else {
@@ -530,7 +571,8 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
       setSeasons([]);
       setNewGame({ ...newGame, seasonId: '' });
     }
-  }, [newGame.type, newGame.sport, newGame.selectedLeague, sports, leagues]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [newGame.type, newGame.sport, newGame.selectedLeague, sports.length, leagues.length]);
 
   const handleAddGame = async () => {
     if (!newGame.homeTeamId || !newGame.awayTeamId) {

@@ -205,20 +205,22 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
       setSelectedSeasonId('');
       setFilteredTeams(teams);
     }
-  }, [selectedLeague, sports, leagues, type]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedLeague, sports.length, leagues.length, type]);
 
   useEffect(() => {
-    if (type === 'friendly' && selectedSportId) {
+    // Only run for friendly type
+    if (type !== 'friendly') return;
+    
+    if (selectedSportId) {
       loadSeasonsForSport(selectedSportId);
       filterTeamsBySport(selectedSportId);
-    } else if (type === 'friendly' && !selectedSportId) {
+    } else {
       setFilteredTeams(teams);
       setSeasons([]);
       setSelectedSeasonId('');
-    } else if (type === 'league' && !selectedLeague) {
-      setSeasons([]);
-      setSelectedSeasonId('');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type, selectedSportId]);
 
   const loadMatches = async (leagueId: string) => {

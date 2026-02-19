@@ -104,10 +104,26 @@ export const QuickFixtureModal: React.FC<QuickFixtureModalProps> = ({ isOpen, on
             }
             
             if (sport) {
-                const leagueSeasons = await firebaseLeagueService.listSeasons(sport.id);
+                // Try multiple paths to load seasons
+                let leagueSeasons = await firebaseLeagueService.listSeasons(sport.id);
+                
+                // Fallback: Try root-level seasons collection
+                if (leagueSeasons.length === 0) {
+                    console.log('[QuickFixtureModal] No seasons in subcollection, trying root collection for sport:', sport.id);
+                    leagueSeasons = await firebaseLeagueService.listSeasonsFromRoot(sport.id);
+                }
+                
+                // Fallback: Try by sport name
+                if (leagueSeasons.length === 0) {
+                    console.log('[QuickFixtureModal] Trying to load seasons by sport name:', sport.name);
+                    leagueSeasons = await firebaseLeagueService.listSeasonsBySportName(sport.name);
+                }
+                
                 setSeasons(leagueSeasons);
                 const active = leagueSeasons.find(s => s.isActive);
                 if (active) setSelectedSeasonId(active.id);
+                else if (leagueSeasons.length > 0) setSelectedSeasonId(leagueSeasons[0].id);
+                
                 if (leagueSeasons.length === 0) {
                     console.warn('No seasons found for sport:', sport.name, 'sportId:', sport.id, 'Create seasons in Admin Panel');
                 }
