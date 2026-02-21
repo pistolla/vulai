@@ -155,6 +155,25 @@ function MerchandiseForm({ formData, setFormData, universities, teams, selectedU
             ))}
           </select>
         </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Stock Quantity</label>
+          <input
+            type="number"
+            required
+            value={formData.stock}
+            onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Cost Price (Optional)</label>
+          <input
+            type="number"
+            value={formData.costPrice || ''}
+            onChange={(e) => setFormData({ ...formData, costPrice: e.target.value ? parseFloat(e.target.value) : undefined })}
+            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          />
+        </div>
       </div>
       <div className="flex justify-end space-x-3 pt-4">
         <button
@@ -207,7 +226,9 @@ export default function MerchTab({ adminData }: any) {
     catalog: '',
     university: '',
     team: '',
-    availableSizes: [] as string[]
+    availableSizes: [] as string[],
+    stock: 0,
+    costPrice: undefined as number | undefined
   });
 
   useEffect(() => {
@@ -231,7 +252,9 @@ export default function MerchTab({ adminData }: any) {
       university: newItem.university,
       team: newItem.team,
       availableSizes: newItem.availableSizes,
-      inStock: true,
+      stock: newItem.stock,
+      costPrice: newItem.costPrice,
+      inStock: newItem.stock > 0,
       likes: 0
     }) as any);
     resetNewItem();
@@ -250,7 +273,9 @@ export default function MerchTab({ adminData }: any) {
       catalog: '',
       university: '',
       team: '',
-      availableSizes: []
+      availableSizes: [],
+      stock: 0,
+      costPrice: undefined
     });
     setSelectedUniversity('');
     setSelectedTeam('');
@@ -302,7 +327,7 @@ export default function MerchTab({ adminData }: any) {
               <div className="mb-2"><span className={`px-2 py-1 rounded-full text-xs font-medium ${m.type === 'unil' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'}`}>{m.type === 'unil' ? 'Unil' : 'Team'}</span></div>
               <h3 className="font-bold text-lg text-gray-900 dark:text-white">{m.name}</h3><p className="text-sm text-gray-600 dark:text-gray-400">{m.description}</p>
               <div className="flex items-center space-x-2 mt-2"><span className="text-2xl font-bold text-green-600 dark:text-green-400">KSh {m.price}</span></div>
-              <div className="flex space-x-2 mt-4"><button onClick={() => { setEditingItem(m); setShowEditModal(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">Edit</button><button onClick={() => dispatch(removeMerchT(m.id) as any)} className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm">Delete</button></div>
+              <div className="flex space-x-2 mt-4"><button onClick={() => { setEditingItem({ ...m, stock: m.stock || 0 }); setShowEditModal(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">Edit</button><button onClick={() => dispatch(removeMerchT(m.id) as any)} className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm">Delete</button></div>
             </div>
           )) : (
             <div className="col-span-full text-center py-12">
