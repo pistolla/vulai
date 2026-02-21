@@ -10,7 +10,7 @@ import DashboardTab from '../../components/admin/DashboardTab';
 import UsersTab from '../../components/admin/UsersTab';
 import UniversitiesTab from '../../components/admin/UniversitiesTab';
 import TeamsTab from '../../components/admin/TeamsTab';
-import BalanceSheetTab from '@/components/admin/BalanceSheetTab';
+import BalanceSheetTab from '../../components/admin/BalanceSheetTab';
 import PlayersTab from '../../components/admin/PlayersTab';
 import SportsTab from '../../components/admin/SportsTab';
 import MerchTab from '../../components/admin/MerchTab';
