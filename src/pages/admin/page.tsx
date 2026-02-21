@@ -10,7 +10,7 @@ import DashboardTab from '../../components/admin/DashboardTab';
 import UsersTab from '../../components/admin/UsersTab';
 import UniversitiesTab from '../../components/admin/UniversitiesTab';
 import TeamsTab from '../../components/admin/TeamsTab';
-import BalanceSheetTab from '../../components/admin/BalanceSheetTab';
+import { FinancialTab } from '../../components/admin/FinancialTab';
 import PlayersTab from '../../components/admin/PlayersTab';
 import SportsTab from '../../components/admin/SportsTab';
 import MerchTab from '../../components/admin/MerchTab';
@@ -308,7 +308,7 @@ export default function AdminDashboardPage() {
       case 'users': return <UsersTab rows={users} approve={approveUser} disapprove={disapproveUser} deleteU={deleteUser} openAdd={() => open('addUser')} adminData={adminData} viewProfile={(uid: string) => open('profileModal', { uid, user: users.find((u: any) => u.uid === uid) })} />;
       case 'universities': return <UniversitiesTab adminData={adminData} create={createUniversity} update={updateUniversity} deleteU={deleteUniversity} />;
       case 'teams': return <TeamsTab adminData={adminData} create={createTeam} update={updateTeam} deleteU={deleteTeam} />;
-      case 'balance': return <BalanceSheetTab />;
+      case 'balance': return <FinancialTab />;
       case 'players': return <PlayersTab adminData={adminData} />;
       case 'sports': return <SportsTab adminData={adminData} />;
       case 'merchandise': return <MerchTab items={merch} create={createMerch} remove={removeMerch} adminData={adminData} />;
