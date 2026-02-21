@@ -12,13 +12,14 @@ import { FiPlus, FiEdit2, FiTrash2, FiUsers, FiAward, FiCalendar, FiCheckCircle,
 import { generateTeamSlug } from '@/utils/slugUtils';
 
 // Team Form Component with Validation
-function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel }: any) {
+function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel, isEdit }: any) {
   const [universities, setUniversities] = useState<any[]>([]);
   const [sports, setSports] = useState<any[]>([]);
   const [leagues, setLeagues] = useState<League[]>([]);
-  const [filteredLeagues, setFilteredLeagues] = useState<League[]>([]);
+  const [seasons, setSeasons] = useState<any[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingSeasons, setIsLoadingSeasons] = useState(false);
   const { warning } = useToast();
 
   useEffect(() => {
@@ -39,36 +40,79 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
     loadData();
   }, []);
 
+  // When league changes, auto-load sport and its seasons
   useEffect(() => {
-    if (formData.sport && leagues.length > 0 && sports.length > 0) {
-      // formData.sport contains the sport name (from the select option value)
-      const selectedSportName = formData.sport.toLowerCase();
-      
-      // Find the sport to get its ID for matching
-      const selectedSport = sports.find(s => s.name.toLowerCase() === selectedSportName);
-      
-      const filtered = leagues.filter(l => {
-        // First try: match by sportId (most reliable)
-        if (selectedSport && l.sportId && l.sportId === selectedSport.id) {
-          return true;
+    const handleLeagueChange = async () => {
+      if (!formData.league) {
+        setSeasons([]);
+        return;
+      }
+
+      const selectedLeague = leagues.find(l => l.name === formData.league);
+      if (selectedLeague) {
+        // 1. Set sport name (for form display/saving)
+        if (selectedLeague.sportName && formData.sport !== selectedLeague.sportName) {
+          handleChange('sport', selectedLeague.sportName);
         }
-        // Second try: match by sportName
-        if (l.sportName?.toLowerCase() === selectedSportName) {
-          return true;
+
+        // 2. Load seasons for this sport
+        if (selectedLeague.sportId) {
+          setIsLoadingSeasons(true);
+          setSeasons([]); // Clear previous seasons
+          try {
+            const leagueSeasons = await firebaseLeagueService.listSeasons(selectedLeague.sportId);
+            setSeasons(leagueSeasons);
+
+            if (leagueSeasons.length === 0) {
+              warning('No Seasons Found', `No active seasons found for ${selectedLeague.sportName || 'this sport'}. Please add a season in Sports management.`);
+            }
+
+            // If current season is not in the list, clear it to force new selection
+            if (formData.season && !leagueSeasons.find(s => s.name === formData.season)) {
+              handleChange('season', '');
+            }
+          } catch (error) {
+            console.error('Failed to load seasons:', error);
+          } finally {
+            setIsLoadingSeasons(false);
+          }
         }
-        // Third try: partial match on sportName
-        if (l.sportName?.toLowerCase().includes(selectedSportName) || 
-            selectedSportName.includes(l.sportName?.toLowerCase() || '')) {
-          return true;
-        }
-        return false;
-      });
-      setFilteredLeagues(filtered);
-    } else {
-      setFilteredLeagues([]);
-    }
+      }
+    };
+
+    handleLeagueChange();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.sport, leagues.length, sports.length]); // Use .length to prevent object reference changes
+  }, [formData.league]);
+
+  // When sport is selected manually (if league is empty), also load seasons
+  useEffect(() => {
+    const loadSeasonsForSport = async () => {
+      if (formData.league || !formData.sport) {
+        if (!formData.league) setSeasons([]);
+        return;
+      }
+
+      const selectedSport = sports.find(s => s.name === formData.sport);
+      if (selectedSport) {
+        setIsLoadingSeasons(true);
+        setSeasons([]); // Clear previous seasons
+        try {
+          const sportSeasons = await firebaseLeagueService.listSeasons(selectedSport.id);
+          setSeasons(sportSeasons);
+          if (sportSeasons.length === 0) {
+            warning('No Seasons Found', `No active seasons found for ${formData.sport}. Please add a season in Sports management.`);
+          }
+        } catch (error) {
+          console.error('Failed to load seasons:', error);
+        } finally {
+          setIsLoadingSeasons(false);
+        }
+      } else {
+        setSeasons([]);
+      }
+    };
+    loadSeasonsForSport();
+  }, [formData.sport, formData.league, sports, warning]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -135,7 +179,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateAll()) {
+    if (!isEdit && !validateAll()) {
       warning('Please fix the errors', 'Check the highlighted fields below');
       return;
     }
@@ -147,12 +191,17 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
     }
   };
 
-  const InputWrapper = ({ children, error, label }: { children: React.ReactNode; error?: string; label: string }) => (
+  const InputWrapper = ({ children, error, label, labelExtra }: { children: React.ReactNode; error?: string; label: string; labelExtra?: string }) => (
     <div className={`relative ${error ? 'mb-6' : 'mb-4'}`}>
-      <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">
-        {label}
-        <span className="text-red-500 ml-1">*</span>
-      </label>
+      <div className="flex items-baseline justify-between mb-2">
+        <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest">
+          {label}
+          <span className="text-red-500 ml-1">*</span>
+        </label>
+        {labelExtra && (
+          <span className="text-[10px] text-gray-400 font-medium italic">{labelExtra}</span>
+        )}
+      </div>
       {children}
       {error && (
         <div className="flex items-center gap-1 mt-2 text-red-500 dark:text-red-400 text-xs animate-in slide-in-from-top-1">
@@ -172,11 +221,10 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
               type="text"
               value={formData.name}
               onChange={(e) => handleChange('name', e.target.value)}
-              className={`w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 transition-all ${
-                errors.name 
-                  ? 'border-red-300 dark:border-red-600 focus:ring-4 focus:ring-red-500/20' 
-                  : 'border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20'
-              } text-gray-900 dark:text-white font-bold placeholder-gray-400`}
+              className={`w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 transition-all ${errors.name
+                ? 'border-red-300 dark:border-red-600 focus:ring-4 focus:ring-red-500/20'
+                : 'border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20'
+                } text-gray-900 dark:text-white font-bold placeholder-gray-400`}
               placeholder="e.g. Eagles FC"
             />
             {formData.name && !errors.name && (
@@ -185,16 +233,39 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
           </div>
         </InputWrapper>
 
-        <InputWrapper label="Sport" error={errors.sport}>
+        <InputWrapper label="League">
+          <div className="relative">
+            <select
+              value={formData.league}
+              onChange={(e) => handleChange('league', e.target.value)}
+              className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20 text-gray-900 dark:text-white font-bold appearance-none"
+            >
+              <option value="">Select League (Optional)</option>
+              {leagues.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
+            </select>
+            {formData.league && (
+              <p className="mt-1 ml-1 text-[10px] font-bold text-unill-purple-500 dark:text-unill-purple-400 uppercase tracking-tighter">
+                {formData.sport || 'Linked Sport Loading...'}
+              </p>
+            )}
+            {!formData.league && (
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                Select a league to automatically set the sport
+              </p>
+            )}
+          </div>
+        </InputWrapper>
+
+        <InputWrapper label="Sport" error={errors.sport} labelExtra={formData.league ? "(Linked to League)" : ""}>
           <div className="relative">
             <select
               value={formData.sport}
               onChange={(e) => handleChange('sport', e.target.value)}
-              className={`w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 transition-all appearance-none ${
-                errors.sport
-                  ? 'border-red-300 dark:border-red-600 focus:ring-4 focus:ring-red-500/20'
-                  : 'border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20'
-              } text-gray-900 dark:text-white font-bold`}
+              className={`w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 transition-all appearance-none ${errors.sport
+                ? 'border-red-300 dark:border-red-600 focus:ring-4 focus:ring-red-500/20'
+                : 'border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20'
+                } text-gray-900 dark:text-white font-bold ${formData.league ? 'opacity-70 cursor-not-allowed' : ''}`}
+              disabled={!!formData.league}
             >
               <option value="">Select Sport</option>
               {sports.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
@@ -205,16 +276,35 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
           </div>
         </InputWrapper>
 
+        <InputWrapper label="Season">
+          <div className="relative">
+            <select
+              value={formData.season}
+              onChange={(e) => handleChange('season', e.target.value)}
+              disabled={isLoadingSeasons || seasons.length === 0}
+              className={`w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20 text-gray-900 dark:text-white font-bold appearance-none transition-all ${(isLoadingSeasons || seasons.length === 0) ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+            >
+              <option value="">{isLoadingSeasons ? 'Loading Seasons...' : seasons.length === 0 ? 'No Seasons Available' : 'Select Season'}</option>
+              {seasons.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+            </select>
+            {isLoadingSeasons && (
+              <div className="absolute right-12 top-1/2 -translate-y-1/2">
+                <div className="w-4 h-4 border-2 border-unill-purple-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            )}
+          </div>
+        </InputWrapper>
+
         <InputWrapper label="University" error={errors.universityId}>
           <div className="relative">
             <select
               value={formData.universityId}
               onChange={(e) => handleChange('universityId', e.target.value)}
-              className={`w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 transition-all appearance-none ${
-                errors.universityId
-                  ? 'border-red-300 dark:border-red-600 focus:ring-4 focus:ring-red-500/20'
-                  : 'border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20'
-              } text-gray-900 dark:text-white font-bold ${isCorrespondent ? 'opacity-70 cursor-not-allowed' : ''}`}
+              className={`w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 transition-all appearance-none ${errors.universityId
+                ? 'border-red-300 dark:border-red-600 focus:ring-4 focus:ring-red-500/20'
+                : 'border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20'
+                } text-gray-900 dark:text-white font-bold ${isCorrespondent ? 'opacity-70 cursor-not-allowed' : ''}`}
               disabled={isCorrespondent}
             >
               <option value="">Select University</option>
@@ -231,11 +321,10 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
             type="text"
             value={formData.coach}
             onChange={(e) => handleChange('coach', e.target.value)}
-            className={`w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 transition-all ${
-              errors.coach
-                ? 'border-red-300 dark:border-red-600 focus:ring-4 focus:ring-red-500/20'
-                : 'border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20'
-            } text-gray-900 dark:text-white font-bold placeholder-gray-400`}
+            className={`w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 transition-all ${errors.coach
+              ? 'border-red-300 dark:border-red-600 focus:ring-4 focus:ring-red-500/20'
+              : 'border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20'
+              } text-gray-900 dark:text-white font-bold placeholder-gray-400`}
             placeholder="e.g. John Smith"
           />
         </InputWrapper>
@@ -245,34 +334,12 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
             type="number"
             value={formData.foundedYear}
             onChange={(e) => handleChange('foundedYear', e.target.value)}
-            className={`w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 transition-all ${
-              errors.foundedYear
-                ? 'border-red-300 dark:border-red-600 focus:ring-4 focus:ring-red-500/20'
-                : 'border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20'
-            } text-gray-900 dark:text-white font-bold placeholder-gray-400`}
+            className={`w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 transition-all ${errors.foundedYear
+              ? 'border-red-300 dark:border-red-600 focus:ring-4 focus:ring-red-500/20'
+              : 'border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20'
+              } text-gray-900 dark:text-white font-bold placeholder-gray-400`}
             placeholder="e.g. 2020"
           />
-        </InputWrapper>
-
-        <InputWrapper label="League">
-          <div className="relative">
-            <select
-              value={formData.league}
-              onChange={(e) => handleChange('league', e.target.value)}
-              className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20 text-gray-900 dark:text-white font-bold appearance-none"
-            >
-              <option value="">Select League (Optional)</option>
-              {filteredLeagues.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
-              {filteredLeagues.length === 0 && (
-                <option value="" disabled>No leagues available for selected sport</option>
-              )}
-            </select>
-            {!formData.sport && (
-              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                Select a sport to see available leagues, or leave empty
-              </p>
-            )}
-          </div>
         </InputWrapper>
 
         <InputWrapper label="Record">
@@ -295,23 +362,12 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
           />
         </InputWrapper>
 
-        <InputWrapper label="Season">
-          <input
-            type="text"
-            value={formData.season}
-            onChange={(e) => handleChange('season', e.target.value)}
-            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400"
-            placeholder="e.g. 2024/25"
-          />
-        </InputWrapper>
-
         <div className="col-span-2">
           <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Team Logo</label>
-          <div className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${
-            formData.logoURL 
-              ? 'border-green-300 dark:border-green-600 bg-green-50 dark:bg-green-900/20' 
-              : 'border-gray-300 dark:border-gray-600 hover:border-blue-400'
-          }`}>
+          <div className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${formData.logoURL
+            ? 'border-green-300 dark:border-green-600 bg-green-50 dark:bg-green-900/20'
+            : 'border-gray-300 dark:border-gray-600 hover:border-blue-400'
+            }`}>
             {formData.logoURL ? (
               <div className="flex items-center justify-center gap-4">
                 <img src={formData.logoURL} alt="Logo preview" className="w-20 h-20 object-cover rounded-xl shadow-lg" />
@@ -579,7 +635,7 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
 
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-2 sm:p-6">
           {teams.length > 0 && <ExportButtons data={exportData} headers={exportHeaders} filename="teams" />}
-          
+
           {teams.length === 0 ? (
             <div className="text-center py-20">
               <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full mb-4">
@@ -683,6 +739,7 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
             onSubmit={handleEditTeam}
             submitLabel="Update Team"
             user={user}
+            isEdit={true}
             onCancel={() => { setShowEditModal(false); setEditingTeam(null); }}
           />
         )}
