@@ -413,6 +413,8 @@ export interface MerchItem {
   id: string;
   name: string;
   description: string;
+  costPrice?: number;
+  stock: number;
   price: number;
   images: string[]; // URLs
   image?: string; // Primary image URL (legacy/convenience)

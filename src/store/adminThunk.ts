@@ -15,7 +15,8 @@ import {
   loadPlayerAvatars, addPlayerAvatar, updatePlayerAvatar, deletePlayerAvatar,
   loadSports, addSport, updateSport, deleteSport,
   loadImportedData, processImportedData, saveProcessedDocument,
-  addSeasonToSport, loadSeasons, updateSeason, deleteSeason
+  addSeasonToSport, loadSeasons, updateSeason, deleteSeason,
+  loadAllBookkeepingDocs
 } from '@/services/firestoreAdmin';
 import { Season } from '@/models';
 
@@ -143,3 +144,12 @@ export const removeSeasonT = createAsyncThunk('seasons/delete', async ({ sportId
 export const fetchImportedData = createAsyncThunk('importedData/fetch', loadImportedData);
 export const processImportedDataT = createAsyncThunk('importedData/process', processImportedData);
 export const saveProcessedDocumentT = createAsyncThunk('processedDocuments/save', saveProcessedDocument);
+
+/* ---------- financial / balance sheet ---------- */
+export const fetchFinancialOverview = createAsyncThunk(
+  'admin/fetchFinancialOverview',
+  async () => {
+    const docs = await loadAllBookkeepingDocs();
+    return docs;
+  }
+);

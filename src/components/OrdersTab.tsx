@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { MerchDocument, ReturnOfGoodsData } from '@/models';
 import { FiCheckCircle } from 'react-icons/fi';
-import { fetchMerchDocuments, createMerchDocument, updateMerchDocument } from '@/store/correspondentThunk';
+import { fetchMerchDocuments, createMerchDocument, updateMerchDocument, saveBookkeepingDocument } from '@/store/correspondentThunk';
 
 export default function OrdersTab() {
   const dispatch = useAppDispatch();
@@ -50,6 +50,13 @@ export default function OrdersTab() {
         merchType: 'unil',
         status: 'pending_approval',
         data: returnOfGoodsData,
+      })).unwrap();
+
+      // Structured Bookkeeping: Record Return Request
+      await dispatch(saveBookkeepingDocument({
+        orderId: returnModal.order.id,
+        docType: 'return_of_goods' as any,
+        data: returnOfGoodsData
       })).unwrap();
 
       setReturnModal({ isOpen: false, order: null });

@@ -4,7 +4,7 @@ import { RootState } from '@/store';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { Modal } from '@/components/common/Modal';
 import { FiAlertTriangle, FiPackage, FiTrendingUp, FiDollarSign, FiEdit2, FiSave, FiX, FiCheckCircle } from 'react-icons/fi';
-import { createMerchDocument, updateMerchDocument } from '@/store/correspondentThunk';
+import { createMerchDocument, updateMerchDocument, saveBookkeepingDocument } from '@/store/correspondentThunk';
 
 export default function StoreTab({ adminData }: any) {
   const dispatch = useAppDispatch();
@@ -52,19 +52,28 @@ export default function StoreTab({ adminData }: any) {
       for (const item of items) {
         const merch = merchItems.find((m: any) => m.id === item.merchId);
         if (merch && merch.type === 'unil') {
+          const stockData = {
+            merchId: item.merchId,
+            merchName: item.merchName,
+            quantity: item.quantity,
+            type: 'out' as const,
+            reason: `Fulfillment for order ${order.id}`,
+            reference: order.id,
+            size: item.size
+          };
+
           await dispatch(createMerchDocument({
             type: 'stock_record',
             merchType: 'unil',
             status: 'completed',
-            data: {
-              merchId: item.merchId,
-              merchName: item.merchName,
-              quantity: item.quantity,
-              type: 'out',
-              reason: `Fulfillment for order ${order.id}`,
-              reference: order.id,
-              size: item.size
-            }
+            data: stockData
+          })).unwrap();
+
+          // Structured Bookkeeping: Record Stock Record
+          await dispatch(saveBookkeepingDocument({
+            orderId: order.id,
+            docType: 'stock_record' as any,
+            data: stockData
           })).unwrap();
         }
       }
@@ -75,7 +84,39 @@ export default function StoreTab({ adminData }: any) {
         updates: { status: 'shipped' }
       })).unwrap();
 
-      alert('Order dispatched successfully! Stock records created.');
+      // 3. Structured Bookkeeping: Record Stock Records and Delivery Notes
+      const deliveryNotesData = {
+        orderId: order.id,
+        deliveryDate: new Date().toISOString().split('T')[0],
+        deliveredBy: 'Main Warehouse',
+        receivedBy: orderData.customerName || 'Customer',
+        items: items,
+        notes: `Shipped from university central store. Related to order #${order.id}`
+      };
+
+      await dispatch(saveBookkeepingDocument({
+        orderId: order.id,
+        docType: 'delivery_notes' as any,
+        data: deliveryNotesData
+      })).unwrap();
+
+      // Also record transport document (Simulated tracking)
+      const transportData = {
+        orderId: order.id,
+        carrier: 'Standard Uni Courier',
+        trackingNumber: `TRK-${Date.now()}`,
+        shippedAt: new Date().toISOString(),
+        estimatedDelivery: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'shipped'
+      };
+
+      await dispatch(saveBookkeepingDocument({
+        orderId: order.id,
+        docType: 'transport_document' as any,
+        data: transportData
+      })).unwrap();
+
+      alert('Order dispatched successfully! Bookkeeping records (Stock, Delivery, Transport) created.');
     } catch (error) {
       console.error('Failed to dispatch order:', error);
       alert('Failed to dispatch order. Please try again.');

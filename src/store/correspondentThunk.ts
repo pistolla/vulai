@@ -287,3 +287,18 @@ export const rejectMerchDocument = createAsyncThunk(
     return { id, approval };
   }
 );
+
+export const saveBookkeepingDocument = createAsyncThunk(
+  'merchDocuments/saveBookkeeping',
+  async ({ orderId, docType, data }: { orderId: string; docType: DocumentType; data: any }) => {
+    const ref = doc(db, 'bookkeeping', orderId, 'documents', docType as unknown as string);
+    const payload = {
+      id: docType,
+      type: docType,
+      data,
+      updatedAt: new Date().toISOString(),
+    };
+    await setDoc(ref, payload, { merge: true });
+    return { orderId, docType, payload };
+  }
+);

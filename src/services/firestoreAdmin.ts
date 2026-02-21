@@ -94,6 +94,19 @@ export const updateOrderStatus = async (orderId: string, status: string) => {
   });
 };
 
+// Load all bookkeeping documents across all orders
+export const loadAllBookkeepingDocs = async (): Promise<any[]> => {
+  const snap = await getDocs(collectionGroup(db, 'documents'));
+  // Ensure we only get documents from the bookkeeping path
+  return snap.docs
+    .filter(d => d.ref.path.includes('bookkeeping/'))
+    .map((d: QueryDocumentSnapshot<DocumentData>) => ({
+      id: d.id,
+      orderId: d.ref.parent.parent?.id,
+      ...d.data()
+    }));
+};
+
 // Load contact messages from contactMessages collection
 export const loadContactMessages = async (): Promise<any[]> => {
   const snap = await getDocs(query(collection(db, 'contactMessages'), orderBy('createdAt', 'desc')));

@@ -11,6 +11,7 @@ import {
   updateMerchDocument,
   approveMerchDocument,
   rejectMerchDocument,
+  saveBookkeepingDocument,
 } from '@/store/correspondentThunk';
 
 export default function ManagerTab({ adminData }: any) {
@@ -112,20 +113,27 @@ export default function ManagerTab({ adminData }: any) {
           originalOrderId: doc.id, // Store reference to original order
         } as any;
 
-        await dispatch(createMerchDocument({
+        const poResult = await dispatch(createMerchDocument({
           type: 'purchase_order',
           merchType: 'team',
           status: 'pending_approval',
           data: purchaseOrderData,
+        })).unwrap();
+
+        // Structured Bookkeeping: Record Purchase Order
+        await dispatch(saveBookkeepingDocument({
+          orderId: doc.id,
+          docType: 'purchase_order' as any,
+          data: purchaseOrderData
         })).unwrap();
       }
 
       // Create Invoice document
       const invoiceData: InvoiceData = {
         orderId: doc.id,
-        invoiceNumber: `INV-${doc.id.slice(0, 8).toUpperCase()}`,
-        paymentStatus: (orderData.paymentMethod === 'card' || orderData.paymentMethod === 'paypal' || orderData.paymentMethod === 'mobile') ? 'paid' : 'pending',
-        dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days due
+        invoiceNumber: `INV-${Date.now()}`,
+        paymentStatus: 'pending',
+        dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 14 days
         items: orderData.items.map(item => ({
           description: item.merchName,
           quantity: item.quantity,
@@ -135,6 +143,7 @@ export default function ManagerTab({ adminData }: any) {
         })),
         total: orderData.total,
         tax: orderData.total * 0.16, // Assuming 16% VAT
+        discount: 0,
       };
 
       await dispatch(createMerchDocument({
@@ -142,6 +151,13 @@ export default function ManagerTab({ adminData }: any) {
         merchType: 'unil',
         status: 'completed',
         data: invoiceData,
+      })).unwrap();
+
+      // Structured Bookkeeping: Record Invoice
+      await dispatch(saveBookkeepingDocument({
+        orderId: doc.id,
+        docType: 'invoice' as any,
+        data: invoiceData
       })).unwrap();
 
       // Update the order status to approved
@@ -213,6 +229,17 @@ export default function ManagerTab({ adminData }: any) {
           type: 'return_of_goods',
           merchType: 'unil',
           status: 'completed', // Stock manager handles directly
+          data: {
+            ...returnData,
+            items: unilItems,
+            notes: `Processed and stock adjusted by manager: ${returnData.notes}`,
+          },
+        })).unwrap();
+
+        // Structured Bookkeeping: Record Processed Return
+        await dispatch(saveBookkeepingDocument({
+          orderId: returnData.orderId,
+          docType: 'return_of_goods' as any,
           data: {
             ...returnData,
             items: unilItems,

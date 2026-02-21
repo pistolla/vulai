@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { firebaseMerchService } from '@/services/firebaseMerchService';
 import { OrderData } from '@/models';
 import { removeFromCart, updateQuantity, clearCart } from '@/store/slices/cartSlice';
+import { saveBookkeepingDocument } from '@/store/correspondentThunk';
 
 // Cart Component
 export default function CartTab() {
@@ -131,7 +132,14 @@ export default function CartTab() {
             orderHash: cartItems.map((i: any) => `${i.id}-${i.selectedSize || 'no-size'}-${i.quantity}`).join('|')
           };
 
-          await firebaseMerchService.createOrder(orderData, user.uid);
+          const orderId = await firebaseMerchService.createOrder(orderData, user.uid);
+
+          // 2. Structured Bookkeeping: Record the initial order document
+          await dispatch(saveBookkeepingDocument({
+            orderId,
+            docType: 'order' as any,
+            data: orderData
+          })).unwrap();
 
           // Clear cart and redirect to orders
           dispatch(clearCart());
