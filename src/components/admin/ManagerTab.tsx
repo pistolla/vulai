@@ -95,25 +95,8 @@ export default function ManagerTab({ adminData }: any) {
         }
       }
 
-      // Create StockRecord documents for unil items
-      for (const item of unilItems) {
-        const stockRecordData: StockRecordData = {
-          merchId: item.merchId,
-          merchName: item.merchName,
-          quantity: item.quantity,
-          type: 'out', // Stock out for sales
-          reason: `Order fulfillment for order ${doc.id}`,
-          reference: doc.id,
-          size: item.size
-        };
-
-        await dispatch(createMerchDocument({
-          type: 'stock_record',
-          merchType: 'unil',
-          status: 'completed',
-          data: stockRecordData,
-        })).unwrap();
-      }
+      // Note: StockRecord creation moved to StoreTab (Fulfillment stage)
+      // upon physical dispatch of goods.
 
       // Create PurchaseOrder documents for team items
       if (teamItems.length > 0) {
@@ -298,16 +281,18 @@ export default function ManagerTab({ adminData }: any) {
           onCancel={() => setShowForm(false)}
         />
       ) : (
-        <DocumentList
-          documents={unilDocuments}
-          onCreate={() => { }} // Disable create for managers
-          onEdit={() => { }} // Disable edit for orders
-          onDelete={() => { }} // Disable delete for orders
-          onApprove={handleApprove}
-          onReject={handleReject}
-          onView={handleView}
-          allowCreate={false}
-        />
+        <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl rounded-[2rem] border border-gray-100 dark:border-gray-800 overflow-hidden shadow-sm">
+          <DocumentList
+            documents={unilDocuments}
+            onCreate={() => { }} // Disable create for managers
+            onEdit={() => { }} // Disable edit for orders
+            onDelete={() => { }} // Disable delete for orders
+            onApprove={handleApprove}
+            onReject={handleReject}
+            onView={handleView}
+            allowCreate={false}
+          />
+        </div>
       )}
 
       <ApprovalModal

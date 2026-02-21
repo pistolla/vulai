@@ -3,15 +3,15 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { Modal } from '@/components/common/Modal';
-import { FiAlertTriangle, FiPackage, FiTrendingUp, FiDollarSign, FiEdit2, FiSave, FiX } from 'react-icons/fi';
+import { FiAlertTriangle, FiPackage, FiTrendingUp, FiDollarSign, FiEdit2, FiSave, FiX, FiCheckCircle } from 'react-icons/fi';
+import { createMerchDocument, updateMerchDocument } from '@/store/correspondentThunk';
 
 export default function StoreTab({ adminData }: any) {
   const dispatch = useAppDispatch();
-  const { merchItems } = useSelector((state: RootState) => ({
-    merchItems: state.merch.items,
-  }));
-  const { orders } = useAppSelector(s => s.admin);
-  
+  const { items: merchItems } = useAppSelector(state => state.merch);
+  const { documents: merchDocuments } = useAppSelector(state => state.merchDocuments);
+  const orders = merchDocuments.filter((d: any) => d.type === 'order');
+
   const [editingItem, setEditingItem] = useState<any>(null);
   const [stockQuantities, setStockQuantities] = useState<Record<string, number>>({});
   const [lowStockThreshold, setLowStockThreshold] = useState(10);
@@ -30,7 +30,7 @@ export default function StoreTab({ adminData }: any) {
   const totalValue = merchItems.reduce((sum: number, item: any) => sum + ((stockQuantities[item.id] || 0) * (item.price || 0)), 0);
   const lowStockItems = merchItems.filter((item: any) => (stockQuantities[item.id] || 0) <= lowStockThreshold && (stockQuantities[item.id] || 0) > 0);
   const outOfStockItems = merchItems.filter((item: any) => (stockQuantities[item.id] || 0) === 0);
-  
+
   // Calculate orders analytics
   const totalOrders = orders.length;
   const pendingOrders = orders.filter((o: any) => o.status === 'pending_approval').length;
@@ -40,11 +40,50 @@ export default function StoreTab({ adminData }: any) {
 
   const handleSaveQuantity = (itemId: string) => {
     // In a real app, this would update the database
-    // For now, we'll just close the modal and show success
     setEditingItem(null);
   };
 
+  const handleDispatch = async (order: any) => {
+    try {
+      const orderData = order.data || {};
+      const items = order.items || orderData.items || [];
+
+      // 1. Create stock records for unil items
+      for (const item of items) {
+        const merch = merchItems.find((m: any) => m.id === item.merchId);
+        if (merch && merch.type === 'unil') {
+          await dispatch(createMerchDocument({
+            type: 'stock_record',
+            merchType: 'unil',
+            status: 'completed',
+            data: {
+              merchId: item.merchId,
+              merchName: item.merchName,
+              quantity: item.quantity,
+              type: 'out',
+              reason: `Fulfillment for order ${order.id}`,
+              reference: order.id,
+              size: item.size
+            }
+          })).unwrap();
+        }
+      }
+
+      // 2. Update order status to shipped
+      await dispatch(updateMerchDocument({
+        id: order.id,
+        updates: { status: 'shipped' }
+      })).unwrap();
+
+      alert('Order dispatched successfully! Stock records created.');
+    } catch (error) {
+      console.error('Failed to dispatch order:', error);
+      alert('Failed to dispatch order. Please try again.');
+    }
+  };
+
   const unilMerch = merchItems.filter((m: any) => m.type === 'unil');
+  const awaitingFulfillment = orders.filter((o: any) => o.status === 'approved');
 
   return (
     <div id="content-store" className="slide-in-left">
@@ -136,6 +175,56 @@ export default function StoreTab({ adminData }: any) {
         </div>
       </div>
 
+      {/* Fulfillment Section */}
+      <div className="mb-12">
+        <h3 className="text-xl font-black text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+          <div className="w-10 h-10 bg-blue-100/50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center">
+            <FiPackage className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+          </div>
+          Awaiting Fulfillment
+          <span className="bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400 px-3 py-1 rounded-full text-xs font-black">
+            {awaitingFulfillment.length}
+          </span>
+        </h3>
+
+        {awaitingFulfillment.length > 0 ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {awaitingFulfillment.map((order: any) => (
+              <div key={order.id} className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl border border-gray-100 dark:border-gray-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h4 className="font-bold text-gray-900 dark:text-white">{order.data?.customerName || 'Guest Customer'}</h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Order ID: #{order.id.slice(0, 8).toUpperCase()}</p>
+                  </div>
+                  <button
+                    onClick={() => handleDispatch(order)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 transition-all active:scale-95"
+                  >
+                    Dispatch Goods
+                  </button>
+                </div>
+                <div className="space-y-2 mb-4">
+                  {(order.data?.items || []).map((item: any, idx: number) => (
+                    <div key={idx} className="flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/30 p-2 rounded-lg border border-gray-100 dark:border-gray-800/50">
+                      <div className="flex items-center gap-2">
+                        <span className="bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded text-[10px] font-bold">{item.quantity}x</span>
+                        <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">{item.merchName}</span>
+                      </div>
+                      <span className="text-[10px] bg-white dark:bg-gray-900 px-2 py-0.5 rounded border border-gray-100 dark:border-gray-800 text-gray-500">{item.size}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-gray-50/50 dark:bg-gray-800/20 border border-dashed border-gray-200 dark:border-gray-800 rounded-2xl py-12 text-center">
+            <FiPackage className="w-12 h-12 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
+            <p className="text-gray-500 dark:text-gray-400 font-medium">No orders awaiting fulfillment</p>
+          </div>
+        )}
+      </div>
+
       {/* Depletion Alerts */}
       {(lowStockItems.length > 0 || outOfStockItems.length > 0) && (
         <div className="mb-8">
@@ -186,7 +275,7 @@ export default function StoreTab({ adminData }: any) {
                   const quantity = stockQuantities[item.id] || 0;
                   const isLowStock = quantity <= lowStockThreshold && quantity > 0;
                   const isOutOfStock = quantity === 0;
-                  
+
                   return (
                     <tr key={item.id} className={isOutOfStock ? 'bg-red-50 dark:bg-red-900/10' : isLowStock ? 'bg-yellow-50 dark:bg-yellow-900/10' : ''}>
                       <td className="px-6 py-4 whitespace-nowrap">

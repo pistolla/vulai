@@ -19,7 +19,6 @@ import ReviewTab from '../../components/admin/ReviewTab';
 import GamesTab from '../../components/admin/GamesTab';
 import { ImportedDataTab } from '../../components/admin/ImportedDataTab';
 import LeaguesTab from '../../components/admin/LeaguesTab';
-import OrdersTab from '../../components/admin/OrdersTab';
 import ContactTab from '../../components/admin/ContactTab';
 import {
   fetchDashboard,
@@ -59,7 +58,8 @@ export default function AdminDashboardPage() {
   const { success, error: showError } = useToast();
 
   /* ---------- Redux state ---------- */
-  const { stats, universities, orders, contactMessages } = useAppSelector(s => s.admin);
+  const { stats, universities, contactMessages } = useAppSelector(s => s.admin);
+  const orders = useAppSelector(s => s.merchDocuments.documents.filter((d: any) => d.type === 'order'));
   const users = useAppSelector(s => s.users.rows);
   const merch = useAppSelector(s => s.merch.items);
   const reviews = useAppSelector(s => s.review.rows);
@@ -294,7 +294,6 @@ export default function AdminDashboardPage() {
     { id: 'merchandise', label: 'Merchandise', icon: FiBox },
     { id: 'store', label: 'Store Stock', icon: FiPackage },
     { id: 'manager', label: 'Manager', icon: FiUser },
-    { id: 'orders', label: 'Orders', icon: FiPackage },
     { id: 'contact', label: 'Contact', icon: FiMail },
     { id: 'games', label: 'Live Games', icon: FiCalendar },
     { id: 'importedData', label: 'Data Imports', icon: FiBox },
@@ -312,7 +311,6 @@ export default function AdminDashboardPage() {
       case 'merchandise': return <MerchTab items={merch} create={createMerch} remove={removeMerch} adminData={adminData} />;
       case 'store': return <StoreTab adminData={adminData} />;
       case 'manager': return <ManagerTab adminData={adminData} />;
-      case 'orders': return <OrdersTab orders={orders} updateStatus={updateOrderStatus} adminData={adminData} />;
       case 'contact': return <ContactTab messages={contactMessages} updateStatus={updateContactStatus} adminData={adminData} />;
       case 'games': return <GamesTab live={live} upcoming={upcoming} updateScore={updateScore} startG={startGame} endG={endGame} />;
       case 'importedData': return <ImportedDataTab />;
@@ -329,46 +327,46 @@ export default function AdminDashboardPage() {
 
           <main className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
 
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
-            <div>
-              <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">Admin Terminal</h1>
-              <p className="text-gray-500 dark:text-gray-400 font-medium">System management and content moderation portal</p>
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+              <div>
+                <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">Admin Terminal</h1>
+                <p className="text-gray-500 dark:text-gray-400 font-medium">System management and content moderation portal</p>
+              </div>
+
+              <div className="flex items-center space-x-2 bg-white dark:bg-gray-800 p-1.5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-x-auto no-scrollbar">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === tab.id
+                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 active:scale-95'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white'
+                      }`}
+                  >
+                    <tab.icon className={activeTab === tab.id ? 'w-5 h-5' : 'w-5 h-5 opacity-70'} />
+                    <span>{tab.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="flex items-center space-x-2 bg-white dark:bg-gray-800 p-1.5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-x-auto no-scrollbar">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === tab.id
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 active:scale-95'
-                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-white'
-                    }`}
-                >
-                  <tab.icon className={activeTab === tab.id ? 'w-5 h-5' : 'w-5 h-5 opacity-70'} />
-                  <span>{tab.label}</span>
-                </button>
-              ))}
+            <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl rounded-[2.5rem] border border-gray-100 dark:border-gray-800 p-4 sm:p-8 min-h-[600px] shadow-sm">
+              {renderContent()}
             </div>
-          </div>
+          </main>
+        </div>
 
-          <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl rounded-[2.5rem] border border-gray-100 dark:border-gray-800 p-4 sm:p-8 min-h-[600px] shadow-sm">
-            {renderContent()}
-          </div>
-        </main>
-      </div>
+        <Modal isOpen={modals.addUser} title="Add New User" onClose={() => close('addUser')} fullScreen={true}>
+          <AddUserForm close={() => close('addUser')} universities={universities} dispatch={dispatch} />
+        </Modal>
 
-      <Modal isOpen={modals.addUser} title="Add New User" onClose={() => close('addUser')} fullScreen={true}>
-        <AddUserForm close={() => close('addUser')} universities={universities} dispatch={dispatch} />
-      </Modal>
+        <Modal isOpen={!!modals.gameDetails} title="Game Details" onClose={() => close('gameDetails')} fullScreen={true}>
+          {modals.gameDetails && <GameDetailsContent data={modals.gameDetails} />}
+        </Modal>
 
-      <Modal isOpen={!!modals.gameDetails} title="Game Details" onClose={() => close('gameDetails')} fullScreen={true}>
-        {modals.gameDetails && <GameDetailsContent data={modals.gameDetails} />}
-      </Modal>
-
-      <Modal isOpen={!!modals.profileModal} title="Correspondent Profile" onClose={() => close('profileModal')} fullScreen={true}>
-        {modals.profileModal && <ProfileContent data={modals.profileModal} />}
-      </Modal>
+        <Modal isOpen={!!modals.profileModal} title="Correspondent Profile" onClose={() => close('profileModal')} fullScreen={true}>
+          {modals.profileModal && <ProfileContent data={modals.profileModal} />}
+        </Modal>
       </AdminGuard>
     </ToastProvider>
   );

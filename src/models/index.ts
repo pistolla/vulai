@@ -289,7 +289,7 @@ export interface ImportedData {
 
 /* ----- merchandise documents ----- */
 export type DocumentType = 'order' | 'invoice' | 'stock_record' | 'transport_document' | 'return_of_goods' | 'purchase_order' | 'delivery_notes';
-export type DocumentStatus = 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'completed';
+export type DocumentStatus = 'draft' | 'pending_approval' | 'approved' | 'rejected' | 'completed' | 'shipped' | 'delivered';
 export type MerchType = 'team' | 'unil';
 
 export interface DocumentApproval {
