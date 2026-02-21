@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Layout from '../components/Layout';
 import { SearchSidebar } from '../components/search/SearchSidebar';
-import { FixtureCard } from '../components/search/FixtureCard';
+import FixtureCard from '../components/search/FixtureCard';
 import { FixtureDetail } from '../components/search/FixtureDetail';
 import { apiService } from '../services/apiService';
 import { Fixture as FixtureModel, League, University, Sport } from '@/models';
@@ -42,26 +42,46 @@ const SearchPage: React.FC = () => {
             try {
                 setLoading(true);
 
-                const [fixturesData, teamsData, universitiesData, sportsData] = await Promise.all([
+                const [fixturesData, teamsData, universitiesData, sportsData, leaguesData] = await Promise.all([
                     apiService.getFixtures(),
                     apiService.getTeams(),
                     apiService.getUniversities(),
                     apiService.getSports(),
+                    import('@/services/firebaseCorrespondence').then(m => m.firebaseLeagueService.listLeagues()),
                 ]);
 
-                setFixtures(fixturesData || []);
+                // 1. Filter fixtures to only show league fixtures
+                const leagueFixtures = (fixturesData || []).filter(f => f.type === 'league');
+                setFixtures(leagueFixtures);
                 setTeams(teamsData || []);
                 setUniversities(universitiesData || []);
                 setSports(sportsData || []);
 
-                // Extract unique leagues from fixtures
+                // 2. Map of leagueId to League object for names
                 const leagueMap = new Map<string, League>();
-                (fixturesData || []).forEach((f: FixtureModel) => {
-                    if (f.leagueId && !leagueMap.has(f.leagueId)) {
-                        leagueMap.set(f.leagueId, { id: f.leagueId, name: f.leagueId, sportType: 'team', hasGroups: false });
-                    }
+                (leaguesData || []).forEach(l => {
+                    if (l.id) leagueMap.set(l.id, l);
                 });
-                setLeagues(Array.from(leagueMap.values()));
+
+                // 3. Filter sidebar items to only those with fixtures
+                const activeLeagueIds = new Set(leagueFixtures.map(f => f.leagueId).filter(Boolean));
+                const filteredLeagues = (leaguesData || []).filter(l => activeLeagueIds.has(l.id!));
+                setLeagues(filteredLeagues);
+
+                // Filter universities with fixtures
+                const activeTeamIds = new Set([
+                    ...leagueFixtures.map(f => f.homeTeamId),
+                    ...leagueFixtures.map(f => f.awayTeamId)
+                ]);
+                const filteredUniversities = (universitiesData || []).filter(uni =>
+                    (teamsData || []).some(t => t.universityId === uni.id && activeTeamIds.has(t.id))
+                );
+                setUniversities(filteredUniversities);
+
+                // Filter sports with fixtures
+                const activeSports = new Set(leagueFixtures.map(f => f.sport?.toLowerCase()));
+                const filteredSports = (sportsData || []).filter(s => activeSports.has(s.name.toLowerCase()));
+                setSports(filteredSports);
 
             } catch (error) {
                 console.error('Failed to load search data:', error);
@@ -81,15 +101,7 @@ const SearchPage: React.FC = () => {
 
     // Filter fixtures
     const filteredFixtures = useMemo(() => {
-        const now = new Date();
-        const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-
         return fixtures.filter((fixture) => {
-            // Date range filter (past week to next week)
-            const fixtureDate = new Date(fixture.scheduledAt);
-            if (fixtureDate < oneWeekAgo || fixtureDate > oneWeekFromNow) return false;
-
             // Search query filter
             if (searchQuery) {
                 const query = searchQuery.toLowerCase();
@@ -318,6 +330,7 @@ const SearchPage: React.FC = () => {
                                                     <FixtureCard
                                                         key={fixture.id || Math.random().toString()}
                                                         fixture={fixture}
+                                                        leagueName={leagues.find(l => l.id === fixture.leagueId)?.name}
                                                         onClick={() => setSelectedFixture(fixture)}
                                                         isSelected={isSelected}
                                                     />

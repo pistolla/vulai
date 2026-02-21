@@ -4,12 +4,13 @@ import AdminGuard from '@/guards/AdminGuard';
 import UserHeader from '@/components/UserHeader';
 import { apiService, AdminData } from '../../services/apiService';
 import { ToastProvider, useToast } from '@/components/common/ToastProvider';
-import { FiGrid, FiUsers, FiMap, FiAward, FiTarget, FiBox, FiCheckCircle, FiCalendar, FiPlus, FiX, FiPackage, FiUser, FiMail } from 'react-icons/fi';
+import { FiGrid, FiUsers, FiMap, FiAward, FiTarget, FiBox, FiCheckCircle, FiCalendar, FiPlus, FiX, FiPackage, FiUser, FiMail, FiActivity } from 'react-icons/fi';
 import { Modal } from '@/components/common/Modal';
 import DashboardTab from '../../components/admin/DashboardTab';
 import UsersTab from '../../components/admin/UsersTab';
 import UniversitiesTab from '../../components/admin/UniversitiesTab';
 import TeamsTab from '../../components/admin/TeamsTab';
+import BalanceSheetTab from '@/components/admin/BalanceSheetTab';
 import PlayersTab from '../../components/admin/PlayersTab';
 import SportsTab from '../../components/admin/SportsTab';
 import MerchTab from '../../components/admin/MerchTab';
@@ -66,7 +67,7 @@ export default function AdminDashboardPage() {
   const { live, upcoming } = useAppSelector(s => s.games);
 
   /* ---------- Local UI state ---------- */
-  type TabId = 'dashboard' | 'users' | 'universities' | 'teams' | 'players' | 'sports' | 'merchandise' | 'store' | 'manager' | 'orders' | 'contact' | 'games' | 'importedData' | 'leagues';
+  type TabId = 'dashboard' | 'users' | 'universities' | 'teams' | 'players' | 'sports' | 'merchandise' | 'store' | 'manager' | 'orders' | 'contact' | 'games' | 'importedData' | 'leagues' | 'balance';
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [modals, setModals] = useState({
     addUser: false,
@@ -289,6 +290,7 @@ export default function AdminDashboardPage() {
     { id: 'users', label: 'Users', icon: FiUsers },
     { id: 'universities', label: 'Universities', icon: FiMap },
     { id: 'teams', label: 'Teams', icon: FiAward },
+    { id: 'balance', label: 'Balance Sheet', icon: <FiActivity /> },
     { id: 'players', label: 'Players', icon: FiTarget },
     { id: 'sports', label: 'Sports', icon: FiGrid },
     { id: 'merchandise', label: 'Merchandise', icon: FiBox },
@@ -306,6 +308,7 @@ export default function AdminDashboardPage() {
       case 'users': return <UsersTab rows={users} approve={approveUser} disapprove={disapproveUser} deleteU={deleteUser} openAdd={() => open('addUser')} adminData={adminData} viewProfile={(uid: string) => open('profileModal', { uid, user: users.find((u: any) => u.uid === uid) })} />;
       case 'universities': return <UniversitiesTab adminData={adminData} create={createUniversity} update={updateUniversity} deleteU={deleteUniversity} />;
       case 'teams': return <TeamsTab adminData={adminData} create={createTeam} update={updateTeam} deleteU={deleteTeam} />;
+      case 'balance': return <BalanceSheetTab />;
       case 'players': return <PlayersTab adminData={adminData} />;
       case 'sports': return <SportsTab adminData={adminData} />;
       case 'merchandise': return <MerchTab items={merch} create={createMerch} remove={removeMerch} adminData={adminData} />;
