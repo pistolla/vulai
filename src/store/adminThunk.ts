@@ -36,13 +36,13 @@ export const removeMerchT = createAsyncThunk('merch/delete', deleteMerch);
 
 /* ---------- orders ---------- */
 export const fetchOrders = createAsyncThunk('orders/fetch', loadOrders);
-export const updateOrderStatusT = createAsyncThunk('orders/updateStatus', ({ orderId, status }: { orderId: string; status: string }) => 
+export const updateOrderStatusT = createAsyncThunk('orders/updateStatus', ({ orderId, status }: { orderId: string; status: string }) =>
   updateOrderStatus(orderId, status)
 );
 
 /* ---------- contact messages ---------- */
 export const fetchContactMessages = createAsyncThunk('contactMessages/fetch', loadContactMessages);
-export const updateContactMessageStatusT = createAsyncThunk('contactMessages/updateStatus', ({ messageId, status }: { messageId: string; status: string }) => 
+export const updateContactMessageStatusT = createAsyncThunk('contactMessages/updateStatus', ({ messageId, status }: { messageId: string; status: string }) =>
   updateContactMessageStatus(messageId, status)
 );
 
@@ -54,18 +54,30 @@ export const rejectReviewT = createAsyncThunk('review/reject', rejectReview);
 /* ---------- universities ---------- */
 export const fetchUniversities = createAsyncThunk('universities/fetch', loadUniversities);
 export const createUniversityT = createAsyncThunk('universities/create', addUniversity);
-export const saveUniversityT = createAsyncThunk('universities/save', ({ id, data }: { id: string; data: Partial<University> }) => updateUniversity(id, data));
-export const removeUniversityT = createAsyncThunk('universities/delete', deleteUniversity);
+export const saveUniversityT = createAsyncThunk('universities/save', async ({ id, data }: { id: string; data: Partial<University> }) => {
+  await updateUniversity(id, data);
+  return { id, ...data };
+});
+export const removeUniversityT = createAsyncThunk('universities/delete', async (id: string) => {
+  await deleteUniversity(id);
+  return id;
+});
 
 /* ---------- teams ---------- */
 export const fetchTeams = createAsyncThunk('teams/fetch', loadTeams);
 export const createTeamT = createAsyncThunk('teams/create', addTeam);
-export const saveTeamT = createAsyncThunk('teams/save', ({ id, data }: { id: string; data: Partial<Team> }) => updateTeam(id, data));
-export const removeTeamT = createAsyncThunk('teams/delete', deleteTeam);
+export const saveTeamT = createAsyncThunk('teams/save', async ({ id, data }: { id: string; data: Partial<Team> }) => {
+  await updateTeam(id, data);
+  return { id, ...data };
+});
+export const removeTeamT = createAsyncThunk('teams/delete', async (id: string) => {
+  await deleteTeam(id);
+  return id;
+});
 
 /* ---------- team squad subcollections (current_squad, bench_squad, retired_squad, current_formation) ---------- */
-export const addPlayerToSquadT = createAsyncThunk('teams/addPlayerToSquad', 
-  ({ teamId, playerId, squadType, addedBy, notes }: { teamId: string; playerId: string; squadType: string; addedBy?: string; notes?: string }) => 
+export const addPlayerToSquadT = createAsyncThunk('teams/addPlayerToSquad',
+  ({ teamId, playerId, squadType, addedBy, notes }: { teamId: string; playerId: string; squadType: string; addedBy?: string; notes?: string }) =>
     addPlayerToSquad(teamId, playerId, squadType as any, addedBy, notes)
 );
 export const removePlayerFromSquadT = createAsyncThunk('teams/removePlayerFromSquad',
@@ -104,8 +116,14 @@ export const removePlayerAvatarT = createAsyncThunk('playerAvatars/delete', dele
 /* ---------- sports ---------- */
 export const fetchSports = createAsyncThunk('sports/fetch', loadSports);
 export const createSportT = createAsyncThunk('sports/create', addSport);
-export const saveSportT = createAsyncThunk('sports/save', ({ id, data }: { id: string; data: Partial<Sport> }) => updateSport(id, data));
-export const removeSportT = createAsyncThunk('sports/delete', deleteSport);
+export const saveSportT = createAsyncThunk('sports/save', async ({ id, data }: { id: string; data: Partial<Sport> }) => {
+  await updateSport(id, data);
+  return { id, ...data };
+});
+export const removeSportT = createAsyncThunk('sports/delete', async (id: string) => {
+  await deleteSport(id);
+  return id;
+});
 
 export const fetchSeasons = createAsyncThunk('seasons/fetch', async (sportId: string) => loadSeasons(sportId));
 export const createSeasonT = createAsyncThunk('seasons/create', async ({ sportId, season }: { sportId: string; season: Omit<Season, 'id'> }) => {

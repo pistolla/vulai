@@ -11,6 +11,28 @@ import { addPlayerToSquadT } from '@/store/adminThunk';
 import { FiPlus, FiEdit2, FiTrash2, FiUsers, FiAward, FiCalendar, FiCheckCircle, FiAlertCircle, FiUploadCloud, FiSearch, FiX } from 'react-icons/fi';
 import { generateTeamSlug } from '@/utils/slugUtils';
 
+// Input Wrapper Component for enhanced styling and error states
+const InputWrapper = ({ children, error, label, labelExtra }: { children: React.ReactNode; error?: string; label: string; labelExtra?: string }) => (
+  <div className={`relative ${error ? 'mb-6' : 'mb-4'}`}>
+    <div className="flex items-baseline justify-between mb-2">
+      <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest">
+        {label}
+        <span className="text-red-500 ml-1">*</span>
+      </label>
+      {labelExtra && (
+        <span className="text-[10px] text-gray-400 font-medium italic">{labelExtra}</span>
+      )}
+    </div>
+    {children}
+    {error && (
+      <div className="flex items-center gap-1 mt-2 text-red-500 dark:text-red-400 text-xs animate-in slide-in-from-top-1">
+        <FiAlertCircle className="w-3 h-3" />
+        <span>{error}</span>
+      </div>
+    )}
+  </div>
+);
+
 // Team Form Component with Validation
 function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel, isEdit }: any) {
   const [universities, setUniversities] = useState<any[]>([]);
@@ -191,26 +213,6 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
     }
   };
 
-  const InputWrapper = ({ children, error, label, labelExtra }: { children: React.ReactNode; error?: string; label: string; labelExtra?: string }) => (
-    <div className={`relative ${error ? 'mb-6' : 'mb-4'}`}>
-      <div className="flex items-baseline justify-between mb-2">
-        <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest">
-          {label}
-          <span className="text-red-500 ml-1">*</span>
-        </label>
-        {labelExtra && (
-          <span className="text-[10px] text-gray-400 font-medium italic">{labelExtra}</span>
-        )}
-      </div>
-      {children}
-      {error && (
-        <div className="flex items-center gap-1 mt-2 text-red-500 dark:text-red-400 text-xs animate-in slide-in-from-top-1">
-          <FiAlertCircle className="w-3 h-3" />
-          <span>{error}</span>
-        </div>
-      )}
-    </div>
-  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -363,41 +365,42 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
         </InputWrapper>
 
         <div className="col-span-2">
-          <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">Team Logo</label>
-          <div className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${formData.logoURL
-            ? 'border-green-300 dark:border-green-600 bg-green-50 dark:bg-green-900/20'
-            : 'border-gray-300 dark:border-gray-600 hover:border-blue-400'
-            }`}>
-            {formData.logoURL ? (
-              <div className="flex items-center justify-center gap-4">
-                <img src={formData.logoURL} alt="Logo preview" className="w-20 h-20 object-cover rounded-xl shadow-lg" />
-                <div>
-                  <p className="text-green-600 dark:text-green-400 font-bold text-sm">Logo uploaded</p>
-                  <button
-                    type="button"
-                    onClick={() => handleChange('logoURL', '')}
-                    className="text-red-500 hover:text-red-700 text-xs font-medium mt-1"
-                  >
-                    Remove logo
-                  </button>
+          <InputWrapper label="Team Logo">
+            <div className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${formData.logoURL
+              ? 'border-green-300 dark:border-green-600 bg-green-50 dark:bg-green-900/20'
+              : 'border-gray-300 dark:border-gray-600 hover:border-blue-400'
+              }`}>
+              {formData.logoURL ? (
+                <div className="flex items-center justify-center gap-4">
+                  <img src={formData.logoURL} alt="Logo preview" className="w-20 h-20 object-cover rounded-xl shadow-lg" />
+                  <div>
+                    <p className="text-green-600 dark:text-green-400 font-bold text-sm">Logo uploaded</p>
+                    <button
+                      type="button"
+                      onClick={() => handleChange('logoURL', '')}
+                      className="text-red-500 hover:text-red-700 text-xs font-medium mt-1"
+                    >
+                      Remove logo
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <label className="cursor-pointer">
-                <div className="flex flex-col items-center">
-                  <FiUploadCloud className="w-10 h-10 text-gray-400 mb-2" />
-                  <p className="text-gray-600 dark:text-gray-300 font-medium">Click to upload team logo</p>
-                  <p className="text-gray-400 text-sm mt-1">PNG, JPG up to 2MB</p>
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-              </label>
-            )}
-          </div>
+              ) : (
+                <label className="cursor-pointer">
+                  <div className="flex flex-col items-center">
+                    <FiUploadCloud className="w-10 h-10 text-gray-400 mb-2" />
+                    <p className="text-gray-600 dark:text-gray-300 font-medium">Click to upload team logo</p>
+                    <p className="text-gray-400 text-sm mt-1">PNG, JPG up to 2MB</p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </label>
+              )}
+            </div>
+          </InputWrapper>
         </div>
       </div>
 

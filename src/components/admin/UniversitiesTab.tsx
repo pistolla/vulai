@@ -3,9 +3,34 @@ import { apiService } from '@/services/apiService';
 import { University } from '@/models';
 
 import { Modal } from '@/components/common/Modal';
+import { FiCheckCircle, FiAlertCircle, FiUploadCloud } from 'react-icons/fi';
+
+// Input Wrapper Component for enhanced styling and error states
+const InputWrapper = ({ children, error, label, labelExtra }: { children: React.ReactNode; error?: string; label: string; labelExtra?: string }) => (
+  <div className={`relative ${error ? 'mb-6' : 'mb-4'}`}>
+    <div className="flex items-baseline justify-between mb-2">
+      <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest">
+        {label}
+        <span className="text-red-500 ml-1">*</span>
+      </label>
+      {labelExtra && (
+        <span className="text-[10px] text-gray-400 font-medium italic">{labelExtra}</span>
+      )}
+    </div>
+    {children}
+    {error && (
+      <div className="flex items-center gap-1 mt-2 text-red-500 dark:text-red-400 text-xs animate-in slide-in-from-top-1">
+        <FiAlertCircle className="w-3 h-3" />
+        <span>{error}</span>
+      </div>
+    )}
+  </div>
+);
 
 // University Form Component
 function UniversityForm({ formData, setFormData, onSubmit, submitLabel }: any) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -17,73 +42,124 @@ function UniversityForm({ formData, setFormData, onSubmit, submitLabel }: any) {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await onSubmit();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">University Name</label>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <InputWrapper label="University Name">
           <input
             type="text"
             required
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400 transition-all"
+            placeholder="e.g. Harvard University"
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Location</label>
+        </InputWrapper>
+
+        <InputWrapper label="Location">
           <input
             type="text"
             required
             value={formData.location}
             onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400 transition-all"
+            placeholder="e.g. Cambridge, MA"
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Established Year</label>
+        </InputWrapper>
+
+        <InputWrapper label="Established Year">
           <input
             type="number"
             value={formData.established}
             onChange={(e) => setFormData({ ...formData, established: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400 transition-all"
+            placeholder="e.g. 1636"
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Website URL</label>
+        </InputWrapper>
+
+        <InputWrapper label="Website URL">
           <input
             type="url"
             value={formData.website}
             onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400 transition-all"
+            placeholder="e.g. harvard.edu"
           />
-        </div>
+        </InputWrapper>
+
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Logo</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="mt-1 block w-full text-gray-900 dark:text-white"
-          />
-          {formData.logoURL && <img src={formData.logoURL} alt="Logo preview" className="mt-2 w-16 h-16 object-cover rounded" />}
+          <InputWrapper label="Logo">
+            <div className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${formData.logoURL
+              ? 'border-green-300 dark:border-green-600 bg-green-50 dark:bg-green-900/20'
+              : 'border-gray-300 dark:border-gray-600 hover:border-blue-400'
+              }`}>
+              {formData.logoURL ? (
+                <div className="flex items-center justify-center gap-4">
+                  <img src={formData.logoURL} alt="Logo preview" className="w-20 h-20 object-cover rounded-xl shadow-lg" />
+                  <div>
+                    <p className="text-green-600 dark:text-green-400 font-bold text-sm">Logo uploaded</p>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, logoURL: '' })}
+                      className="text-red-500 hover:text-red-700 text-xs font-medium mt-1"
+                    >
+                      Remove logo
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label className="cursor-pointer">
+                  <div className="flex flex-col items-center">
+                    <FiUploadCloud className="w-10 h-10 text-gray-400 mb-2" />
+                    <p className="text-gray-600 dark:text-gray-300 font-medium">Click to upload university logo</p>
+                    <p className="text-gray-400 text-sm mt-1">PNG, JPG up to 2MB</p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </label>
+              )}
+            </div>
+          </InputWrapper>
         </div>
+
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-          <textarea
-            rows={3}
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-          />
+          <InputWrapper label="Description">
+            <textarea
+              rows={3}
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400 transition-all"
+              placeholder="About the university..."
+            />
+          </InputWrapper>
         </div>
       </div>
-      <div className="flex justify-end space-x-3 pt-4">
+      <div className="flex space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
         <button
           type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
+          disabled={isSubmitting}
+          className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black shadow-lg shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          {submitLabel}
+          {isSubmitting ? (
+            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : (
+            <FiCheckCircle className="w-5 h-5" />
+          )}
+          <span>{submitLabel}</span>
         </button>
       </div>
     </form>

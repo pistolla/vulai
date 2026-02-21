@@ -9,13 +9,22 @@ import {
   fetchReviews,
   fetchGames,
   fetchUniversities,
+  createUniversityT,
+  saveUniversityT,
+  removeUniversityT,
   fetchTeams,
+  createTeamT,
+  saveTeamT,
+  removeTeamT,
   fetchPlayers,
   createPlayerT,
   savePlayerT,
   removePlayerT,
   fetchPlayerAvatars,
   fetchSports,
+  createSportT,
+  saveSportT,
+  removeSportT,
   fetchImportedData,
 } from '@/store/adminThunk';
 
@@ -113,9 +122,9 @@ const adminSlice = createSlice({
       .addCase(fetchMerch.rejected, (state) => {
         state.loading.merch = false;
       })
-      
-      // Orders loading states
-      builder
+
+    // Orders loading states
+    builder
       .addCase(fetchOrders.pending, (state) => {
         state.loading.orders = true;
       })
@@ -205,12 +214,48 @@ const adminSlice = createSlice({
     builder
       .addCase(fetchPlayerAvatars.fulfilled, (state, action) => {
         state.playerAvatars = action.payload;
+      })
+      .addCase(createUniversityT.fulfilled, (state, action) => {
+        state.universities.push(action.payload as any);
+      })
+      .addCase(saveUniversityT.fulfilled, (state, action) => {
+        const index = state.universities.findIndex(u => u.id === action.payload.id);
+        if (index !== -1) {
+          state.universities[index] = { ...state.universities[index], ...action.payload };
+        }
+      })
+      .addCase(removeUniversityT.fulfilled, (state, action) => {
+        state.universities = state.universities.filter(u => u.id !== action.payload);
+      })
+      .addCase(createTeamT.fulfilled, (state, action) => {
+        state.teams.push(action.payload as any);
+      })
+      .addCase(saveTeamT.fulfilled, (state, action) => {
+        const index = state.teams.findIndex(t => t.id === action.payload.id);
+        if (index !== -1) {
+          state.teams[index] = { ...state.teams[index], ...action.payload };
+        }
+      })
+      .addCase(removeTeamT.fulfilled, (state, action) => {
+        state.teams = state.teams.filter(t => t.id !== action.payload);
       });
 
     // Sports
     builder
       .addCase(fetchSports.fulfilled, (state, action) => {
         state.sports = action.payload;
+      })
+      .addCase(createSportT.fulfilled, (state, action) => {
+        state.sports.push(action.payload);
+      })
+      .addCase(saveSportT.fulfilled, (state, action) => {
+        const index = state.sports.findIndex(s => s.id === action.payload.id);
+        if (index !== -1) {
+          state.sports[index] = { ...state.sports[index], ...action.payload } as any;
+        }
+      })
+      .addCase(removeSportT.fulfilled, (state, action) => {
+        state.sports = state.sports.filter(s => s.id !== action.payload);
       });
 
     // Imported Data

@@ -1,6 +1,6 @@
 import { db } from './firebase';
 import {
-  collection, getDocs, getDoc, addDoc, updateDoc, deleteDoc, doc,
+  collection, getDocs, getDoc, addDoc, setDoc, updateDoc, deleteDoc, doc,
   query, where, orderBy, serverTimestamp, Timestamp, collectionGroup, QueryDocumentSnapshot, DocumentData
 } from 'firebase/firestore';
 import { University, Team, Fixture, PlayerAvatar, Sport, ImportedData, Season, MerchItem } from '@/models';
@@ -138,8 +138,12 @@ export const loadUniversities = async (): Promise<University[]> => {
   return snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as University));
 };
 
-export const addUniversity = async (uni: Omit<University, 'id'> & { logoURL?: string }) =>
-  addDoc(collection(db, 'universities'), { ...uni, createdAt: serverTimestamp() });
+export const addUniversity = async (uni: Omit<University, 'id'> & { logoURL?: string }) => {
+  const uniId = uni.name.trim();
+  const ref = doc(db, 'universities', uniId);
+  await setDoc(ref, { ...uni, id: uniId, createdAt: serverTimestamp() });
+  return { id: uniId, ...uni };
+};
 
 export const updateUniversity = async (id: string, data: Partial<University & { logoURL?: string }>) =>
   updateDoc(doc(db, 'universities', id), data);
@@ -154,9 +158,10 @@ export const loadTeams = async (): Promise<Team[]> => {
 };
 
 export const addTeam = async (team: Omit<Team, 'id'> & { logoURL?: string }) => {
-  const ref = doc(collection(db, 'teams'));
-  await setDoc(ref, { ...team, id: ref.id, createdAt: serverTimestamp() });
-  return { id: ref.id, ...team };
+  const teamId = team.name.trim();
+  const ref = doc(db, 'teams', teamId);
+  await setDoc(ref, { ...team, id: teamId, createdAt: serverTimestamp() });
+  return { id: teamId, ...team };
 };
 
 export const updateTeam = async (id: string, data: Partial<Team & { logoURL?: string }>) =>
@@ -194,7 +199,7 @@ export const getTeamSquads = async (teamId: string) => {
     getDocs(collection(db, `teams/${teamId}/retired_squad`)),
     getDocs(collection(db, `teams/${teamId}/current_formation`)),
   ]);
-  
+
   return {
     current_squad: currentSquadSnap.docs.map(d => ({ id: d.id, ...d.data() })),
     bench_squad: benchSquadSnap.docs.map(d => ({ id: d.id, ...d.data() })),
@@ -206,7 +211,7 @@ export const getTeamSquads = async (teamId: string) => {
 export const movePlayerBetweenSquads = async (teamId: string, playerId: string, fromSquad: SquadType, toSquad: SquadType, addedBy?: string) => {
   // Remove from old squad
   await deleteDoc(doc(db, `teams/${teamId}/${fromSquad}`, playerId));
-  
+
   // Add to new squad
   const squadRef = doc(collection(db, `teams/${teamId}/${toSquad}`), playerId);
   await setDoc(squadRef, {
@@ -215,7 +220,7 @@ export const movePlayerBetweenSquads = async (teamId: string, playerId: string, 
     movedAt: new Date().toISOString(),
     addedBy,
   });
-  
+
   return { teamId, playerId, fromSquad, toSquad };
 };
 export const loadPlayers = async (): Promise<any[]> => {
@@ -291,8 +296,12 @@ export const loadSports = async (): Promise<Sport[]> => {
   return snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as Sport));
 };
 
-export const addSport = async (sport: Omit<Sport, 'id'>) =>
-  addDoc(collection(db, 'sports'), { ...sport, createdAt: serverTimestamp() });
+export const addSport = async (sport: Omit<Sport, 'id'>) => {
+  const sportId = sport.name.trim();
+  const ref = doc(db, 'sports', sportId);
+  await setDoc(ref, { ...sport, id: sportId, createdAt: serverTimestamp() });
+  return { id: sportId, ...sport };
+};
 
 export const updateSport = async (id: string, data: Partial<Sport>) =>
   updateDoc(doc(db, 'sports', id), data);

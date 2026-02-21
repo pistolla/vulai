@@ -9,6 +9,28 @@ import { useToast } from '@/components/common/ToastProvider';
 import { FiUserPlus, FiEdit2, FiTrash2, FiStar, FiImage, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import { confirmDelete } from '@/utils/confirmDialog';
 
+// Input Wrapper Component for enhanced styling and error states
+const InputWrapper = ({ children, error, label, labelExtra }: { children: React.ReactNode; error?: string; label: string; labelExtra?: string }) => (
+  <div className={`relative ${error ? 'mb-6' : 'mb-4'}`}>
+    <div className="flex items-baseline justify-between mb-2">
+      <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest">
+        {label}
+        <span className="text-red-500 ml-1">*</span>
+      </label>
+      {labelExtra && (
+        <span className="text-[10px] text-gray-400 font-medium italic">{labelExtra}</span>
+      )}
+    </div>
+    {children}
+    {error && (
+      <div className="flex items-center gap-1 mt-2 text-red-500 dark:text-red-400 text-xs animate-in slide-in-from-top-1">
+        <FiAlertCircle className="w-3 h-3" />
+        <span>{error}</span>
+      </div>
+    )}
+  </div>
+);
+
 interface PlayerFormData {
   name: string;
   position: string;
@@ -438,35 +460,48 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
 
 // Player Form Component
 function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities, teams }: any) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await onSubmit();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <InputWrapper label="Name">
           <input
             type="text"
             required
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400 transition-all"
+            placeholder="e.g. John Doe"
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Position</label>
+        </InputWrapper>
+
+        <InputWrapper label="Position">
           <input
             type="text"
             required
             value={formData.position}
             onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400 transition-all"
+            placeholder="e.g. Quarterback"
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Year</label>
+        </InputWrapper>
+
+        <InputWrapper label="Year">
           <select
             value={formData.year}
             onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold appearance-none transition-all"
           >
             <option value="">Select Year</option>
             <option value="Freshman">Freshman</option>
@@ -474,228 +509,133 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
             <option value="Junior">Junior</option>
             <option value="Senior">Senior</option>
           </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Number</label>
+        </InputWrapper>
+
+        <InputWrapper label="Number">
           <input
             type="text"
             value={formData.number}
             onChange={(e) => setFormData({ ...formData, number: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400 transition-all"
+            placeholder="e.g. 10"
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Height</label>
+        </InputWrapper>
+
+        <InputWrapper label="Height">
           <input
             type="text"
             value={formData.height}
             onChange={(e) => setFormData({ ...formData, height: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400 transition-all"
+            placeholder="e.g. 6'2\"
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Weight</label>
+        </InputWrapper>
+
+        <InputWrapper label="Weight">
           <input
             type="text"
             value={formData.weight}
             onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400 transition-all"
+            placeholder="e.g. 210 lbs"
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Sport</label>
+        </InputWrapper>
+
+        <InputWrapper label="Sport">
           <select
             value={formData.sportId}
             onChange={(e) => setFormData({ ...formData, sportId: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold appearance-none transition-all"
           >
             <option value="">Select Sport</option>
-            {/* Assuming sports are available, but for now placeholder */}
             <option value="football">Football</option>
             <option value="basketball">Basketball</option>
           </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">University</label>
+        </InputWrapper>
+
+        <InputWrapper label="University">
           <select
             value={formData.universityId}
             onChange={(e) => setFormData({ ...formData, universityId: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold appearance-none transition-all"
           >
             <option value="">Select University</option>
             {universities.map((university: any) => (
               <option key={university.id} value={university.id}>{university.name}</option>
             ))}
           </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Team</label>
+        </InputWrapper>
+
+        <InputWrapper label="Team">
           <select
             value={formData.teamId}
             onChange={(e) => setFormData({ ...formData, teamId: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold appearance-none transition-all"
           >
             <option value="">Select Team</option>
             {teams.map((team: any) => (
               <option key={team.id} value={team.id}>{team.name}</option>
             ))}
           </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Avatar</label>
+        </InputWrapper>
+
+        <InputWrapper label="Avatar (Initials)">
           <input
             type="text"
             value={formData.avatar}
             onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400 transition-all"
+            placeholder="e.g. JD"
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Body Fat (%)</label>
+        </InputWrapper>
+
+        <InputWrapper label="Body Fat (%)">
           <input
             type="number"
             step="0.1"
             value={formData.bodyFat || ''}
             onChange={(e) => setFormData({ ...formData, bodyFat: +e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold transition-all"
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+        </InputWrapper>
+
+        <InputWrapper label="Status">
           <select
             value={formData.status || 'active'}
             onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold appearance-none transition-all"
           >
             <option value="active">Active</option>
             <option value="injured">Injured</option>
             <option value="suspended">Suspended</option>
           </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Injury Note</label>
-          <input
-            type="text"
-            value={formData.injuryNote || ''}
-            onChange={(e) => setFormData({ ...formData, injuryNote: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Joined At</label>
-          <input
-            type="date"
-            value={formData.joinedAt || ''}
-            onChange={(e) => setFormData({ ...formData, joinedAt: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Kit Number</label>
-          <input
-            type="number"
-            value={formData.kitNumber || ''}
-            onChange={(e) => setFormData({ ...formData, kitNumber: +e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
+        </InputWrapper>
+
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Bio</label>
-          <textarea
-            rows={3}
-            value={formData.bio || ''}
-            onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Instagram</label>
-          <input
-            type="text"
-            value={formData.socialLinks?.instagram || ''}
-            onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, instagram: e.target.value } })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Twitter</label>
-          <input
-            type="text"
-            value={formData.socialLinks?.twitter || ''}
-            onChange={(e) => setFormData({ ...formData, socialLinks: { ...formData.socialLinks, twitter: e.target.value } })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Social Level</label>
-          <input
-            type="number"
-            value={formData.social?.level || ''}
-            onChange={(e) => setFormData({ ...formData, social: { ...formData.social, level: +e.target.value } })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">XP</label>
-          <input
-            type="number"
-            value={formData.social?.xp || ''}
-            onChange={(e) => setFormData({ ...formData, social: { ...formData.social, xp: +e.target.value } })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Next Level XP</label>
-          <input
-            type="number"
-            value={formData.social?.nextLevelXp || ''}
-            onChange={(e) => setFormData({ ...formData, social: { ...formData.social, nextLevelXp: +e.target.value } })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Followers</label>
-          <input
-            type="text"
-            value={formData.social?.followers || ''}
-            onChange={(e) => setFormData({ ...formData, social: { ...formData.social, followers: e.target.value } })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-        <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Badges (comma-separated)</label>
-          <textarea
-            rows={2}
-            value={formData.social?.badges ? formData.social.badges.map((b: { name: string }) => b.name).join(', ') : ''}
-            onChange={(e) => setFormData({ ...formData, social: { ...formData.social, badges: e.target.value.split(',').map(s => ({ id: s.trim(), name: s.trim(), icon: '🏆' })) } })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Games Played</label>
-          <input
-            type="number"
-            value={formData.stats?.gamesPlayed || ''}
-            onChange={(e) => setFormData({ ...formData, stats: { ...formData.stats, gamesPlayed: +e.target.value } })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Points</label>
-          <input
-            type="number"
-            value={formData.stats?.points || ''}
-            onChange={(e) => setFormData({ ...formData, stats: { ...formData.stats, points: +e.target.value } })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
+          <InputWrapper label="Bio">
+            <textarea
+              rows={3}
+              value={formData.bio || ''}
+              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+              className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400 transition-all"
+              placeholder="Player biography..."
+            />
+          </InputWrapper>
         </div>
       </div>
-      <div className="flex justify-end space-x-3 pt-4">
+
+      <div className="flex space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
         <button
           type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+          disabled={isSubmitting}
+          className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black shadow-lg shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          {submitLabel}
+          {isSubmitting ? (
+            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : (
+            <FiCheckCircle className="w-5 h-5" />
+          )}
+          <span>{submitLabel}</span>
         </button>
       </div>
     </form>
@@ -704,100 +644,110 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
 
 // Highlights Form Component
 function HighlightsForm({ highlightsData, setHighlightsData, onSubmit }: any) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await onSubmit();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Season</label>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <InputWrapper label="Season">
           <input
             type="text"
             required
             placeholder="e.g., 2023-2024"
             value={highlightsData.season}
             onChange={(e) => setHighlightsData({ ...highlightsData, season: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400 transition-all"
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Age</label>
+        </InputWrapper>
+        <InputWrapper label="Age">
           <input
             type="number"
             required
             value={highlightsData.age}
             onChange={(e) => setHighlightsData({ ...highlightsData, age: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 text-gray-900 dark:text-white font-bold transition-all"
           />
-        </div>
+        </InputWrapper>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Achievements (comma-separated)</label>
+      <InputWrapper label="Achievements (comma-separated)">
         <input
           type="text"
           placeholder="e.g., Top Scorer, Player of the Month"
           value={highlightsData.achievements}
           onChange={(e) => setHighlightsData({ ...highlightsData, achievements: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400 transition-all"
         />
-      </div>
+      </InputWrapper>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Goals</label>
+        <InputWrapper label="Goals">
           <input
             type="number"
             value={highlightsData.goals}
             onChange={(e) => setHighlightsData({ ...highlightsData, goals: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 text-gray-900 dark:text-white font-bold transition-all"
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Assists</label>
+        </InputWrapper>
+        <InputWrapper label="Assists">
           <input
             type="number"
             value={highlightsData.assists}
             onChange={(e) => setHighlightsData({ ...highlightsData, assists: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 text-gray-900 dark:text-white font-bold transition-all"
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Matches</label>
+        </InputWrapper>
+        <InputWrapper label="Matches">
           <input
             type="number"
             value={highlightsData.matches}
             onChange={(e) => setHighlightsData({ ...highlightsData, matches: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 text-gray-900 dark:text-white font-bold transition-all"
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Rating</label>
+        </InputWrapper>
+        <InputWrapper label="Rating">
           <input
             type="number"
             step="0.1"
             value={highlightsData.rating}
             onChange={(e) => setHighlightsData({ ...highlightsData, rating: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 text-gray-900 dark:text-white font-bold transition-all"
           />
-        </div>
+        </InputWrapper>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Key Highlights (one per line)</label>
+      <InputWrapper label="Key Highlights (one per line)">
         <textarea
           rows={4}
           placeholder="Enter key highlights, one per line"
           value={highlightsData.highlights}
           onChange={(e) => setHighlightsData({ ...highlightsData, highlights: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400 transition-all"
         />
-      </div>
+      </InputWrapper>
 
-      <div className="flex justify-end space-x-3 pt-4">
+      <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
         <button
           type="submit"
-          className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700"
+          disabled={isSubmitting}
+          className="w-full py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl font-black shadow-lg shadow-purple-500/30 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          Update Highlights
+          {isSubmitting ? (
+            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : (
+            <FiCheckCircle className="w-5 h-5" />
+          )}
+          <span>Update Highlights</span>
         </button>
       </div>
     </form>
@@ -806,67 +756,81 @@ function HighlightsForm({ highlightsData, setHighlightsData, onSubmit }: any) {
 
 // Avatar Form Component
 function AvatarForm({ avatarData, setAvatarData, onSubmit, onDelete, submitLabel }: any) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await onSubmit();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Base64 Image</label>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <InputWrapper label="Base64 Image">
         <textarea
           rows={4}
           placeholder="Paste base64 encoded image"
           value={avatarData.base64Image}
           onChange={(e) => setAvatarData({ ...avatarData, base64Image: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400 transition-all"
         />
-      </div>
+      </InputWrapper>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Full Size Image URL</label>
+      <InputWrapper label="Full Size Image URL">
         <input
           type="text"
           placeholder="URL to full size image"
           value={avatarData.fullSizeImage}
           onChange={(e) => setAvatarData({ ...avatarData, fullSizeImage: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400 transition-all"
         />
-      </div>
+      </InputWrapper>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">3D Assets (JSON)</label>
+      <InputWrapper label="3D Assets (JSON)">
         <textarea
           rows={4}
           placeholder="JSON data for 3D assets"
           value={avatarData.threeDAssets}
           onChange={(e) => setAvatarData({ ...avatarData, threeDAssets: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400 transition-all"
         />
-      </div>
+      </InputWrapper>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Movement Details (JSON)</label>
+      <InputWrapper label="Movement Details (JSON)">
         <textarea
           rows={4}
           placeholder="JSON data for Three.js movement details"
           value={avatarData.movementDetails}
           onChange={(e) => setAvatarData({ ...avatarData, movementDetails: e.target.value })}
-          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400 transition-all"
         />
-      </div>
+      </InputWrapper>
 
-      <div className="flex justify-between space-x-3 pt-4">
+      <div className="flex justify-between space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
         {onDelete && (
           <button
             type="button"
             onClick={onDelete}
-            className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
+            className="px-6 py-4 text-sm font-bold text-red-500 hover:text-red-700 transition-colors"
           >
             Delete Avatar
           </button>
         )}
         <button
           type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 ml-auto"
+          disabled={isSubmitting}
+          className="flex-1 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black shadow-lg shadow-blue-500/30 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          {submitLabel}
+          {isSubmitting ? (
+            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : (
+            <FiCheckCircle className="w-5 h-5" />
+          )}
+          <span>{submitLabel}</span>
         </button>
       </div>
     </form>
