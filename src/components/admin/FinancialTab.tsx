@@ -6,7 +6,8 @@ import { FiTrendingUp, FiTrendingDown, FiPieChart, FiDollarSign, FiPackage, FiAc
 
 export function FinancialTab() {
     const dispatch = useAppDispatch();
-    const { merchandise, loading: merchLoading } = useAppSelector(state => state.admin);
+    const merchandise = useAppSelector(state => state.merch.items);
+    const merchLoading = useAppSelector(state => state.merch.loading);
     const [bookkeepingDocs, setBookkeepingDocs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -36,7 +37,7 @@ export function FinancialTab() {
     const totalExpenses = purchaseOrders.reduce((sum, po) => sum + (po.data?.total || 0), 0) +
         returns.reduce((sum, ret) => sum + (ret.data?.total || 0), 0);
 
-    const inventoryValue = merchandise.reduce((sum: number, item: MerchItem) => {
+    const inventoryValue = (merchandise || []).reduce((sum: number, item: MerchItem) => {
         return sum + ((item.stock || 0) * (item.costPrice || item.price * 0.6)); // Fallback to 60% of price if costPrice missing
     }, 0);
 
