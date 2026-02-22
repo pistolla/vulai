@@ -290,7 +290,7 @@ export default function AdminDashboardPage() {
     { id: 'users', label: 'Users', icon: FiUsers },
     { id: 'universities', label: 'Universities', icon: FiMap },
     { id: 'teams', label: 'Teams', icon: FiAward },
-    { id: 'balance', label: 'Balance Sheet', icon: <FiActivity /> },
+    { id: 'balance', label: 'Balance Sheet', icon: FiActivity },
     { id: 'players', label: 'Players', icon: FiTarget },
     { id: 'sports', label: 'Sports', icon: FiGrid },
     { id: 'merchandise', label: 'Merchandise', icon: FiBox },
