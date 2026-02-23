@@ -132,7 +132,7 @@ export default function TeamPage() {
   }
 
   return (
-    <Layout title={teamData?.name || 'Team'} description="Discover excellence in university athletics">
+    <Layout title={teamData?.name || 'Team'} description="Discover excellence in university athletics" themeColors={themeColors}>
 
       {/* Realtime Components */}
       <GameTicker matches={upcomingMatches} />

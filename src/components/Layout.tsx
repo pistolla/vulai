@@ -26,11 +26,16 @@ interface LayoutProps {
   children: React.ReactNode;
   title: string;
   description?: string;
+  themeColors?: { primary: string; secondary: string; accent: string };
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, title, description = "University sports excellence at Unill" }) => {
+const Layout: React.FC<LayoutProps> = ({ children, title, description = "University sports excellence at Unill", themeColors }) => {
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
+
+  // Resolve theme colors for header styling
+  const headerPrimary = themeColors?.primary || '#1a202c';
+  const headerAccent = themeColors?.accent || '#2d3748';
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const user = useAppSelector(s => s.auth.user);
@@ -178,7 +183,14 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
       <div id="particle-bg" />
 
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/20 dark:bg-gray-900/80 backdrop-blur-md border-b border-white/10 dark:border-gray-700">
+      <nav 
+        className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b border-white/10 dark:border-gray-700"
+        style={{
+          background: theme === 'dark'
+            ? 'linear-gradient(to right, #1a202c, #2d3748)'
+            : `linear-gradient(to right, ${headerPrimary}, ${headerAccent})`
+        }}
+      >
         {/* ... existing nav content ... */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">

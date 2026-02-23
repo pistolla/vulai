@@ -1,4 +1,12 @@
-export type TeamTheme = 'quantum' | 'crimson' | 'blue' | 'cardinal' | 'gold' | 'neon' | 'cyber';
+export type TeamThemeName = 'quantum' | 'crimson' | 'blue' | 'cardinal' | 'gold' | 'neon' | 'cyber';
+
+export interface TeamThemeColors {
+  primary: string;
+  secondary: string;
+  accent: string;
+}
+
+export type TeamTheme = TeamThemeName | TeamThemeColors;
 
 export interface Sport {
   id: string;

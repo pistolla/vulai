@@ -402,6 +402,85 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
             </div>
           </InputWrapper>
         </div>
+
+        {/* Team Theme Colors */}
+        <div className="col-span-2 border-t border-gray-200 dark:border-gray-700 pt-6 mt-2">
+          <h4 className="text-sm font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-4 flex items-center gap-2">
+            <FiAward className="w-4 h-4" />
+            Team Theme Colors
+          </h4>
+          <p className="text-xs text-gray-400 mb-4">Customize the header colors when viewing this team's page</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <InputWrapper label="Primary Color">
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={formData.theme?.primary || '#990000'}
+                  onChange={(e) => handleChange('theme', { ...formData.theme, primary: e.target.value })}
+                  className="w-12 h-12 rounded-xl cursor-pointer border-2 border-gray-200 dark:border-gray-600"
+                />
+                <input
+                  type="text"
+                  value={formData.theme?.primary || '#990000'}
+                  onChange={(e) => handleChange('theme', { ...formData.theme, primary: e.target.value })}
+                  className="flex-1 px-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20 text-gray-900 dark:text-white font-mono text-sm"
+                  placeholder="#990000"
+                />
+              </div>
+            </InputWrapper>
+
+            <InputWrapper label="Secondary Color">
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={formData.theme?.secondary || '#ffffff'}
+                  onChange={(e) => handleChange('theme', { ...formData.theme, secondary: e.target.value })}
+                  className="w-12 h-12 rounded-xl cursor-pointer border-2 border-gray-200 dark:border-gray-600"
+                />
+                <input
+                  type="text"
+                  value={formData.theme?.secondary || '#ffffff'}
+                  onChange={(e) => handleChange('theme', { ...formData.theme, secondary: e.target.value })}
+                  className="flex-1 px-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20 text-gray-900 dark:text-white font-mono text-sm"
+                  placeholder="#ffffff"
+                />
+              </div>
+            </InputWrapper>
+
+            <InputWrapper label="Accent Color">
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={formData.theme?.accent || '#13294b'}
+                  onChange={(e) => handleChange('theme', { ...formData.theme, accent: e.target.value })}
+                  className="w-12 h-12 rounded-xl cursor-pointer border-2 border-gray-200 dark:border-gray-600"
+                />
+                <input
+                  type="text"
+                  value={formData.theme?.accent || '#13294b'}
+                  onChange={(e) => handleChange('theme', { ...formData.theme, accent: e.target.value })}
+                  className="flex-1 px-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-unill-purple-500 focus:ring-4 focus:ring-unill-purple-500/20 text-gray-900 dark:text-white font-mono text-sm"
+                  placeholder="#13294b"
+                />
+              </div>
+            </InputWrapper>
+          </div>
+
+          {/* Theme Preview */}
+          <div className="mt-4 p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50">
+            <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">Preview</p>
+            <div
+              className="h-16 rounded-xl flex items-center px-4"
+              style={{
+                background: `linear-gradient(to right, ${formData.theme?.primary || '#990000'}, ${formData.theme?.accent || '#13294b'})`
+              }}
+            >
+              <span className="font-bold text-white" style={{ color: formData.theme?.secondary || '#ffffff' }}>
+                {formData.name || 'Team Name'} Header
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="flex space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
@@ -460,7 +539,12 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
     record: '',
     championships: '',
     season: '',
-    stats: {}
+    stats: {},
+    theme: {
+      primary: '#990000',
+      secondary: '#ffffff',
+      accent: '#13294b'
+    }
   });
 
   // Player assignment state
@@ -503,7 +587,12 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
       record: '',
       championships: '',
       season: '',
-      stats: {}
+      stats: {},
+      theme: {
+        primary: '#990000',
+        secondary: '#ffffff',
+        accent: '#13294b'
+      }
     });
   };
 

@@ -11,7 +11,7 @@ import { ChatMessage } from '@/services/firestoreFan';
 import UserHeader from '@/components/UserHeader';
 import { apiService } from '@/services/apiService';
 import { useTheme } from '@/components/ThemeProvider';
-import { TeamTheme } from '@/types';
+import { TeamTheme, TeamThemeName } from '@/types';
 
 
 
@@ -98,7 +98,7 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
 
   /* ---------- local state ---------- */
   const [teamData, setTeamData] = useState<any>(null);
-  const [teamTheme, setTeamTheme] = useState<TeamTheme>('crimson');
+  const [teamTheme, setTeamTheme] = useState<TeamThemeName>('crimson');
   const [chatMsg, setChatMsg] = useState('');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<Array<{ name: string; avatar?: string }>>([]);

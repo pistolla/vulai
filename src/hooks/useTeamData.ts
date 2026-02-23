@@ -56,8 +56,18 @@ export function useTeamData(slug: string | undefined) {
                 }
 
                 setTeamData(team);
-                const theme = configThemes[team.theme || 'blue'] || configThemes.blue;
-                setThemeColors(theme);
+                // Use team's custom theme if available, otherwise fall back to named theme or default
+                if (team.theme && typeof team.theme === 'object' && 'primary' in team.theme) {
+                    setThemeColors({
+                        primary: team.theme.primary,
+                        secondary: team.theme.secondary || '#ffffff',
+                        accent: team.theme.accent || '#13294b'
+                    });
+                } else {
+                    const themeName = typeof team.theme === 'string' ? team.theme : 'blue';
+                    const theme = configThemes[themeName] || configThemes.blue;
+                    setThemeColors(theme);
+                }
 
                 // 2. Fetch Merch (if not already loaded)
                 dispatch(fetchMerch());

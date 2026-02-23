@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useAppSelector } from '@/hooks/redux';
 import { signOut } from '@/services/firebase';
 import { useTheme } from './ThemeProvider';
-import { FiSun, FiMoon, FiShoppingCart } from 'react-icons/fi';
-import { TeamTheme } from '@/types';
+import { FiSun, FiMoon, FiShoppingCart, FiSearch } from 'react-icons/fi';
+import { TeamTheme, TeamThemeColors } from '@/types';
 
 const themes: Record<string, Record<string, string>> = {
   crimson: { primary: '#990000', secondary: '#ffffff', accent: '#13294b' },
@@ -16,7 +16,7 @@ const themes: Record<string, Record<string, string>> = {
 };
 
 interface UserHeaderProps {
-  theme?: TeamTheme;
+  theme?: TeamTheme | TeamThemeColors;
 }
 
 export default function UserHeader({ theme = 'crimson' }: UserHeaderProps) {
@@ -54,7 +54,10 @@ export default function UserHeader({ theme = 'crimson' }: UserHeaderProps) {
       });
   };
 
-  const currentTheme = themes[theme];
+  // Resolve theme - handle both string theme names and custom theme objects
+  const currentTheme = typeof theme === 'string' 
+    ? (themes[theme] || themes.crimson)
+    : (theme || themes.crimson);
 
   return (
     <header
@@ -77,6 +80,15 @@ export default function UserHeader({ theme = 'crimson' }: UserHeaderProps) {
           </div>
 
           <div className="flex items-center space-x-4">
+            {/* Search Button - Always visible */}
+            <a
+              href="/search"
+              className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-300"
+              title="Search"
+            >
+              <FiSearch className="w-5 h-5" />
+            </a>
+
             {/* Cart Button */}
             <div className="relative" ref={cartRef}>
               <button

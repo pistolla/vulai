@@ -24,7 +24,14 @@ export interface Team {
   championships?: string;
   season?: string;
   stats?: any;
+  theme?: TeamTheme;
   // Players are now stored in root 'players' collection with teamId reference
+}
+
+export interface TeamTheme {
+  primary: string;   // Primary color (hex)
+  secondary: string; // Secondary color (hex)
+  accent: string;    // Accent color (hex)
 }
 
 export interface Athlete {
