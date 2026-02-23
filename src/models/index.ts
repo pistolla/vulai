@@ -423,6 +423,8 @@ export interface MerchItem {
   likes: number;
   type?: 'team' | 'unil';
   teamId?: string;
+  correspondentId?: string; // For team merchandise, tracks which correspondent manages it
+  correspondentName?: string; // Display name for the correspondent
   catalog?: string;
   university?: string;
   team?: string;

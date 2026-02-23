@@ -10,13 +10,14 @@ import { GameLiveCommentaryTab } from '@/components/correspondent/GameLiveCommen
 import { ManageLeagueTab } from '@/components/correspondent/ManageLeagueTab';
 import { ManageFixtureTab } from '@/components/correspondent/ManageFixtureTab';
 import { TeamsCatalogTab } from '../components/correspondent/TeamsCatalogTab';
+import { TeamBalanceSheet } from '../components/correspondent/TeamBalanceSheet';
 import { QuickFixtureModal } from '../components/correspondent/QuickFixtureModal';
 import { useClientSideLibs } from '@/utils/clientLibs';
 import { fetchLeagues, fetchFixtures } from '@/store/correspondentThunk';
-import { FiUser, FiFileText, FiVideo, FiRadio, FiAward, FiArrowRight, FiShoppingCart, FiPackage } from 'react-icons/fi';
+import { FiUser, FiFileText, FiVideo, FiRadio, FiAward, FiArrowRight, FiShoppingCart, FiPackage, FiDollarSign } from 'react-icons/fi';
 import { League } from '@/models';
 
-type TabType = 'profile' | 'excel' | 'video' | 'commentary' | 'league' | 'fixtures' | 'catalog';
+type TabType = 'profile' | 'excel' | 'video' | 'commentary' | 'league' | 'fixtures' | 'catalog' | 'balance';
 
 export default function CorrespondentDashboardPage() {
   const user = useAppSelector(s => s.auth.user);
@@ -103,6 +104,13 @@ export default function CorrespondentDashboardPage() {
       icon: FiShoppingCart,
       color: 'indigo',
       description: 'Manage team merchandise orders'
+    },
+    {
+      id: 'balance' as TabType,
+      name: 'Balance Sheet',
+      icon: FiDollarSign,
+      color: 'emerald',
+      description: 'View team merchandise financials'
     }
   ];
 
@@ -115,6 +123,7 @@ export default function CorrespondentDashboardPage() {
       case 'league': return <ManageLeagueTab />;
       case 'fixtures': return <ManageFixtureTab />;
       case 'catalog': return <TeamsCatalogTab />;
+      case 'balance': return <TeamBalanceSheet correspondentId={user?.uid || ''} correspondentName={user?.displayName} />;
       default: return <ProfileTab />;
     }
   };
