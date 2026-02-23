@@ -2,7 +2,7 @@
  * CacheService provides a simple wrapper around localStorage with TTL support.
  */
 const CACHE_PREFIX = 'vulai_cache_';
-const DEFAULT_TTL = 30 * 60 * 1000; // 30 minutes in milliseconds
+const DEFAULT_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds (reduced for faster updates)
 
 interface CacheEntry<T> {
     value: T;

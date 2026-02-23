@@ -33,12 +33,15 @@ export function useTeamData(slug: string | undefined) {
                 setLoading(true);
                 setError(null);
 
+                console.log('[useTeamData] Loading team data for slug:', slug);
+
                 // 1. Fetch Team Data
                 const teamsData = await apiService.getTeamsData();
+                console.log('[useTeamData] Fetched teams data:', teamsData?.teams?.length, 'teams');
 
                 // If no teams exist at all, redirect to /teams page
                 if (!teamsData.teams || teamsData.teams.length === 0) {
-                    console.warn('No teams found in database, redirecting to /teams');
+                    console.warn('[useTeamData] No teams found in database, redirecting to /teams');
                     router.replace('/teams');
                     setLoading(false);
                     return;
@@ -46,10 +49,11 @@ export function useTeamData(slug: string | undefined) {
 
                 // Find team using the shared utility function for consistent slug matching
                 const team = findTeamBySlug(teamsData.teams, slug);
+                console.log('[useTeamData] Found team:', team?.name, 'for slug:', slug);
 
                 if (!team) {
                     // Team not found, redirect to /teams page
-                    console.warn(`Team not found for slug: ${slug}, redirecting to /teams`);
+                    console.warn(`[useTeamData] Team not found for slug: ${slug}, redirecting to /teams`);
                     router.replace('/teams');
                     setLoading(false);
                     return;
