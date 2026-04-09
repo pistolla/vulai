@@ -2,21 +2,69 @@ import { useAppSelector, useAppDispatch } from "@/hooks/redux";
 import { useState, useEffect } from "react";
 import { firebaseLeagueService } from "@/services/firebaseCorrespondence";
 import { FixtureResultPopup } from "./FixtureResultPopup";
-import { Fixture, Match, League, Group } from "@/models";
+import { Fixture, Match, League, Group, Stage } from "@/models";
 import { updateFixture } from "@/store/correspondentThunk";
+
+import { FiClock, FiCheckCircle, FiActivity, FiMapPin, FiCalendar } from 'react-icons/fi';
 
 interface FixtureListProps {
   onSelect: (match: Match, league: League) => void;
+  onEditFixture?: (fixture: Fixture) => void;
 }
 
-export const FixtureList: React.FC<FixtureListProps> = ({ onSelect }) => {
-  const [unlinkedMatches, setUnlinkedMatches] = useState<{ match: Match; league: League; groupName: string; stageName: string }[]>([]);
-  const [loading, setLoading] = useState(true);
+export const FixtureList: React.FC<FixtureListProps> = ({ onSelect, onEditFixture }) => {
+  const [activeTab, setActiveTab] = useState<'fixtures' | 'explorer'>('fixtures');
+  
   const fixtures = useAppSelector((state) => state.correspondent.fixtures) || [];
   const leagues = useAppSelector((state) => state.correspondent.leagues) || [];
   const [selectedFixture, setSelectedFixture] = useState<Fixture | null>(null);
-  const [bulkProcessing, setBulkProcessing] = useState(false);
   const dispatch = useAppDispatch();
+
+  // Explorer State
+  const [selectedLeagueId, setSelectedLeagueId] = useState<string>('');
+  const [selectedGroupId, setSelectedGroupId] = useState<string>('');
+  const [selectedStageId, setSelectedStageId] = useState<string>('');
+  
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [stages, setStages] = useState<Stage[]>([]);
+  const [explorerMatches, setExplorerMatches] = useState<Match[]>([]);
+  const [exploring, setExploring] = useState(false);
+  const [bulkProcessing, setBulkProcessing] = useState(false);
+
+  // Load Groups for Explorer
+  useEffect(() => {
+    if (activeTab === 'explorer' && selectedLeagueId) {
+      setGroups([]);
+      setStages([]);
+      setSelectedGroupId('');
+      setSelectedStageId('');
+      setExplorerMatches([]);
+      firebaseLeagueService.listGroups(selectedLeagueId).then(g => {
+        setGroups(g.length > 0 ? g : [{ id: '_general', name: 'General' } as Group]);
+      });
+    }
+  }, [activeTab, selectedLeagueId]);
+
+  // Load Stages for Explorer
+  useEffect(() => {
+    if (activeTab === 'explorer' && selectedLeagueId && selectedGroupId) {
+      setStages([]);
+      setSelectedStageId('');
+      setExplorerMatches([]);
+      firebaseLeagueService.listStages(selectedLeagueId, selectedGroupId).then(s => setStages(s));
+    }
+  }, [selectedGroupId, selectedLeagueId, activeTab]);
+
+  // Load Matches for Explorer
+  useEffect(() => {
+    if (activeTab === 'explorer' && selectedLeagueId && selectedGroupId && selectedStageId) {
+      setExploring(true);
+      firebaseLeagueService.listMatches(selectedLeagueId, selectedGroupId, selectedStageId)
+        .then(m => setExplorerMatches(m.filter(match => match.participants.length >= 2)))
+        .finally(() => setExploring(false));
+    }
+  }, [selectedStageId, selectedGroupId, selectedLeagueId, activeTab]);
+
 
   const handleBulkUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -33,8 +81,7 @@ export const FixtureList: React.FC<FixtureListProps> = ({ onSelect }) => {
         const [matchNum, hScore, aScore] = line.split(',').map(s => s.trim());
         if (!matchNum || hScore === undefined || aScore === undefined) continue;
 
-        const target = unlinkedMatches.find(m => m.match.matchNumber?.toString() === matchNum);
-        const fixture = fixtures.find(f => f.matchId === target?.match.id);
+        const fixture = fixtures.find(f => explorerMatches.some(m => m.id === f.matchId && m.matchNumber?.toString() === matchNum));
 
         if (fixture) {
           try {
@@ -47,138 +94,197 @@ export const FixtureList: React.FC<FixtureListProps> = ({ onSelect }) => {
             })).unwrap();
             successCount++;
           } catch (err) {
-            console.error(`Failed to update match #${matchNum}`, err);
+            console.error(`Failed to update fixture for match #${matchNum}`, err);
           }
         }
       }
-      alert(`Bulk update complete. Successfully processed ${successCount} matches.`);
+      alert(`Bulk update complete. Successfully processed ${successCount} fixtures.`);
       setBulkProcessing(false);
     };
     reader.readAsText(file);
   };
 
-  useEffect(() => {
-    const loadUnlinkedMatches = async () => {
-      setLoading(true);
-      try {
-        const allMatches: { match: Match; league: League; groupName: string; stageName: string }[] = [];
-
-        for (const league of leagues) {
-          const groups = await firebaseLeagueService.listGroups(league.id!);
-          const groupsToProcess = groups.length > 0 ? groups : [{ id: '_general', name: 'General' } as Group];
-
-          for (const group of groupsToProcess) {
-            const stages = await firebaseLeagueService.listStages(league.id!, group.id!);
-            for (const stage of stages) {
-              const matches = await firebaseLeagueService.listMatches(league.id!, group.id!, stage.id!);
-              matches.forEach(match => {
-                const linkedFixture = fixtures.find(f => f.matchId === match.id);
-                if (match.participants.length >= 2) {
-                  allMatches.push({ match, league, groupName: group.name, stageName: stage.name });
-                }
-              });
-            }
-          }
-        }
-
-        setUnlinkedMatches(allMatches);
-      } catch (error) {
-        console.error('Failed to load unlinked matches:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadUnlinkedMatches();
-  }, [leagues, fixtures]);
+  const statusBadge = (fixture: Fixture) => {
+    switch (fixture.status) {
+      case 'completed': return <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-bold w-fit">Completed</span>;
+      case 'live': return <span className="bg-red-100 text-red-800 px-2 py-0.5 rounded text-xs font-bold w-fit flex items-center gap-1"><FiActivity className="animate-pulse" /> Live</span>;
+      case 'scheduled': default: return <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs font-bold w-fit">Scheduled</span>;
+    }
+  };
 
   return (
-    <div className="space-y-4">
-      {/* Bulk Operations */}
-      <div className="bg-indigo-50 dark:bg-indigo-900/10 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-900/30 flex justify-between items-center">
-        <div>
-          <h4 className="text-sm font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Bulk Operations</h4>
-          <p className="text-[10px] text-indigo-400 dark:text-indigo-500 font-bold">Upload CSV (matchNumber, homeScore, awayScore)</p>
-        </div>
-        <div className="flex gap-2">
-          <input
-            type="file"
-            accept=".csv"
-            onChange={handleBulkUpload}
-            className="hidden"
-            id="bulk-csv"
-            disabled={bulkProcessing}
-          />
-          <label
-            htmlFor="bulk-csv"
-            className="cursor-pointer px-4 py-2 bg-indigo-600 text-white text-[10px] font-black uppercase rounded-xl hover:bg-indigo-700 transition-all flex items-center gap-2"
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl shadow-black/5 border border-gray-100 dark:border-gray-700 p-4 sm:p-8">
+      {/* Header Tabs */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <h2 className="text-3xl font-black dark:text-white">Fixtures Log</h2>
+        
+        <div className="flex bg-gray-100 dark:bg-gray-700 p-1 rounded-xl">
+          <button
+            onClick={() => setActiveTab('fixtures')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+              activeTab === 'fixtures' 
+                ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm' 
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+            }`}
           >
-            {bulkProcessing ? 'Processing...' : 'Upload CSV'}
-          </label>
+            My Fixtures
+          </button>
+          <button
+            onClick={() => setActiveTab('explorer')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+              activeTab === 'explorer' 
+                ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm' 
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+            }`}
+          >
+            Match Explorer
+          </button>
         </div>
       </div>
 
-      {loading ? (
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-3 text-gray-500 dark:text-gray-400 font-medium">Loading matches...</p>
-        </div>
-      ) : unlinkedMatches.length === 0 ? (
-        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-          <div className="text-3xl mb-2">⚽</div>
-          <p className="font-medium">No unlinked matches.</p>
-          <p className="text-sm">All matches have fixtures or no matches available.</p>
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <thead className="bg-gray-50 dark:bg-gray-700">
-              <tr>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Match</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">League</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Group</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Stage</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Participants</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {unlinkedMatches.map(({ match, league, groupName, stageName }) => (
-                <tr key={match.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" onClick={() => onSelect(match, league)}>
-                  <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">#{match.matchNumber}</td>
-                  <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{league.name}</td>
-                  <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{groupName === 'General' ? '-' : groupName}</td>
-                  <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{stageName}</td>
-                  <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
-                    {(() => {
-                      const f = fixtures.find(f => f.matchId === match.id);
-                      return f ? `${f.homeTeamName} vs ${f.awayTeamName}` : match.participants.map(p => p.name || p.refId).join(' vs ');
-                    })()}
-                  </td>
-                  <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">
-                    {new Date(match.date).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-2 text-sm flex gap-2">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onSelect(match, league); }}
-                      className={`${fixtures.some(f => f.matchId === match.id) ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'} text-white px-3 py-1 rounded text-xs`}
-                    >
-                      {fixtures.some(f => f.matchId === match.id) ? 'Edit' : 'Fixture'}
-                    </button>
-                    {fixtures.find(f => f.matchId === match.id) && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setSelectedFixture(fixtures.find(f => f.matchId === match.id)!); }}
-                        className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs"
-                      >
-                        Record
+      {activeTab === 'fixtures' ? (
+        <div className="animate-in fade-in slide-in-from-bottom-4">
+          {fixtures.length === 0 ? (
+             <div className="text-center py-16 text-gray-500 dark:text-gray-400">
+                <FiCalendar className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+                <p className="font-bold text-lg mb-2">No Fixtures Found</p>
+                <p className="text-sm">You haven't created any fixtures yet. Click Create Fixture to begin.</p>
+              </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {fixtures.map(f => (
+                <div key={f.id} className="relative bg-gray-50 dark:bg-gray-700/50 rounded-xl p-5 border border-gray-200 dark:border-gray-600 flex flex-col gap-3 transition-colors hover:border-blue-400 dark:hover:border-blue-500">
+                  <div className="flex justify-between items-start">
+                    <div className="flex flex-col gap-1">
+                      <div className="text-xs font-black text-gray-400 uppercase tracking-widest">{f.type} • {f.sport}</div>
+                      <div className="font-bold text-lg dark:text-white flex items-center gap-2">
+                        {f.homeTeamName} vs {f.awayTeamName}
+                      </div>
+                    </div>
+                    {statusBadge(f)}
+                  </div>
+                  
+                  <div className="flex gap-4 text-sm text-gray-500 dark:text-gray-400 mt-2">
+                    <div className="flex items-center gap-1"><FiCalendar /> {f.scheduledAt ? new Date(f.scheduledAt).toLocaleDateString() : 'TBD'}</div>
+                    <div className="flex items-center gap-1"><FiMapPin /> {f.venue || 'TBD'}</div>
+                  </div>
+
+                  <div className="mt-2 text-sm flex items-center gap-2">
+                    {f.approved === false ? (
+                      <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs font-bold w-fit">Pending Approval</span>
+                    ) : (
+                      <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-bold w-fit flex items-center gap-1"><FiCheckCircle/> Approved</span>
+                    )}
+                    {f.score && (
+                      <span className="font-black text-blue-600 dark:text-blue-400">
+                        Score: {f.score.home} - {f.score.away}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="pt-3 border-t border-gray-200 dark:border-gray-600 flex gap-2 justify-end mt-auto">
+                    {onEditFixture && (
+                      <button onClick={(e) => { e.stopPropagation(); onEditFixture(f); }} className="text-gray-600 dark:text-gray-300 hover:text-blue-600 text-sm font-bold px-3 py-1 bg-gray-200 dark:bg-gray-600 rounded">
+                        Edit
                       </button>
                     )}
-                  </td>
-                </tr>
+                    <button onClick={(e) => { e.stopPropagation(); setSelectedFixture(f); }} className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-sm font-bold flex items-center gap-1 transition-colors">
+                      <FiActivity /> Live Center
+                    </button>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="animate-in fade-in slide-in-from-bottom-4">
+          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 mb-6 border border-blue-100 dark:border-blue-800/50">
+            <h3 className="text-lg font-bold text-blue-900 dark:text-blue-100 mb-4">Explorer Mode</h3>
+            <p className="text-blue-700 dark:text-blue-300 text-sm mb-6">
+              Use this mode to manually discover pre-generated tournament matches and assign them into live fixtures.
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <select className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 dark:text-white" value={selectedLeagueId} onChange={e => setSelectedLeagueId(e.target.value)}>
+                <option value="">1. Select League...</option>
+                {leagues.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+              </select>
+
+              <select disabled={!selectedLeagueId} className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 dark:text-white disabled:opacity-50" value={selectedGroupId} onChange={e => setSelectedGroupId(e.target.value)}>
+                <option value="">2. Select Group...</option>
+                {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+              </select>
+
+              <select disabled={!selectedGroupId} className="px-4 py-2 rounded-lg bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 dark:text-white disabled:opacity-50" value={selectedStageId} onChange={e => setSelectedStageId(e.target.value)}>
+                <option value="">3. Select Stage...</option>
+                {stages.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {selectedStageId && (
+            <div className="bg-indigo-50 dark:bg-indigo-900/10 p-4 mb-6 rounded-xl border border-indigo-100 dark:border-indigo-900/30 flex justify-between items-center">
+              <div>
+                <h4 className="text-sm font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Bulk Operations</h4>
+                <p className="text-[10px] text-indigo-400 dark:text-indigo-500 font-bold">Upload CSV (matchNumber, homeScore, awayScore) for mapped fixtures below</p>
+              </div>
+              <div className="flex gap-2">
+                <input type="file" accept=".csv" onChange={handleBulkUpload} className="hidden" id="bulk-csv" disabled={bulkProcessing} />
+                <label htmlFor="bulk-csv" className="cursor-pointer px-4 py-2 bg-indigo-600 text-white text-xs font-black uppercase rounded-lg hover:bg-indigo-700 transition-all">
+                  {bulkProcessing ? 'Processing...' : 'Upload CSV'}
+                </label>
+              </div>
+            </div>
+          )}
+
+          {exploring ? (
+             <div className="text-center py-8">
+               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+             </div>
+          ) : selectedStageId && explorerMatches.length === 0 ? (
+             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+               <p className="font-medium">No matches found in this stage.</p>
+             </div>
+          ) : selectedStageId && explorerMatches.length > 0 ? (
+             <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+                <table className="min-w-full bg-white dark:bg-gray-800">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Match #</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Participants</th>
+                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date</th>
+                      <th className="px-4 py-3 text-right text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {explorerMatches.map(match => {
+                      const existingFx = fixtures.find(f => f.matchId === match.id);
+                      return (
+                        <tr key={match.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                          <td className="px-4 py-3 text-sm font-medium dark:text-white">#{match.matchNumber}</td>
+                          <td className="px-4 py-3 text-sm dark:text-white">
+                            {existingFx ? `${existingFx.homeTeamName} vs ${existingFx.awayTeamName}` : match.participants.map(p => p.name || `TBD ${p.refId}`).join(' vs ')}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-nowrap">
+                            {match.date ? new Date(match.date).toLocaleDateString() : 'TBD'}
+                          </td>
+                          <td className="px-4 py-3 text-sm flex gap-2 justify-end">
+                            {existingFx ? (
+                              <button onClick={() => setSelectedFixture(existingFx)} className="text-purple-600 dark:text-purple-400 font-bold hover:underline">Recording Live</button>
+                            ) : (
+                              <button onClick={() => onSelect(match, leagues.find(l => l.id === selectedLeagueId)!)} className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-bold">
+                                Create Fixture
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+             </div>
+          ) : null}
         </div>
       )}
 

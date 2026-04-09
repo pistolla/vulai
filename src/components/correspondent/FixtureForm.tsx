@@ -263,16 +263,28 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
   useEffect(() => {
     if (selectedMatch && matches.length > 0) {
       const match = matches.find(m => m.id === selectedMatch);
-      if (match && match.participants.length >= 2) {
-        setHomeTeamName(match.participants[0].name || `Team ${match.participants[0].refId}`);
-        setAwayTeamName(match.participants[1].name || `Team ${match.participants[1].refId}`);
-        const homeTeam = filteredTeams.find((t: TeamOption) => t.name === match.participants[0].name);
-        const awayTeam = filteredTeams.find((t: TeamOption) => t.name === match.participants[1].name);
-        setHomeTeamId(homeTeam?.id || match.participants[0].refId);
-        setAwayTeamId(awayTeam?.id || match.participants[1].refId);
+      if (match && match.participants && match.participants.length >= 2) {
+        
+        // Use real team names if available
+        const p1Name = match.participants[0].name || `Team ${match.participants[0].refId}`;
+        const p2Name = match.participants[1].name || `Team ${match.participants[1].refId}`;
+        
+        setHomeTeamName(p1Name);
+        setAwayTeamName(p2Name);
+        
+        // Find matching teams in the system (try by refId first, then by name)
+        const homeTeam = filteredTeams.find((t: TeamOption) => t.id === match.participants[0].refId || t.name === match.participants[0].name);
+        const awayTeam = filteredTeams.find((t: TeamOption) => t.id === match.participants[1].refId || t.name === match.participants[1].name);
+        
+        // Important: fallback to refId if available as it might be raw team id
+        setHomeTeamId(homeTeam?.id || match.participants[0].refId || '');
+        setAwayTeamId(awayTeam?.id || match.participants[1].refId || '');
+        
         if (match.seasonId) setSelectedSeasonId(match.seasonId);
         if (match.groupId) setSelectedGroupId(match.groupId);
         if (match.stageId) setSelectedStageId(match.stageId);
+        if (match.date) setScheduledAt(match.date);
+        if (match.venue) setVenue(match.venue);
       }
     }
   }, [selectedMatch, matches, filteredTeams]);

@@ -1,7 +1,7 @@
 import { parse } from 'papaparse'; // add: yarn add papaparse @types/papaparse
-import { LiveCommentary, CommentaryEvent, FixtureVideo, CsvAthleteRow, Athlete, Group, League, Match, Participant, Stage, ImportedData, Fixture, MerchDocument } from '@/models';
+import { LiveCommentary, CommentaryEvent, FixtureVideo, CsvAthleteRow, Athlete, Group, League, Match, Participant, Stage, ImportedData, Fixture, MerchDocument, Team } from '@/models';
 import { db } from '@/services/firebase';
-import { doc, setDoc, updateDoc, arrayUnion, serverTimestamp, collection, getDocs, query, where, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, arrayUnion, serverTimestamp, collection, getDocs, query, where, deleteDoc, addDoc } from 'firebase/firestore';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { RootState } from './types';
 import { firebaseLeagueService } from '@/services/firebaseCorrespondence';
@@ -97,6 +97,29 @@ export const attachDriveVideo = createAsyncThunk(
     };
     await setDoc(doc(db, 'fixtureVideos', fixtureId), payload, { merge: true });
     return payload;
+  }
+);
+
+/* ---------- 4. Teams (Pending Creation) ---------- */
+export const createTeamPending = createAsyncThunk(
+  'teams/createPending',
+  async (teamData: Omit<Team, 'id'>, { getState }) => {
+    const uid = (getState() as RootState).auth.user!.uid;
+    const teamPayload = {
+      ...teamData,
+      status: 'pending',
+      createdByRole: 'correspondent',
+      correspondentId: uid,
+      approved: false,
+      createdAt: serverTimestamp(),
+    };
+    
+    // Add document
+    const ref = await addDoc(collection(db, 'teams'), teamPayload);
+    // Add id field back to document
+    await updateDoc(ref, { id: ref.id });
+    
+    return { id: ref.id, ...teamPayload } as Team & { status: string };
   }
 );
 

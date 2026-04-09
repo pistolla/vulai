@@ -97,8 +97,10 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
   const { leagues, loading: leaguesLoading } = useAppSelector(s => s.leagues);
 
   /* ---------- local state ---------- */
-  const [teamData, setTeamData] = useState<any>(null);
-  const [teamTheme, setTeamTheme] = useState<TeamThemeName>('crimson');
+  // Use custom hook for consistent data fetching
+  const { teamData, loading: teamLoading, themeColors, upcomingMatches, error } = useTeamData(typeof slug === 'string' ? slug : undefined);
+
+  /* ---------- local state ---------- */
   const [chatMsg, setChatMsg] = useState('');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<Array<{ name: string; avatar?: string }>>([]);
@@ -115,24 +117,6 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
   useEffect(() => {
     // Wait for component to be mounted and router to be ready
     if (!mounted || !router.isReady || !slug) return;
-
-    const loadTeamData = async () => {
-      try {
-        const teamsData = await apiService.getTeamsData();
-        const team = teamsData.teams.find((t: any) => t.id === slug);
-        if (team) {
-          setTeamData(team);
-          // Set theme based on team data (you can customize this logic)
-          setTeamTheme("blue");
-        } else {
-          console.warn(`Team with slug "${slug}" not found`);
-          setTeamData(null);
-        }
-      } catch (error) {
-        console.error('Failed to load team data:', error);
-        setTeamData(null);
-      }
-    };
 
     // Initialize AOS and feather icons only on client side
     const initClientSideLibs = async () => {
@@ -165,12 +149,11 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
           dispatch(fetchGames()).unwrap(),
           dispatch(fetchMerch()).unwrap(),
           dispatch(fetchLeagues()).unwrap(),
-          loadTeamData(),
           initClientSideLibs()
         ];
 
         // Wait for non-user dependent operations
-        await Promise.allSettled(promises.slice(0, 4));
+        await Promise.allSettled(promises);
 
         // Handle user-dependent operations
         if (user) {
@@ -196,23 +179,13 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
     loadAllData();
   }, [dispatch, user, slug, router.isReady, mounted]);
 
-  // If team data is empty after loading, redirect to 404
-  useEffect(() => {
-    if (mounted && router.isReady && slug && !teamData) {
-      router.push('/404');
-    }
-  }, [mounted, router.isReady, slug, teamData, router]);
-
   /* ---------- theme css vars ---------- */
   useEffect(() => {
     const root = document.documentElement;
-    // content of configThemes is { primary, secondary, accent }
-    const t = configThemes[teamTheme] || configThemes.crimson;
-    root.style.setProperty('--primary-color', t.primary);
-    root.style.setProperty('--secondary-color', t.secondary);
-    root.style.setProperty('--accent-color', t.accent);
-    root.className = `theme-${teamTheme}`;
-  }, [teamTheme]);
+    root.style.setProperty('--primary-color', themeColors.primary);
+    root.style.setProperty('--secondary-color', themeColors.secondary);
+    root.style.setProperty('--accent-color', themeColors.accent);
+  }, [themeColors]);
 
   /* ---------- real-time chat ---------- */
   const subscribeChat = () => {
@@ -251,13 +224,19 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
   // Merch Quick View State
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
-  // Use hook just for the simulated ticker data
-  const { upcomingMatches } = useTeamData(typeof slug === 'string' ? slug : undefined);
-
+  if (teamLoading) {
+    return (
+      <FanGuard>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-4 border-blue-600 mx-auto" />
+        </div>
+      </FanGuard>
+    );
+  }
 
   return (
     <FanGuard>
-      <UserHeader theme={teamTheme} />
+      <UserHeader theme="blue" />
 
       {/* Realtime Components */}
       <GameTicker matches={upcomingMatches} />
@@ -269,7 +248,7 @@ export default function FanPage({ slug: propSlug }: FanPageProps) {
         onClose={() => setSelectedProduct(null)}
         product={selectedProduct}
         addToCart={() => console.log('Added to cart', selectedProduct)}
-        accentColor={configThemes[teamTheme]?.accent || '#000'}
+        accentColor={themeColors.accent}
       />
 
       <div className="relative">

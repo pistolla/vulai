@@ -7,6 +7,112 @@ import { University, Team, Fixture, PlayerAvatar, Sport, ImportedData, Season, M
 import { AdminUserRow } from '@/store/slices/usersSlice';
 import { ReviewRow } from '@/store/slices/reviewSlice';
 
+/* ---------- fixtures (admin approval) ---------- */
+
+/**
+ * Load ALL fixtures across all seasonal paths for admin review.
+ * Fetches from fixtures/{seasonId}/matches collectionGroup.
+ */
+export const loadAllFixtures = async (): Promise<Fixture[]> => {
+  const fixtures: Fixture[] = [];
+  try {
+    const snap = await getDocs(collectionGroup(db, 'matches'));
+    for (const d of snap.docs) {
+      // Only pick documents under fixtures/ path (not league matches)
+      if (d.ref.path.startsWith('fixtures/')) {
+        fixtures.push({ id: d.id, ...d.data() } as Fixture);
+      }
+    }
+  } catch (e) {
+    console.error('loadAllFixtures error:', e);
+  }
+  return fixtures;
+};
+
+/**
+ * Load only pending (unapproved) fixtures — for admin review queue.
+ */
+export const loadPendingFixtures = async (): Promise<Fixture[]> => {
+  const all = await loadAllFixtures();
+  return all.filter((f: any) => f.approved === false || f.approved === undefined);
+};
+
+/**
+ * Load approved fixtures.
+ */
+export const loadApprovedFixtures = async (): Promise<Fixture[]> => {
+  const all = await loadAllFixtures();
+  return all.filter((f: any) => f.approved === true);
+};
+
+/**
+ * Approve a fixture: mark approved=true, then push into admin/upcomingGames or liveGames.
+ */
+export const approveFixture = async (fixtureId: string, seasonId: string) => {
+  const fixturePath = `fixtures/${seasonId}/matches/${fixtureId}`;
+  await updateDoc(doc(db, fixturePath), { approved: true, approvedAt: serverTimestamp() });
+
+  // Sync to public admin collections so it appears on schedule page
+  const fixtureSnap = await getDoc(doc(db, fixturePath));
+  if (fixtureSnap.exists()) {
+    const fixture = { id: fixtureSnap.id, ...fixtureSnap.data() } as Fixture;
+    if (fixture.status === 'live') {
+      await addDoc(collection(db, 'admin', 'dashboard', 'liveGames'), {
+        fixtureId: fixture.id,
+        ...fixture,
+        predictions: { homeWinOdds: 0, drawOdds: 0, awayWinOdds: 0 },
+        ranking: 0,
+        createdAt: serverTimestamp(),
+      });
+    } else {
+      await addDoc(collection(db, 'admin', 'dashboard', 'upcomingGames'), {
+        fixtureId: fixture.id,
+        ...fixture,
+        predictions: { homeWinOdds: 0, drawOdds: 0, awayWinOdds: 0 },
+        ranking: 0,
+        createdAt: serverTimestamp(),
+      });
+    }
+  }
+  return fixtureId;
+};
+
+/**
+ * Reject a fixture.
+ */
+export const rejectFixture = async (fixtureId: string, seasonId: string, reason?: string) => {
+  await updateDoc(doc(db, `fixtures/${seasonId}/matches/${fixtureId}`), {
+    approved: false,
+    rejectedAt: serverTimestamp(),
+    rejectionReason: reason || '',
+  });
+  return fixtureId;
+};
+
+/**
+ * Load all friendly fixtures (type === 'friendly') across all seasons.
+ */
+export const loadFriendlyFixtures = async (): Promise<Fixture[]> => {
+  const all = await loadAllFixtures();
+  return all.filter((f: any) => f.type === 'friendly');
+};
+
+/**
+ * Load league fixtures count per league — using the seasonal collectionGroup.
+ */
+export const loadLeagueFixturesCount = async (leagueId: string): Promise<number> => {
+  try {
+    const snap = await getDocs(collectionGroup(db, 'matches'));
+    return snap.docs.filter(d =>
+      d.ref.path.startsWith('fixtures/') &&
+      (d.data() as any).leagueId === leagueId
+    ).length;
+  } catch (e) {
+    console.error('loadLeagueFixturesCount error:', e);
+    return 0;
+  }
+};
+
 /* ---------- dashboard ---------- */
 export const loadAdminDashboard = async () => {
   const [uniSnap, teamSnap, fixSnap, userSnap, merchSnap, reviewSnap] = await Promise.all([
@@ -165,16 +271,42 @@ export const deleteUniversity = async (id: string) =>
   deleteDoc(doc(db, 'universities', id));
 
 /* ---------- teams ---------- */
-export const loadTeams = async (): Promise<Team[]> => {
+export const loadTeams = async (): Promise<(Team & { status?: string; createdByRole?: string })[]> => {
   const snap = await getDocs(collection(db, 'teams'));
-  return snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as Team));
+  return snap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as Team & { status?: string }));
 };
 
+/** Standard admin team create — goes live immediately */
 export const addTeam = async (team: Omit<Team, 'id'> & { logoURL?: string }) => {
   const teamId = team.name.trim();
   const ref = doc(db, 'teams', teamId);
-  await setDoc(ref, { ...team, id: teamId, createdAt: serverTimestamp() });
-  return { id: teamId, ...team };
+  await setDoc(ref, { ...team, id: teamId, status: 'approved', createdByRole: 'admin', createdAt: serverTimestamp() });
+  return { id: teamId, ...team, status: 'approved' };
+};
+
+/** Correspondent team create — saved as pending for admin approval */
+export const addTeamAsPending = async (team: Omit<Team, 'id'> & { logoURL?: string; correspondentId?: string }) => {
+  const ref = await addDoc(collection(db, 'teams'), {
+    ...team,
+    status: 'pending',
+    createdByRole: 'correspondent',
+    approved: false,
+    createdAt: serverTimestamp(),
+  });
+  await updateDoc(ref, { id: ref.id });
+  return { id: ref.id, ...team, status: 'pending' };
+};
+
+/** Approve a pending team */
+export const approveTeam = async (teamId: string) => {
+  await updateDoc(doc(db, 'teams', teamId), { status: 'approved', approved: true, approvedAt: serverTimestamp() });
+  return teamId;
+};
+
+/** Reject a pending team */
+export const rejectTeam = async (teamId: string, reason?: string) => {
+  await updateDoc(doc(db, 'teams', teamId), { status: 'rejected', approved: false, rejectedAt: serverTimestamp(), rejectionReason: reason || '' });
+  return teamId;
 };
 
 export const updateTeam = async (id: string, data: Partial<Team & { logoURL?: string }>) =>
@@ -356,17 +488,17 @@ export const loadGames = async () => {
 };
 
 export const loadLiveGames = async (): Promise<any[]> => {
-  const liveSnap = await getDocs(collection(doc(db, 'admin'), 'liveGames'));
+  const liveSnap = await getDocs(collection(db, 'admin', 'dashboard', 'liveGames'));
   return liveSnap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() }));
 };
 
 export const loadUpcomingGames = async (): Promise<any[]> => {
-  const upcomingSnap = await getDocs(collection(doc(db, 'admin'), 'upcomingGames'));
+  const upcomingSnap = await getDocs(collection(db, 'admin', 'dashboard', 'upcomingGames'));
   return upcomingSnap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() }));
 };
 
 export const addLiveGame = async (fixture: any) => {
-  await addDoc(collection(doc(db, 'admin'), 'liveGames'), {
+  await addDoc(collection(db, 'admin', 'dashboard', 'liveGames'), {
     fixtureId: fixture.id,
     ...fixture,
     predictions: { homeWinOdds: 0, drawOdds: 0, awayWinOdds: 0 },
@@ -376,7 +508,7 @@ export const addLiveGame = async (fixture: any) => {
 };
 
 export const addUpcomingGame = async (fixture: any) => {
-  await addDoc(collection(doc(db, 'admin'), 'upcomingGames'), {
+  await addDoc(collection(db, 'admin', 'dashboard', 'upcomingGames'), {
     fixtureId: fixture.id,
     ...fixture,
     predictions: { homeWinOdds: 0, drawOdds: 0, awayWinOdds: 0 },
@@ -386,28 +518,27 @@ export const addUpcomingGame = async (fixture: any) => {
 };
 
 export const updateLiveGame = async (id: string, data: any) => {
-  await updateDoc(doc(db, 'admin', 'liveGames', id), data);
+  await updateDoc(doc(db, 'admin', 'dashboard', 'liveGames', id), data);
 };
 
 export const updateUpcomingGame = async (id: string, data: any) => {
-  await updateDoc(doc(db, 'admin', 'upcomingGames', id), data);
+  await updateDoc(doc(db, 'admin', 'dashboard', 'upcomingGames', id), data);
 };
 
 export const deleteLiveGame = async (id: string) => {
-  await deleteDoc(doc(db, 'admin', 'liveGames', id));
+  await deleteDoc(doc(db, 'admin', 'dashboard', 'liveGames', id));
 };
 
 export const deleteUpcomingGame = async (id: string) => {
-  await deleteDoc(doc(db, 'admin', 'upcomingGames', id));
+  await deleteDoc(doc(db, 'admin', 'dashboard', 'upcomingGames', id));
 };
 
 // Sync function to update admin collections based on fixtures
 export const syncAdminGameCollections = async () => {
-  const fixturesSnap = await getDocs(collection(db, 'fixtures'));
-  const fixtures = fixturesSnap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => ({ id: d.id, ...d.data() } as Fixture));
+  const fixtures = await loadApprovedFixtures();
 
   // Sync live games
-  const liveGamesSnap = await getDocs(collection(doc(db, 'admin'), 'liveGames'));
+  const liveGamesSnap = await getDocs(collection(db, 'admin', 'dashboard', 'liveGames'));
   const existingLiveIds = liveGamesSnap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => d.data().fixtureId);
   for (const f of fixtures.filter((f: Fixture) => f.status === 'live')) {
     if (!existingLiveIds.includes(f.id)) {
@@ -416,7 +547,7 @@ export const syncAdminGameCollections = async () => {
   }
 
   // Sync upcoming games
-  const upcomingGamesSnap = await getDocs(collection(doc(db, 'admin'), 'upcomingGames'));
+  const upcomingGamesSnap = await getDocs(collection(db, 'admin', 'dashboard', 'upcomingGames'));
   const existingUpcomingIds = upcomingGamesSnap.docs.map((d: QueryDocumentSnapshot<DocumentData>) => d.data().fixtureId);
   const today = new Date().toDateString();
   for (const f of fixtures.filter((f: Fixture) => new Date(f.scheduledAt).toDateString() === today && f.status === 'scheduled')) {

@@ -8,7 +8,7 @@ import {
   loadReviews, approveReview, rejectReview,
   loadGames, updateFixtureScore, startGame, endGame,
   loadUniversities, addUniversity, updateUniversity, deleteUniversity,
-  loadTeams, addTeam, updateTeam, deleteTeam,
+  loadTeams, addTeam, updateTeam, deleteTeam, approveTeam, rejectTeam,
   addPlayerToSquad, removePlayerFromSquad, getTeamSquads, movePlayerBetweenSquads,
   loadPlayers, addPlayer, updatePlayer, deletePlayer,
   addPlayerHighlight, updatePlayerHighlight, deletePlayerHighlight,
@@ -16,7 +16,8 @@ import {
   loadSports, addSport, updateSport, deleteSport,
   loadImportedData, processImportedData, saveProcessedDocument,
   addSeasonToSport, loadSeasons, updateSeason, deleteSeason,
-  loadAllBookkeepingDocs
+  loadAllBookkeepingDocs,
+  approveFixture, rejectFixture, loadFriendlyFixtures
 } from '@/services/firestoreAdmin';
 import { Season } from '@/models';
 
@@ -71,6 +72,14 @@ export const saveTeamT = createAsyncThunk('teams/save', async ({ id, data }: { i
   await updateTeam(id, data);
   return { id, ...data };
 });
+export const approveTeamT = createAsyncThunk('teams/approve', async (id: string) => {
+  await approveTeam(id);
+  return id;
+});
+export const rejectTeamT = createAsyncThunk('teams/reject', async ({ id, reason }: { id: string; reason?: string }) => {
+  await rejectTeam(id, reason);
+  return id;
+});
 export const removeTeamT = createAsyncThunk('teams/delete', async (id: string) => {
   await deleteTeam(id);
   return id;
@@ -93,11 +102,19 @@ export const movePlayerBetweenSquadsT = createAsyncThunk('teams/movePlayer',
 
 /* ---------- players - stored in root 'players' collection ---------- */
 
-/* ---------- games ---------- */
+/* ---------- games & fixtures ---------- */
 export const fetchGames = createAsyncThunk('games/fetch', loadGames);
 export const updateScoreT = createAsyncThunk('games/score', ({ id, home, away }: { id: string; home: number; away: number }) => updateFixtureScore(id, home, away));
 export const startGameT = createAsyncThunk('games/start', startGame);
 export const endGameT = createAsyncThunk('games/end', endGame);
+export const approveFixtureT = createAsyncThunk('fixtures/approve', async ({ fixtureId, seasonId }: { fixtureId: string; seasonId: string }) => {
+  await approveFixture(fixtureId, seasonId);
+  return fixtureId;
+});
+export const rejectFixtureT = createAsyncThunk('fixtures/reject', async ({ fixtureId, seasonId, reason }: { fixtureId: string; seasonId: string; reason?: string }) => {
+  await rejectFixture(fixtureId, seasonId, reason);
+  return fixtureId;
+});
 
 /* ---------- players ---------- */
 export const fetchPlayers = createAsyncThunk('players/fetch', loadPlayers);

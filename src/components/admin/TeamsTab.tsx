@@ -7,8 +7,8 @@ import { firebaseLeagueService } from '@/services/firebaseCorrespondence';
 import { useToast } from '@/components/common/ToastProvider';
 import { Modal } from '@/components/common/Modal';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { addPlayerToSquadT } from '@/store/adminThunk';
-import { FiPlus, FiEdit2, FiTrash2, FiUsers, FiAward, FiCalendar, FiCheckCircle, FiAlertCircle, FiUploadCloud, FiSearch, FiX } from 'react-icons/fi';
+import { addPlayerToSquadT, approveTeamT, rejectTeamT } from '@/store/adminThunk';
+import { FiPlus, FiEdit2, FiTrash2, FiUsers, FiAward, FiCalendar, FiCheckCircle, FiAlertCircle, FiUploadCloud, FiSearch, FiX, FiCheck, FiXCircle } from 'react-icons/fi';
 import { generateTeamSlug } from '@/utils/slugUtils';
 
 // Input Wrapper Component for enhanced styling and error states
@@ -515,7 +515,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
 
 export default function TeamsTab({ adminData, create, update, deleteU }: any) {
   const user = useAppSelector(state => state.auth.user);
-  const teams = useAppSelector(state => state.admin.teams);
+  const allTeams = useAppSelector(state => state.admin.teams);
   const universities = useAppSelector(state => state.admin.universities);
   const players = useAppSelector(state => state.admin.players);
   const dispatch = useAppDispatch();
@@ -526,8 +526,14 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
   const [showSquadModal, setShowSquadModal] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
   const [editingTeam, setEditingTeam] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'approved' | 'pending'>('approved');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  
+  const approvedTeams = allTeams.filter((t: any) => t.status === 'approved' || !t.status);
+  const pendingTeams = allTeams.filter((t: any) => t.status === 'pending');
+  const displayTeams = activeTab === 'approved' ? approvedTeams : pendingTeams;
+
   const [newTeam, setNewTeam] = useState({
     name: '',
     sport: '',
@@ -680,7 +686,7 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
   };
 
   const handleDeleteTeam = async (id: string) => {
-    const team = teams.find((t: any) => t.id === id);
+    const team = allTeams.find((t: any) => t.id === id);
     if (confirm(`Are you sure you want to delete "${team?.name}"? This action cannot be undone.`)) {
       try {
         await deleteU(id);
@@ -692,15 +698,33 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
     }
   };
 
-  const totalPages = Math.ceil(teams.length / itemsPerPage);
-  const paginatedTeams = teams.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const handleApproveTeam = async (id: string) => {
+    try {
+      await dispatch(approveTeamT(id)).unwrap();
+      success('Team approved', 'The team is now approved and active');
+    } catch (error) {
+      showError('Failed to approve team', 'Please try again');
+    }
+  };
+
+  const handleRejectTeam = async (id: string) => {
+    try {
+      await dispatch(rejectTeamT({ id, reason: 'Admin rejected' })).unwrap();
+      success('Team rejected', 'The team request has been rejected');
+    } catch (error) {
+      showError('Failed to reject team', 'Please try again');
+    }
+  };
+
+  const totalPages = Math.ceil(displayTeams.length / itemsPerPage);
+  const paginatedTeams = displayTeams.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
 
   // Export data - players are now managed in root 'players' collection
-  const exportData = teams.map((team: any) => ({
+  const exportData = displayTeams.map((team: any) => ({
     name: team.name,
     sport: team.sport,
     university: universities.find((u: University) => u.id === team.universityId)?.name || 'N/A',
@@ -726,9 +750,37 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-2 sm:p-6">
-          {teams.length > 0 && <ExportButtons data={exportData} headers={exportHeaders} filename="teams" />}
+          <div className="flex space-x-2 border-b border-gray-200 dark:border-gray-700 mb-6">
+            <button
+              onClick={() => { setActiveTab('approved'); setCurrentPage(1); }}
+              className={`py-2 px-4 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'approved'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+              }`}
+            >
+              Approved Teams ({approvedTeams.length})
+            </button>
+            <button
+              onClick={() => { setActiveTab('pending'); setCurrentPage(1); }}
+              className={`py-2 px-4 border-b-2 font-medium text-sm transition-colors flex items-center ${
+                activeTab === 'pending'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+              }`}
+            >
+              Pending Teams
+              {pendingTeams.length > 0 && (
+                <span className="ml-2 bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 py-0.5 px-2 rounded-full text-xs font-bold">
+                  {pendingTeams.length}
+                </span>
+              )}
+            </button>
+          </div>
 
-          {teams.length === 0 ? (
+          {displayTeams.length > 0 && <ExportButtons data={exportData} headers={exportHeaders} filename={`${activeTab}-teams`} />}
+
+          {displayTeams.length === 0 ? (
             <div className="text-center py-20">
               <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full mb-4">
                 <FiAward className="w-10 h-10 text-gray-400" />
@@ -789,6 +841,24 @@ export default function TeamsTab({ adminData, create, update, deleteU }: any) {
                           >
                             <FiEdit2 className="w-4 h-4" />
                           </button>
+                          {activeTab === 'pending' && (
+                            <>
+                              <button
+                                onClick={() => handleApproveTeam(team.id)}
+                                className="text-green-600 dark:text-green-400 hover:text-green-900 dark:hover:text-green-300 mr-3"
+                                title="Approve"
+                              >
+                                <FiCheckCircle className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleRejectTeam(team.id)}
+                                className="text-yellow-600 dark:text-yellow-400 hover:text-yellow-900 dark:hover:text-yellow-300 mr-3"
+                                title="Reject"
+                              >
+                                <FiXCircle className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
                           <button
                             onClick={() => handleDeleteTeam(team.id)}
                             className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"

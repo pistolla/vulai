@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { League, Group, Stage, Match } from '@/models';
+import { League, Group, Stage, Match, Fixture } from '@/models';
 import { firebaseLeagueService } from '@/services/firebaseCorrespondence';
 import { fetchLeagues } from '@/store/correspondentThunk';
+import { approveFixtureT, rejectFixtureT } from '@/store/adminThunk';
+import { loadPendingFixtures, loadFriendlyFixtures, loadLeagueFixturesCount } from '@/services/firestoreAdmin';
 import { useToast } from '@/components/common/ToastProvider';
-import { FiEye, FiEyeOff, FiTrash2, FiUsers, FiTarget, FiCalendar, FiEdit, FiPackage } from 'react-icons/fi';
+import { FiEye, FiEyeOff, FiTrash2, FiUsers, FiTarget, FiCalendar, FiEdit, FiPackage, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 
 interface LeagueStats {
   totalGroups: number;
@@ -23,21 +25,46 @@ export default function LeaguesTab({ adminData }: { adminData: any }) {
   const leagues = useAppSelector((state: any) => state.correspondent?.leagues || []);
   
   const [leagueStats, setLeagueStats] = useState<Record<string, LeagueStats>>({});
+  const [pendingFixtures, setPendingFixtures] = useState<Fixture[]>([]);
+  const [friendlyFixtures, setFriendlyFixtures] = useState<Fixture[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'leagues' | 'pendingFixtures' | 'friendlyFixtures'>('leagues');
 
   useEffect(() => {
-    loadLeagues();
+    loadAllData();
   }, []);
 
-  const loadLeagues = async () => {
+  const loadAllData = async () => {
     setLoading(true);
     try {
-      await dispatch(fetchLeagues() as any);
+      await Promise.all([
+        dispatch(fetchLeagues() as any),
+        loadPendingFixturesData(),
+        loadFriendlyFixturesData()
+      ]);
     } catch (err) {
-      console.error('Failed to load leagues:', err);
+      console.error('Failed to load data:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPendingFixturesData = async () => {
+    try {
+      const fixtures = await loadPendingFixtures();
+      setPendingFixtures(fixtures);
+    } catch (e) {
+      console.error('Failed to load pending fixtures', e);
+    }
+  };
+
+  const loadFriendlyFixturesData = async () => {
+    try {
+      const fixtures = await loadFriendlyFixtures();
+      setFriendlyFixtures(fixtures);
+    } catch (e) {
+      console.error('Failed to load friendly fixtures', e);
     }
   };
 
@@ -54,10 +81,10 @@ export default function LeaguesTab({ adminData }: { adminData: any }) {
       try {
         const [leagueStatsData, fixturesCount] = await Promise.all([
           firebaseLeagueService.getLeagueStats(league.id),
-          firebaseLeagueService.getLeagueFixturesCount(league.id),
+          loadLeagueFixturesCount(league.id!),
         ]);
         
-        stats[league.id] = {
+        stats[league.id!] = {
           ...leagueStatsData,
           totalFixtures: fixturesCount,
           editor: league.updatedBy || league.createdBy || 'System',
@@ -65,7 +92,7 @@ export default function LeaguesTab({ adminData }: { adminData: any }) {
         };
       } catch (err) {
         console.error(`Failed to load stats for league ${league.id}:`, err);
-        stats[league.id] = {
+        stats[league.id!] = {
           totalGroups: 0,
           totalStages: 0,
           totalMatches: 0,
@@ -104,10 +131,36 @@ export default function LeaguesTab({ adminData }: { adminData: any }) {
     setProcessing(leagueId);
     try {
       await firebaseLeagueService.deleteLeague(leagueId);
-      await loadLeagues();
+      await loadAllData();
       success('League deleted', 'The league and all its data have been removed');
     } catch (err) {
       showError('Failed to delete league', 'Please try again or contact support');
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const handleApproveFixture = async (fixture: Fixture) => {
+    try {
+      setProcessing(fixture.id);
+      await dispatch(approveFixtureT({ fixtureId: fixture.id, seasonId: fixture.seasonId! })).unwrap();
+      success('Fixture approved', 'The fixture is now visible publicly on the schedule');
+      await loadPendingFixturesData();
+    } catch (e: any) {
+      showError('Failed to approve fixture', e.message);
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const handleRejectFixture = async (fixture: Fixture) => {
+    try {
+      setProcessing(fixture.id);
+      await dispatch(rejectFixtureT({ fixtureId: fixture.id, seasonId: fixture.seasonId!, reason: 'Admin rejected' })).unwrap();
+      success('Fixture rejected', 'The fixture has been rejected');
+      await loadPendingFixturesData();
+    } catch (e: any) {
+      showError('Failed to reject fixture', e.message);
     } finally {
       setProcessing(null);
     }
@@ -133,20 +186,8 @@ export default function LeaguesTab({ adminData }: { adminData: any }) {
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading leagues...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading leagues data...</p>
         </div>
-      </div>
-    );
-  }
-
-  if (leagues.length === 0) {
-    return (
-      <div className="text-center py-20">
-        <div className="mb-6">
-          <FiCalendar className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600" />
-        </div>
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No Leagues Found</h3>
-        <p className="text-gray-500 dark:text-gray-400">Create leagues in the Correspondent Dashboard to get started.</p>
       </div>
     );
   }
@@ -155,181 +196,322 @@ export default function LeaguesTab({ adminData }: { adminData: any }) {
     <div>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">League Management</h2>
-          <p className="text-gray-500 dark:text-gray-400">View and manage all leagues in the system</p>
-        </div>
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          {leagues.length} {leagues.length === 1 ? 'league' : 'leagues'} found
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">League & Fixtures Management</h2>
+          <p className="text-gray-500 dark:text-gray-400">Manage leagues, approve fixtures, and monitor friendly matches</p>
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead className="bg-gray-50 dark:bg-gray-700">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                League Name
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Sport
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Last Edited
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Editor
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Groups
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Stages
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Matches
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Participants
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Fixtures
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            {leagues.map((league: League) => {
-              const stats = leagueStats[league.id!] || {
-                totalGroups: 0,
-                totalStages: 0,
-                totalMatches: 0,
-                totalParticipants: 0,
-                totalFixtures: 0,
-                updatedAt: null,
-                isHidden: false,
-              };
-              
-              return (
-                <tr key={league.id} className={stats.isHidden ? 'opacity-60' : ''}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
-                          <span className="text-white font-bold text-sm">
-                            {league.name?.charAt(0)?.toUpperCase() || 'L'}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          {league.name}
-                        </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          {league.sportName || league.sportType || 'Unknown Sport'}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 capitalize">
-                      {league.sportType || 'team'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    {formatDate(stats.updatedAt)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    <div className="flex items-center gap-1">
-                      <FiEdit className="w-3 h-3" />
-                      {stats.editor || '-'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400">
-                    <div className="flex items-center justify-center gap-1">
-                      <FiUsers className="w-4 h-4 text-gray-400" />
-                      {stats.totalGroups}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400">
-                    <div className="flex items-center justify-center gap-1">
-                      <FiTarget className="w-4 h-4 text-gray-400" />
-                      {stats.totalStages}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400">
-                    <div className="flex items-center justify-center gap-1">
-                      <FiCalendar className="w-4 h-4 text-gray-400" />
-                      {stats.totalMatches}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400">
-                    <div className="flex items-center justify-center gap-1">
-                      <FiUsers className="w-4 h-4 text-gray-400" />
-                      {stats.totalParticipants}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400">
-                    <div className="flex items-center justify-center gap-1">
-                      <FiPackage className="w-4 h-4 text-gray-400" />
-                      {stats.totalFixtures}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    {stats.isHidden ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                        Hidden
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                        Visible
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => toggleLeagueVisibility(league.id!, stats.isHidden || false)}
-                        disabled={processing === league.id}
-                        className={`p-2 rounded-lg transition-colors ${
-                          stats.isHidden
-                            ? 'text-gray-400 hover:text-green-500 hover:bg-gray-100 dark:hover:bg-gray-700'
-                            : 'text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700'
-                        }`}
-                        title={stats.isHidden ? 'Show League' : 'Hide League'}
-                      >
-                        {processing === league.id ? (
-                          <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-                        ) : stats.isHidden ? (
-                          <FiEyeOff className="w-4 h-4" />
-                        ) : (
-                          <FiEye className="w-4 h-4" />
-                        )}
-                      </button>
-                      <button
-                        onClick={() => deleteLeague(league.id!, league.name || 'Unknown League')}
-                        disabled={processing === league.id}
-                        className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                        title="Delete League"
-                      >
-                        {processing === league.id ? (
-                          <div className="w-4 h-4 border-2 border-gray-300 border-t-red-500 rounded-full animate-spin" />
-                        ) : (
-                          <FiTrash2 className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+      <div className="flex space-x-2 border-b border-gray-200 dark:border-gray-700 mb-6">
+        <button
+          onClick={() => setActiveTab('leagues')}
+          className={`py-2 px-4 border-b-2 font-medium text-sm transition-colors ${
+            activeTab === 'leagues'
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+              : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+          }`}
+        >
+          Leagues ({leagues.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('pendingFixtures')}
+          className={`py-2 px-4 border-b-2 font-medium text-sm transition-colors flex items-center ${
+            activeTab === 'pendingFixtures'
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+              : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+          }`}
+        >
+          Pending Fixtures
+          {pendingFixtures.length > 0 && (
+            <span className="ml-2 bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 py-0.5 px-2 rounded-full text-xs font-bold">
+              {pendingFixtures.length}
+            </span>
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab('friendlyFixtures')}
+          className={`py-2 px-4 border-b-2 font-medium text-sm transition-colors flex items-center ${
+            activeTab === 'friendlyFixtures'
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+              : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+          }`}
+        >
+          Friendly Fixtures ({friendlyFixtures.length})
+        </button>
       </div>
+
+      {activeTab === 'leagues' && (
+        <div className="overflow-x-auto">
+          {leagues.length === 0 ? (
+            <div className="text-center py-10">
+              <p className="text-gray-500 dark:text-gray-400">No leagues found. Create leagues in the Correspondent Dashboard.</p>
+            </div>
+          ) : (
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    League Name
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Sport
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Last Edited
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Groups
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Stages
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Matches
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Participants
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Fixtures
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {leagues.map((league: League) => {
+                  const stats = leagueStats[league.id!] || {
+                    totalGroups: 0,
+                    totalStages: 0,
+                    totalMatches: 0,
+                    totalParticipants: 0,
+                    totalFixtures: 0,
+                    updatedAt: null,
+                    isHidden: false,
+                  };
+                  
+                  return (
+                    <tr key={league.id} className={stats.isHidden ? 'opacity-60' : ''}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+                              <span className="text-white font-bold text-sm">
+                                {league.name?.charAt(0)?.toUpperCase() || 'L'}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                              {league.name}
+                            </div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              {league.sportName || league.sportType || 'Unknown Sport'}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 capitalize">
+                          {league.sportType || 'team'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {formatDate(stats.updatedAt)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center justify-center gap-1">
+                          <FiUsers className="w-4 h-4 text-gray-400" />
+                          {stats.totalGroups}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center justify-center gap-1">
+                          <FiTarget className="w-4 h-4 text-gray-400" />
+                          {stats.totalStages}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center justify-center gap-1">
+                          <FiCalendar className="w-4 h-4 text-gray-400" />
+                          {stats.totalMatches}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center justify-center gap-1">
+                          <FiUsers className="w-4 h-4 text-gray-400" />
+                          {stats.totalParticipants}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center justify-center gap-1">
+                          <FiPackage className="w-4 h-4 text-gray-400" />
+                          {stats.totalFixtures}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        {stats.isHidden ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                            Hidden
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                            Visible
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => toggleLeagueVisibility(league.id!, stats.isHidden || false)}
+                            disabled={processing === league.id}
+                            className={`p-2 rounded-lg transition-colors ${
+                              stats.isHidden
+                                ? 'text-gray-400 hover:text-green-500 hover:bg-gray-100 dark:hover:bg-gray-700'
+                                : 'text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700'
+                            }`}
+                            title={stats.isHidden ? 'Show League' : 'Hide League'}
+                          >
+                            {processing === league.id ? (
+                              <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                            ) : stats.isHidden ? (
+                              <FiEyeOff className="w-4 h-4" />
+                            ) : (
+                              <FiEye className="w-4 h-4" />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => deleteLeague(league.id!, league.name || 'Unknown League')}
+                            disabled={processing === league.id}
+                            className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                            title="Delete League"
+                          >
+                            {processing === league.id ? (
+                              <div className="w-4 h-4 border-2 border-gray-300 border-t-red-500 rounded-full animate-spin" />
+                            ) : (
+                              <FiTrash2 className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'pendingFixtures' && (
+        <div className="overflow-x-auto">
+          {pendingFixtures.length === 0 ? (
+             <div className="text-center py-10">
+               <p className="text-gray-500 dark:text-gray-400">No pending fixtures to review.</p>
+             </div>
+          ) : (
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+               <thead className="bg-gray-50 dark:bg-gray-700">
+                 <tr>
+                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date & Time</th>
+                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Matchup</th>
+                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Sport</th>
+                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Venue</th>
+                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                 </tr>
+               </thead>
+               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                 {pendingFixtures.map(fixture => (
+                   <tr key={fixture.id}>
+                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        {formatDate(fixture.scheduledAt)}
+                     </td>
+                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                        {fixture.homeTeamName} vs {fixture.awayTeamName}
+                     </td>
+                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {fixture.sport}
+                     </td>
+                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {fixture.venue}
+                     </td>
+                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end gap-2">
+                           <button 
+                             onClick={() => handleApproveFixture(fixture)}
+                             disabled={processing === fixture.id}
+                             className="p-1 px-3 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors flex items-center gap-1">
+                             <FiCheckCircle /> Approve
+                           </button>
+                           <button 
+                             onClick={() => handleRejectFixture(fixture)}
+                             disabled={processing === fixture.id}
+                             className="p-1 px-3 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors flex items-center gap-1">
+                             <FiXCircle /> Reject
+                           </button>
+                        </div>
+                     </td>
+                   </tr>
+                 ))}
+               </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'friendlyFixtures' && (
+        <div className="overflow-x-auto">
+          {friendlyFixtures.length === 0 ? (
+             <div className="text-center py-10">
+               <p className="text-gray-500 dark:text-gray-400">No friendly fixtures found.</p>
+             </div>
+          ) : (
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+               <thead className="bg-gray-50 dark:bg-gray-700">
+                 <tr>
+                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date & Time</th>
+                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Matchup</th>
+                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Sport</th>
+                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Venue</th>
+                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                 </tr>
+               </thead>
+               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                 {friendlyFixtures.map(fixture => (
+                   <tr key={fixture.id}>
+                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                        {formatDate(fixture.scheduledAt)}
+                     </td>
+                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                        {fixture.homeTeamName} vs {fixture.awayTeamName}
+                     </td>
+                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {fixture.sport}
+                     </td>
+                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {fixture.venue}
+                     </td>
+                     <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <span className={`px-2 py-1 text-xs font-bold rounded-full ${
+                          fixture.approved 
+                            ? 'bg-green-100 text-green-800' 
+                            : fixture.approved === false 
+                              ? 'bg-yellow-100 text-yellow-800' 
+                              : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {fixture.approved ? 'Approved' : 'Pending'}
+                        </span>
+                     </td>
+                   </tr>
+                 ))}
+               </tbody>
+            </table>
+          )}
+        </div>
+      )}
     </div>
   );
 }

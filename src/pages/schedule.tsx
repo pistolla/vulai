@@ -10,7 +10,7 @@ import { loadLiveGames, loadUpcomingGames } from '../services/firestoreAdmin';
 import { firebaseLeagueService } from '../services/firebaseCorrespondence';
 
 type DisplayMatch = {
-  id: number;
+  id: string;
   status: 'live' | 'upcoming' | 'completed';
   sport: string;
   homeTeam: string;
@@ -100,7 +100,7 @@ const SchedulePage: React.FC = () => {
 
             // Map to display format
             setDisplayFixtures(allFixtures.map(f => ({
-              id: parseInt(f.id) || 0,
+              id: f.id || '',
               status: f.status === 'scheduled' ? 'upcoming' : f.status === 'postponed' ? 'upcoming' : f.status,
               sport: f.sport,
               homeTeam: f.homeTeamName,

@@ -86,18 +86,16 @@ const HomePage: React.FC = () => {
           }
         ]);
 
-        // Load live and upcoming matches if user is logged in
-        if (user) {
-          try {
-            const [live, upcoming] = await Promise.all([
-              loadLiveGames(),
-              loadUpcomingGames()
-            ]);
-            setLiveMatches(live);
-            setUpcomingMatches(upcoming);
-          } catch (matchError) {
-            console.error('Failed to load matches:', matchError);
-          }
+        // Load live and upcoming matches for all users
+        try {
+          const [live, upcoming] = await Promise.all([
+            loadLiveGames(),
+            loadUpcomingGames()
+          ]);
+          setLiveMatches(live);
+          setUpcomingMatches(upcoming);
+        } catch (matchError) {
+          console.error('Failed to load matches:', matchError);
         }
       } catch (error) {
         console.error('Failed to load home data:', error);
@@ -270,7 +268,7 @@ const HomePage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {(user ? [...liveMatches, ...upcomingMatches] : (data?.matches || [])).map((match) => (
+            {([...liveMatches, ...upcomingMatches].length > 0 ? [...liveMatches, ...upcomingMatches] : (data?.matches || [])).map((match) => (
               <div
                 key={match.id}
                 className={`bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20 ${match.status === 'live' ? 'animate-pulse-live' : ''

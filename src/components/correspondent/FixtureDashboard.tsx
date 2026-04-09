@@ -47,6 +47,12 @@ export const FixtureDashboard: React.FC = () => {
           setSelectedFixture(null);
           setShowForm(true);
         }}
+        onEditFixture={(fixture) => {
+          setSelectedFixture(fixture);
+          setSelectedMatch(null);
+          setSelectedLeague(null);
+          setShowForm(true);
+        }}
       />
     </div>
   );

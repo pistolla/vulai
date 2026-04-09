@@ -100,7 +100,7 @@ export interface Team {
 }
 
 export interface Match {
-  id: number;
+  id: string;
   sport: string;
   homeTeam: string;
   awayTeam: string;
