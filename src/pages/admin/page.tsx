@@ -21,6 +21,8 @@ import GamesTab from '../../components/admin/GamesTab';
 import { ImportedDataTab } from '../../components/admin/ImportedDataTab';
 import LeaguesTab from '../../components/admin/LeaguesTab';
 import ContactTab from '../../components/admin/ContactTab';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/services/firebase';
 import {
   fetchDashboard,
   fetchUsers,

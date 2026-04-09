@@ -6,7 +6,7 @@ import { useRouter } from 'next/router';
 import UserHeader from '@/components/UserHeader';
 import { auth, db } from '@/services/firebase';
 import { reauthenticateWithCredential, EmailAuthProvider, updateEmail } from 'firebase/auth';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { FiMail, FiLock } from 'react-icons/fi';
 import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
