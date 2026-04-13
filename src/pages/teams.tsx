@@ -409,11 +409,7 @@ const TeamsPage: React.FC = () => {
                     <button
                       onClick={() => {
                         const teamSlug = generateTeamSlug(team.name);
-                        if (user) {
-                          router.push(`/team/fan/${teamSlug}`);
-                        } else {
-                          router.push(`/team/${teamSlug}`);
-                        }
+                        router.push(`/team/${teamSlug}`);
                       }}
                       className="flex-1 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 text-white px-4 py-2 rounded-lg font-semibold hover:from-unill-yellow-500 hover:to-unill-purple-600 transition-all"
                     >

@@ -32,11 +32,17 @@ export default function TeamPage() {
   const { teamData, loading, themeColors, upcomingMatches, error } = useTeamData(typeof slug === 'string' ? slug : undefined);
 
   const { followedPlayers } = useAppSelector((s: RootState) => s.team);
-  const { items: merch } = useAppSelector((s: RootState) => s.merch);
+  const { items: merch, loading: merchLoading } = useAppSelector((s: RootState) => s.merch);
   const user = useAppSelector((s: RootState) => s.auth.user);
 
   const [activeTab, setActiveTab] = useState('overview');
   const [chatMessages, setChatMessages] = useState<any[]>([]);
+  
+  // Prevent auto-scroll on mount - ensure we start at the top
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const [pollData, setPollData] = useState({
     question: "Who will be MVP this season?",
     options: [
@@ -51,16 +57,16 @@ export default function TeamPage() {
   // Merch Quick View State
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
-  // Mock data for demo (could also move to hook)
-  const teamLevel = 42;
-  const teamXP = 8750;
-  const nextLevelXP = 10000;
+  // Deriving stats dynamically from teamData if available
+  const teamLevel = teamData?.level || 42;
+  const teamXP = teamData?.xp || 8750;
+  const nextLevelXP = teamData?.nextLevelXP || 10000;
 
   const leaderboardData = teamData?.players?.slice(0, 10).map((p: any, i: number) => ({
     id: p.id,
     name: p.name,
     avatar: p.avatar,
-    value: Math.floor(Math.random() * 30) + 10,
+    value: p.goals || Math.floor(Math.random() * 30) + 10,
     trend: i % 3 === 0 ? 'up' : i % 3 === 1 ? 'down' : 'stable'
   })) || [];
 
@@ -155,6 +161,7 @@ export default function TeamPage() {
           onTabChange={setActiveTab}
           primaryColor={themeColors.primary}
           accentColor={themeColors.accent}
+          sport={teamData?.sport || 'General'}
         />
 
         {/* Main Content */}
@@ -166,10 +173,10 @@ export default function TeamPage() {
               {/* Stats Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                  { label: 'Matches Played', value: '24', icon: '⚽' },
-                  { label: 'Wins', value: '18', icon: '🏆' },
-                  { label: 'Goals Scored', value: '67', icon: '🎯' },
-                  { label: 'Clean Sheets', value: '12', icon: '🛡️' }
+                  { label: 'Matches Played', value: teamData?.stats?.matchesPlayed || '24', icon: '⚽' },
+                  { label: 'Wins', value: teamData?.stats?.wins || '18', icon: '🏆' },
+                  { label: teamData?.sport?.toLowerCase() === 'basketball' ? 'Points Avg' : 'Goals Scored', value: teamData?.stats?.goals || teamData?.stats?.points || '67', icon: '🎯' },
+                  { label: 'Ranking', value: teamData?.stats?.ranking || '#4', icon: '🛡️' }
                 ].map(stat => (
                   <div key={stat.label} className="bg-white dark:bg-gray-900 rounded-3xl p-6 border-2 border-gray-200 dark:border-gray-800 hover:scale-105 transition-transform hover:shadow-lg">
                     <div className="text-4xl mb-2">{stat.icon}</div>
@@ -178,6 +185,7 @@ export default function TeamPage() {
                   </div>
                 ))}
               </div>
+
 
               {/* Leaderboard & Social */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -222,12 +230,12 @@ export default function TeamPage() {
                     avatar={player.avatar}
                     rarity={['bronze', 'silver', 'gold', 'diamond'][Math.floor(Math.random() * 4)] as any}
                     stats={{
-                      speed: Math.floor(Math.random() * 30) + 70,
-                      power: Math.floor(Math.random() * 30) + 70,
-                      technique: Math.floor(Math.random() * 30) + 70,
-                      defense: Math.floor(Math.random() * 30) + 70,
-                      stamina: Math.floor(Math.random() * 30) + 70,
-                      intelligence: Math.floor(Math.random() * 30) + 70
+                      speed: player.stats?.speed || Math.floor(Math.random() * 30) + 70,
+                      power: player.stats?.power || Math.floor(Math.random() * 30) + 70,
+                      technique: player.stats?.technique || Math.floor(Math.random() * 30) + 70,
+                      defense: player.stats?.defense || Math.floor(Math.random() * 30) + 70,
+                      stamina: player.stats?.stamina || Math.floor(Math.random() * 30) + 70,
+                      intelligence: player.stats?.intelligence || Math.floor(Math.random() * 30) + 70
                     }}
                     isFollowed={followedPlayers.includes(player.id)}
                     onFollow={() => handleFollow(player.id)}
@@ -235,6 +243,84 @@ export default function TeamPage() {
                   />
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Fan Zone Tab */}
+          {activeTab === 'fan-zone' && (
+            <div className="space-y-12 animate-in fade-in duration-500">
+               <div className="text-center space-y-4">
+                  <h2 className="text-5xl font-black text-gray-900 dark:text-white uppercase tracking-tight">
+                    Fan Zone
+                  </h2>
+                  <p className="text-gray-500 dark:text-gray-400 font-bold max-w-2xl mx-auto">
+                    The ultimate destination for {teamData?.name} supporters. Join the community, earn rewards, and stay connected.
+                  </p>
+               </div>
+
+               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* Loyalty Card */}
+                  <div className="lg:col-span-2 bg-gradient-to-br from-gray-900 to-black rounded-[40px] p-8 border-2 relative overflow-hidden group" style={{ borderColor: themeColors.accent }}>
+                    <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
+                        <span className="text-8xl">🏆</span>
+                    </div>
+                    
+                    <div className="relative z-10">
+                        <div className="flex items-center space-x-4 mb-8">
+                            <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-lg shadow-blue-500/20" style={{ background: `linear-gradient(135deg, ${themeColors.primary}, ${themeColors.accent})` }}>
+                                ✨
+                            </div>
+                            <div>
+                                <h3 className="text-2xl font-black text-white uppercase tracking-tight">Fan Loyalty Program</h3>
+                                <p className="text-blue-400 font-bold uppercase tracking-widest text-xs">Level 12 Supporter</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            {[
+                                { label: 'Fan Points', value: '2,450', color: themeColors.accent },
+                                { label: 'Badges Earned', value: '14', color: themeColors.primary },
+                                { label: 'Event Check-ins', value: '8', color: '#10b981' }
+                            ].map(perf => (
+                                <div key={perf.label} className="bg-white/5 backdrop-blur-md rounded-3xl p-6 border border-white/10">
+                                    <div className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">{perf.label}</div>
+                                    <div className="text-2xl font-black text-white">{perf.value}</div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <button 
+                            className="w-full py-4 rounded-2xl font-black uppercase tracking-wider text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
+                            style={{ background: `linear-gradient(135deg, ${themeColors.primary}, ${themeColors.accent})` }}
+                            onClick={() => router.push(`/team/fan/${slug}`)}
+                        >
+                            Open Full Fan Profile
+                        </button>
+                    </div>
+                  </div>
+
+                  {/* Fan Sidebar Content */}
+                  <div className="space-y-6">
+                    <div className="bg-white dark:bg-gray-900 rounded-[32px] p-6 border-2 border-gray-200 dark:border-gray-800">
+                        <h4 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight mb-4 flex items-center space-x-2">
+                           <span>📢</span>
+                           <span>Team Announcements</span>
+                        </h4>
+                        <div className="space-y-4">
+                            {[
+                                "Early bird tickets for next week's derby are out!",
+                                "New team jersey available in the store",
+                                "Fan meetup scheduled for Saturday at 5 PM"
+                            ].map((news, i) => (
+                                <div key={i} className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700">
+                                    <p className="text-sm font-bold text-gray-800 dark:text-gray-200">{news}</p>
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-2 block">2 hours ago</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                  </div>
+               </div>
             </div>
           )}
 
@@ -246,34 +332,44 @@ export default function TeamPage() {
               </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                {merch.slice(0, 6).map((item: any) => (
-                  <div key={item.id} className="bg-white dark:bg-gray-900 rounded-3xl overflow-hidden border-2 border-gray-200 dark:border-gray-800 hover:scale-105 transition-transform group cursor-pointer" onClick={() => setSelectedProduct(item)}>
-                    <div className="relative overflow-hidden h-48">
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <span className="bg-white text-black px-4 py-2 rounded-full font-bold">Quick View</span>
+                {merchLoading ? (
+                  Array(6).fill(0).map((_, i) => (
+                    <div key={i} className="h-80 bg-gray-200 dark:bg-gray-800 rounded-3xl animate-pulse" />
+                  ))
+                ) : merch.length > 0 ? (
+                  merch.slice(0, 6).map((item: any) => (
+                    <div key={item.id} className="bg-white dark:bg-gray-900 rounded-3xl overflow-hidden border-2 border-gray-200 dark:border-gray-800 hover:scale-105 transition-transform group cursor-pointer" onClick={() => setSelectedProduct(item)}>
+                      <div className="relative overflow-hidden h-48">
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <span className="bg-white text-black px-4 py-2 rounded-full font-bold">Quick View</span>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="p-6">
-                      <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">{item.name}</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">{item.description}</p>
-                      <div className="flex justify-between items-center">
-                        <span className="text-2xl font-black text-gray-900 dark:text-white">KSh {item.price}</span>
-                        <button
-                          className="px-6 py-3 rounded-2xl font-black uppercase text-sm text-white transition-all hover:scale-105 shadow-lg"
-                          style={{ background: `linear-gradient(135deg, ${themeColors.primary}, ${themeColors.accent})` }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            console.log('Buy Now');
-                          }}
-                        >
-                          Buy Now
-                        </button>
+                      <div className="p-6">
+                        <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">{item.name}</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">{item.description}</p>
+                        <div className="flex justify-between items-center">
+                          <span className="text-2xl font-black text-gray-900 dark:text-white">KSh {item.price}</span>
+                          <button
+                            className="px-6 py-3 rounded-2xl font-black uppercase text-sm text-white transition-all hover:scale-105 shadow-lg"
+                            style={{ background: `linear-gradient(135deg, ${themeColors.primary}, ${themeColors.accent})` }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              console.log('Buy Now');
+                            }}
+                          >
+                            Buy Now
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                   <div className="col-span-full text-center py-20 text-gray-500 font-bold uppercase tracking-widest">
+                      No items available in the team store
+                   </div>
+                )}
               </div>
             </div>
           )}

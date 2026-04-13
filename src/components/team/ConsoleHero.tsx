@@ -10,6 +10,7 @@ interface ConsoleHeroProps {
     onTabChange: (tab: string) => void;
     primaryColor: string;
     accentColor: string;
+    sport: string;
 }
 
 export const ConsoleHero: React.FC<ConsoleHeroProps> = ({
@@ -20,7 +21,8 @@ export const ConsoleHero: React.FC<ConsoleHeroProps> = ({
     activeTab,
     onTabChange,
     primaryColor,
-    accentColor
+    accentColor,
+    sport
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -85,12 +87,21 @@ export const ConsoleHero: React.FC<ConsoleHeroProps> = ({
     const tabs = [
         { id: 'overview', label: 'Overview', icon: FiTrendingUp },
         { id: 'squad', label: 'Squad', icon: FiUsers },
+        { id: 'fan-zone', label: 'Fan Zone', icon: FiAward },
         { id: 'stats', label: 'Stats', icon: FiBarChart2 },
-        { id: 'achievements', label: 'Achievements', icon: FiAward },
         { id: 'shop', label: 'Shop', icon: FiShoppingBag }
     ];
 
     const xpPercentage = (teamXP / nextLevelXP) * 100;
+
+    // Sport-specific Background Patterns
+    const getSportBackground = () => {
+        const lowerSport = sport?.toLowerCase() || '';
+        if (lowerSport.includes('football')) return 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05) 0%, transparent 80%), url("https://www.transparenttextures.com/patterns/pinstriped-suit.png")';
+        if (lowerSport.includes('basketball')) return 'radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.2) 100%), url("https://www.transparenttextures.com/patterns/diagmonds-light.png")';
+        if (lowerSport.includes('volleyball')) return 'url("https://www.transparenttextures.com/patterns/netted-white.png")';
+        return 'url("https://www.transparenttextures.com/patterns/cubes.png")';
+    };
 
     return (
         <div className="relative h-[600px] overflow-hidden bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300 dark:from-gray-900 dark:via-gray-800 dark:to-black transition-colors duration-500">
@@ -100,6 +111,15 @@ export const ConsoleHero: React.FC<ConsoleHeroProps> = ({
                 className="absolute inset-0 pointer-events-none"
             />
 
+            {/* Sport Background Pattern */}
+            <div 
+                className="absolute inset-0 opacity-20 pointer-events-none mix-blend-overlay"
+                style={{ 
+                    backgroundImage: getSportBackground(),
+                    backgroundSize: '200px 200px'
+                }}
+            />
+
             {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-white/80 via-transparent to-white/40 dark:from-black/80 dark:via-transparent dark:to-black/40" />
 
@@ -107,8 +127,13 @@ export const ConsoleHero: React.FC<ConsoleHeroProps> = ({
             <div className="relative z-10 h-full flex flex-col justify-between p-8 max-w-7xl mx-auto">
                 {/* Top Section - Team Name & Level */}
                 <div className="text-center mt-20">
+                    <div className="inline-block mb-2">
+                        <span className="px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
+                            Professional {sport} Team
+                        </span>
+                    </div>
                     <h1
-                        className="text-7xl font-black uppercase tracking-wider mb-4 animate-pulse"
+                        className="text-7xl font-black uppercase tracking-wider mb-4"
                         style={{
                             background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})`,
                             WebkitBackgroundClip: 'text',
@@ -129,6 +154,7 @@ export const ConsoleHero: React.FC<ConsoleHeroProps> = ({
                             <div className="text-sm font-black text-gray-900 dark:text-white">{teamXP} / {nextLevelXP} XP</div>
                         </div>
                     </div>
+
 
                     {/* XP Progress Bar */}
                     <div className="mt-4 max-w-md mx-auto">

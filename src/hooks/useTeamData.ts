@@ -84,40 +84,35 @@ export function useTeamData(slug: string | undefined) {
                 // 2. Fetch Merch (if not already loaded)
                 dispatch(fetchMerch());
 
-                // 3. Simulate Match Data
-                const mockMatches = [
-                    {
-                        id: 'm1',
-                        homeTeam: team?.name || 'Home Team',
-                        awayTeam: 'Nexus United',
-                        status: 'live',
-                        date: 'Today, 7:00 PM',
-                        venue: 'University Stadium',
-                        homeScore: 2,
-                        awayScore: 1,
-                        isLive: true,
-                        minute: 76
-                    },
-                    {
-                        id: 'm2',
-                        homeTeam: 'Cyber City',
-                        awayTeam: team?.name || 'Away Team',
-                        status: 'upcoming',
-                        date: 'Tomorrow, 3:00 PM',
-                        venue: 'Tech Arena'
-                    },
-                    {
-                        id: 'm3',
-                        homeTeam: team?.name || 'Home Team',
-                        awayTeam: 'Phoenix FC',
-                        status: 'completed',
-                        date: 'Yesterday',
-                        venue: 'Home Ground',
-                        homeScore: 3,
-                        awayScore: 2
-                    }
-                ];
-                setUpcomingMatches(mockMatches);
+                // 3. Fetch Real Fixtures
+                const allFixtures = await apiService.getFixtures();
+                console.log('[useTeamData] Fetched all fixtures:', allFixtures.length);
+
+                const teamName = team?.name;
+                const filteredMatches = allFixtures.filter((m: any) => 
+                     m.homeTeamName === teamName || 
+                     m.awayTeamName === teamName ||
+                     m.homeTeam === teamName ||
+                     m.awayTeam === teamName
+                ).map((m: any) => ({
+                    id: m.id,
+                    homeTeam: m.homeTeamName || m.homeTeam,
+                    awayTeam: m.awayTeamName || m.awayTeam,
+                    status: m.status,
+                    date: m.scheduledAt ? new Date(m.scheduledAt).toLocaleDateString() : 'TBD',
+                    time: m.scheduledAt ? new Date(m.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'TBD',
+                    venue: m.venue || 'Stadium',
+                    homeScore: m.score?.home,
+                    awayScore: m.score?.away,
+                    isLive: m.status === 'live',
+                    minute: m.status === 'live' ? 75 : undefined // Simulated live minute for UI
+                }));
+
+                setUpcomingMatches(filteredMatches.sort((a, b) => {
+                    if (a.status === 'live') return -1;
+                    if (b.status === 'live') return 1;
+                    return 0;
+                }));
 
             } catch (error) {
                 console.error("Failed to load team data", error);
