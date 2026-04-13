@@ -207,46 +207,6 @@ const HomePage: React.FC = () => {
   }
   return (
     <Layout title="Home" description="Discover excellence in university athletics at Unill Sports">
-      {/* Upcoming Fixtures Bar for Logged-in Users */}
-      {user && upcomingMatches.length > 0 && (
-        <section className="bg-gray-950 border-b border-white/5 relative z-40 overflow-hidden">
-          <div className="flex items-center">
-            <div className="bg-unill-purple-600 px-6 py-4 flex items-center gap-3 whitespace-nowrap shadow-[10px_0_30px_rgba(0,0,0,0.5)] z-10">
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-unill-yellow-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-unill-yellow-500"></span>
-              </span>
-              <span className="text-sm font-black text-white uppercase tracking-widest">Upcoming</span>
-            </div>
-            
-            <div className="flex-1 overflow-x-auto custom-scrollbar-hide whitespace-nowrap py-4 px-4 scroll-smooth flex items-center gap-6">
-              {upcomingMatches.map((match) => (
-                <button
-                  key={match.id}
-                  onClick={() => {
-                    setSelectedMatchForDetail(match);
-                    setIsDetailModalOpen(true);
-                  }}
-                  className="group flex items-center gap-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl px-6 py-2 transition-all hover:scale-105 active:scale-95"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-black text-white uppercase">{match.homeTeamName}</span>
-                    <span className="text-[10px] font-bold text-gray-500 italic">VS</span>
-                    <span className="text-xs font-black text-white uppercase">{match.awayTeamName}</span>
-                  </div>
-                  <div className="h-4 w-px bg-white/10" />
-                  <div className="flex flex-col items-start leading-none">
-                    <span className="text-[10px] font-black text-unill-yellow-400 uppercase">{match.sport}</span>
-                    <span className="text-[9px] font-bold text-gray-400 mt-0.5">{new Date(match.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-          {/* Subtle decoration */}
-          <div className="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-gray-950 to-transparent pointer-events-none z-20" />
-        </section>
-      )}
 
       {/* Hero Section with Video Background */}
       <section className={`min-h-screen flex items-center justify-center relative overflow-hidden ${mounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-100 via-mauve-50 to-mauve-200' : ''}`}>
@@ -283,14 +243,91 @@ const HomePage: React.FC = () => {
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <a href="/sports" className="bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-unill-yellow-500 hover:to-unill-purple-600 transition-all transform hover:scale-105 animate-pulse-glow">
-              Explore Sports
-            </a>
-            <a href="/teams" className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-gray-900 transition-all transform hover:scale-105">
-              Meet Your Teams
-            </a>
-          </div>
+          {user == null ? (
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <a href="/sports" className="bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:from-unill-yellow-500 hover:to-unill-purple-600 transition-all transform hover:scale-105 animate-pulse-glow">
+                Explore Sports
+              </a>
+              <a href="/teams" className="border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-gray-900 transition-all transform hover:scale-105">
+                Meet Your Teams
+              </a>
+            </div>
+          ) : (
+             <div className="w-full max-w-5xl mx-auto">
+                <div className="flex flex-col items-center mb-8">
+                   <div className="flex items-center gap-3 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full border border-white/20 mb-4 animate-bounce">
+                      <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-unill-yellow-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-unill-yellow-500"></span>
+                      </span>
+                      <span className="text-xs font-black text-white uppercase tracking-[0.2em]">Next Games For You</span>
+                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                   {[...liveMatches, ...upcomingMatches].slice(0, 3).map((match) => (
+                      <button
+                        key={match.id}
+                        onClick={() => {
+                          setSelectedMatchForDetail(match);
+                          setIsDetailModalOpen(true);
+                        }}
+                        className={`group relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2rem] p-6 text-left transition-all hover:bg-white/10 ${match.status === 'live' ? 'border-red-500/50 hover:border-red-500 shadow-lg shadow-red-500/10' : 'hover:border-unill-yellow-400/50'} hover:-translate-y-2`}
+                      >
+                         <div className="flex justify-between items-start mb-6">
+                            <span className={`px-3 py-1 ${match.status === 'live' ? 'bg-red-500' : 'bg-unill-purple-600'} rounded-full text-[10px] font-black text-white uppercase tracking-widest leading-none`}>
+                               {match.status === 'live' ? 'LIVE' : match.sport}
+                            </span>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase">
+                               {match.status === 'live' ? 'Live Now' : new Date(match.scheduledAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                            </span>
+                         </div>
+                         
+                         <div className="flex items-center justify-between gap-4 mb-4">
+                            <div className="flex-1">
+                               <p className="text-sm font-black text-white uppercase truncate">{match.homeTeamName}</p>
+                            </div>
+                            <div className={`px-2 py-1 bg-white/5 rounded-lg text-[10px] font-black ${match.status === 'live' ? 'text-red-400' : 'text-unill-yellow-400'}`}>VS</div>
+                            <div className="flex-1 text-right">
+                               <p className="text-sm font-black text-white uppercase truncate">{match.awayTeamName}</p>
+                            </div>
+                         </div>
+
+                         <div className="pt-4 border-t border-white/5 flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                               <div className={`w-2 h-2 rounded-full ${match.status === 'live' ? 'bg-red-500 animate-pulse' : 'bg-gray-500'}`} />
+                               <span className="text-[10px] font-bold text-gray-500">
+                                  {match.status === 'live' ? `${match.score?.home ?? 0} - ${match.score?.away ?? 0}` : new Date(match.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                               </span>
+                            </div>
+                            {match.status === 'live' ? (
+                               <div 
+                                 onClick={(e) => {
+                                    e.stopPropagation();
+                                    window.location.href = `/live-match/${match.id}`;
+                                 }}
+                                 className="text-[10px] font-black text-red-500 hover:text-red-400 transition-colors flex items-center gap-1 group/btn"
+                               >
+                                  WATCH LIVE
+                                  <span className="group-hover/btn:translate-x-1 transition-transform">→</span>
+                               </div>
+                            ) : (
+                               <span className="text-[10px] font-black text-unill-yellow-400 group-hover:translate-x-1 transition-transform">DETAILS →</span>
+                            )}
+                         </div>
+                      </button>
+                   ))}
+                </div>
+                </div>
+                
+                <div className="mt-10">
+                   <a href="/schedule" className="text-sm font-black text-white/40 hover:text-unill-yellow-400 uppercase tracking-[0.3em] transition-colors">
+                      View Full Schedule Calendar
+                   </a>
+                </div>
+             </div>
+          )}
         </div>
 
         {/* Scroll Indicator */}
@@ -355,6 +392,26 @@ const HomePage: React.FC = () => {
                     {match.venue} • {('scheduledAt' in match) ? new Date(match.scheduledAt).toLocaleTimeString() : match.time}
                     {match.status === 'completed' && ' • Final'}
                   </p>
+                  
+                  <div className="mt-6 flex gap-3">
+                    <button
+                      onClick={() => {
+                        setSelectedMatchForDetail(match);
+                        setIsDetailModalOpen(true);
+                      }}
+                      className="flex-1 bg-white/5 hover:bg-white/10 text-white py-2 rounded-lg text-xs font-bold transition-all border border-white/10"
+                    >
+                      View Details
+                    </button>
+                    {match.status === 'live' && (
+                      <button
+                        onClick={() => window.location.href = `/live-match/${match.id}`}
+                        className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg text-xs font-bold transition-all shadow-lg shadow-red-500/20"
+                      >
+                        Watch Live
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
