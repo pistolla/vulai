@@ -351,14 +351,14 @@ const LeagueExplorerPage: React.FC = () => {
                 <h2 className="text-3xl font-bold mb-8 text-gray-900 dark:text-white border-l-8 border-blue-600 pl-6">
                   Upcoming Fixtures
                 </h2>
-                {filteredMatches.filter(m => m.status === 'scheduled' || m.status === 'pending' || m.status === 'postponed').length === 0 ? (
+                {filteredMatches.filter(m => m.status !== 'completed' && m.status !== 'ongoing' && new Date(m.date).getTime() >= new Date().setHours(0,0,0,0)).length === 0 ? (
                   <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-12 text-center border border-dashed border-gray-300 dark:border-gray-700">
                     <p className="text-gray-500 text-lg">No upcoming fixtures scheduled yet.</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredMatches
-                      .filter(m => m.status === 'scheduled' || m.status === 'pending' || m.status === 'postponed' || new Date(m.date) > new Date())
+                      .filter(m => m.status !== 'completed' && m.status !== 'ongoing' && new Date(m.date).getTime() >= new Date().setHours(0,0,0,0))
                       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                       .slice(0, 6)
                       .map(match => (

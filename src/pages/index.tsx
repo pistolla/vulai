@@ -9,6 +9,7 @@ import MerchandiseCard from '../components/MerchandiseCard';
 import { loadLiveGames, loadUpcomingGames } from '../services/firestoreAdmin';
 import { Fixture, MerchItem } from '../models';
 import QuickViewModal from '../components/QuickViewModal';
+import FixtureDetailModal from '@/components/fixtures/FixtureDetailModal';
 
 const HomePage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -21,6 +22,8 @@ const HomePage: React.FC = () => {
   const [merchandise, setMerchandise] = useState<any[]>([]);
   const [liveMatches, setLiveMatches] = useState<Fixture[]>([]);
   const [upcomingMatches, setUpcomingMatches] = useState<Fixture[]>([]);
+  const [selectedMatchForDetail, setSelectedMatchForDetail] = useState<any | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -204,6 +207,47 @@ const HomePage: React.FC = () => {
   }
   return (
     <Layout title="Home" description="Discover excellence in university athletics at Unill Sports">
+      {/* Upcoming Fixtures Bar for Logged-in Users */}
+      {user && upcomingMatches.length > 0 && (
+        <section className="bg-gray-950 border-b border-white/5 relative z-40 overflow-hidden">
+          <div className="flex items-center">
+            <div className="bg-unill-purple-600 px-6 py-4 flex items-center gap-3 whitespace-nowrap shadow-[10px_0_30px_rgba(0,0,0,0.5)] z-10">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-unill-yellow-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-unill-yellow-500"></span>
+              </span>
+              <span className="text-sm font-black text-white uppercase tracking-widest">Upcoming</span>
+            </div>
+            
+            <div className="flex-1 overflow-x-auto custom-scrollbar-hide whitespace-nowrap py-4 px-4 scroll-smooth flex items-center gap-6">
+              {upcomingMatches.map((match) => (
+                <button
+                  key={match.id}
+                  onClick={() => {
+                    setSelectedMatchForDetail(match);
+                    setIsDetailModalOpen(true);
+                  }}
+                  className="group flex items-center gap-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl px-6 py-2 transition-all hover:scale-105 active:scale-95"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-black text-white uppercase">{match.homeTeamName}</span>
+                    <span className="text-[10px] font-bold text-gray-500 italic">VS</span>
+                    <span className="text-xs font-black text-white uppercase">{match.awayTeamName}</span>
+                  </div>
+                  <div className="h-4 w-px bg-white/10" />
+                  <div className="flex flex-col items-start leading-none">
+                    <span className="text-[10px] font-black text-unill-yellow-400 uppercase">{match.sport}</span>
+                    <span className="text-[9px] font-bold text-gray-400 mt-0.5">{new Date(match.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+          {/* Subtle decoration */}
+          <div className="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-gray-950 to-transparent pointer-events-none z-20" />
+        </section>
+      )}
+
       {/* Hero Section with Video Background */}
       <section className={`min-h-screen flex items-center justify-center relative overflow-hidden ${mounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-100 via-mauve-50 to-mauve-200' : ''}`}>
         <video
@@ -429,6 +473,17 @@ const HomePage: React.FC = () => {
           isOpen={!!selectedQuickViewItem}
           onClose={() => setSelectedQuickViewItem(null)}
           onAddToCart={handleAddToCart}
+        />
+      )}
+
+      {selectedMatchForDetail && (
+        <FixtureDetailModal
+           isOpen={isDetailModalOpen}
+           onClose={() => {
+             setIsDetailModalOpen(false);
+             setSelectedMatchForDetail(null);
+           }}
+           match={selectedMatchForDetail}
         />
       )}
     </Layout>

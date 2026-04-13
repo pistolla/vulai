@@ -6,8 +6,9 @@ import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { fetchLeagues } from '../store/correspondentThunk';
 import { League, Fixture, Season } from '../models';
 import { useTheme } from '../components/ThemeProvider';
-import { loadLiveGames, loadUpcomingGames } from '../services/firestoreAdmin';
+import { loadLiveGames, loadUpcomingGames, loadApprovedFixtures } from '../services/firestoreAdmin';
 import { firebaseLeagueService } from '../services/firebaseCorrespondence';
+import FixtureDetailModal from '@/components/fixtures/FixtureDetailModal';
 
 type DisplayMatch = {
   id: string;
@@ -42,6 +43,7 @@ const SchedulePage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [selectedSeasonId, setSelectedSeasonId] = useState<string>('');
+  const [selectedMatchForDetail, setSelectedMatchForDetail] = useState<any | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -91,11 +93,21 @@ const SchedulePage: React.FC = () => {
         // Load fixtures for ALL users (public)
         if (isMounted) {
           try {
-            const [live, upcoming] = await Promise.all([
-              loadLiveGames(),
-              loadUpcomingGames()
-            ]);
-            const allFixtures = [...live, ...upcoming].sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
+            // First try loading from approved collections
+            const approvedFixtures = await loadApprovedFixtures();
+            
+            let allFixtures = approvedFixtures;
+            
+            // If approved fixtures are empty, fallback to dashboard snapshots (backward compatibility)
+            if (allFixtures.length === 0) {
+              const [live, upcoming] = await Promise.all([
+                loadLiveGames(),
+                loadUpcomingGames()
+              ]);
+              allFixtures = [...live, ...upcoming];
+            }
+
+            allFixtures.sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
             setFixtures(allFixtures);
 
             // Map to display format
@@ -890,59 +902,116 @@ const SchedulePage: React.FC = () => {
 
       {/* Match Details Modal */}
       {modalOpen && selectedDate && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold">Matches on {new Date(selectedDate).toLocaleDateString()}</h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300">
+          <div className="bg-white dark:bg-gray-900 rounded-[2rem] border border-white/10 shadow-2xl w-full max-w-4xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
+              <div className="flex items-center space-x-4">
+                {selectedMatchForDetail && (
+                  <button
+                    onClick={() => setSelectedMatchForDetail(null)}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-500"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                )}
+                <div>
+                  <h2 className="text-2xl font-black text-gray-900 dark:text-white">
+                    {selectedMatchForDetail ? 'Match Details' : `Matches on ${new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}`}
+                  </h2>
+                  <p className="text-sm font-bold text-gray-500 uppercase tracking-widest">
+                    {selectedMatchForDetail ? `${selectedMatchForDetail.homeTeam} vs ${selectedMatchForDetail.awayTeam}` : 'Daily Schedule'}
+                  </p>
+                </div>
+              </div>
               <button
-                onClick={() => setModalOpen(false)}
-                className="text-gray-500 hover:text-gray-700"
+                onClick={() => {
+                  setModalOpen(false);
+                  setSelectedMatchForDetail(null);
+                }}
+                className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 rounded-full transition-all group"
               >
-                ✕
+                <div className="relative w-6 h-6">
+                  <div className="absolute inset-0 bg-red-400 opacity-0 group-hover:opacity-20 rounded-full blur-lg animate-pulse" />
+                  <svg className="relative w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
               </button>
             </div>
-            <div className="space-y-4">
-              {(fixtures.length > 0
-                ? fixtures.filter(fixture => {
-                  const fixtureDate = new Date(fixture.scheduledAt).toISOString().split('T')[0];
-                  return fixtureDate === selectedDate;
-                })
-                : matches.filter(match => match.date === selectedDate)
-              ).map((match, index) => (
-                <div key={index} className="bg-gray-100 rounded-lg p-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="font-semibold capitalize">{('sport' in match) ? match.sport : (match as Match).sport}</span>
-                    <span className={`px-2 py-1 rounded text-xs ${match.status === 'live' ? 'bg-red-500 text-white' :
-                      match.status === 'scheduled' ? 'bg-blue-500 text-white' :
-                        'bg-green-500 text-white'
-                      }`}>
-                      {match.status === 'scheduled' ? 'UPCOMING' : match.status.toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="text-center mb-4">
-                    <div className="flex items-center justify-between">
-                      <div className="text-left">
-                        <h4 className="font-bold">{('homeTeamName' in match) ? match.homeTeamName : match.homeTeam}</h4>
+
+            {/* Modal Content */}
+            <div className={`p-6 max-h-[80vh] overflow-y-auto custom-scrollbar ${selectedMatchForDetail ? 'bg-transparent' : 'bg-white dark:bg-gray-900'}`}>
+              {!selectedMatchForDetail ? (
+                /* List View */
+                <div className="space-y-4">
+                  {(fixtures.length > 0
+                    ? fixtures.filter(fixture => {
+                      const fixtureDate = new Date(fixture.scheduledAt).toISOString().split('T')[0];
+                      return fixtureDate === selectedDate;
+                    })
+                    : matches.filter(match => match.date === selectedDate)
+                  ).map((match, index) => {
+                    const homeName = ('homeTeamName' in match) ? match.homeTeamName : (match as any).homeTeam;
+                    const awayName = ('awayTeamName' in match) ? match.awayTeamName : (match as any).awayTeam;
+                    const sport = ('sport' in match) ? match.sport : (match as any).sport;
+                    const time = ('scheduledAt' in match) ? new Date(match.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : (match as any).time;
+
+                    return (
+                      <div key={index} className="group relative bg-gray-50 dark:bg-gray-800/50 rounded-3xl p-6 border-2 border-transparent hover:border-unill-yellow-400 hover:bg-white dark:hover:bg-gray-800 transition-all duration-300">
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div className="flex-1 flex items-center justify-between gap-4 w-full md:w-auto">
+                              <div className="text-center flex-1">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-unill-purple-500 to-indigo-600 mb-2 mx-auto" />
+                                <h4 className="font-black text-gray-900 dark:text-white text-sm uppercase">{homeName}</h4>
+                              </div>
+                              <div className="flex flex-col items-center">
+                                <span className="text-xs font-black text-gray-400 mb-1">{sport.toUpperCase()}</span>
+                                <div className="px-4 py-2 bg-gray-900 rounded-xl font-black text-white text-lg">VS</div>
+                                <span className="text-[10px] font-bold text-gray-500 mt-1">{time}</span>
+                              </div>
+                              <div className="text-center flex-1">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-tl from-unill-yellow-400 to-orange-500 mb-2 mx-auto" />
+                                <h4 className="font-black text-gray-900 dark:text-white text-sm uppercase">{awayName}</h4>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-3 w-full md:w-auto">
+                              <button
+                                onClick={() => setSelectedMatchForDetail({
+                                  ...match,
+                                  homeTeam: homeName,
+                                  awayTeam: awayName,
+                                  sport: sport,
+                                  time: time,
+                                  venue: match.venue
+                                })}
+                                className="flex-1 md:flex-none px-6 py-3 bg-unill-purple-600 hover:bg-unill-purple-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-lg shadow-unill-purple-600/20"
+                              >
+                                Drill Down
+                              </button>
+                            </div>
+                        </div>
                       </div>
-                      <div className="text-gray-400">VS</div>
-                      <div className="text-right">
-                        <h4 className="font-bold">{('awayTeamName' in match) ? match.awayTeamName : match.awayTeam}</h4>
-                      </div>
+                    );
+                  })}
+                  {(fixtures.filter(f => new Date(f.scheduledAt).toISOString().split('T')[0] === selectedDate).length === 0 &&
+                    matches.filter(m => m.date === selectedDate).length === 0) && (
+                    <div className="text-center py-12">
+                      <div className="text-6xl mb-4">💤</div>
+                      <p className="text-gray-500 font-bold italic">No matches scheduled for this rest day.</p>
                     </div>
-                    <p className="text-sm text-gray-600 mt-2">
-                      {match.venue} • {('scheduledAt' in match) ? new Date(match.scheduledAt).toLocaleTimeString() : match.time}
-                    </p>
-                  </div>
-                  <div className="flex justify-end">
-                    <button
-                      onClick={() => handleSetReminder(match)}
-                      className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
-                    >
-                      Set Notification
-                    </button>
-                  </div>
+                  )}
                 </div>
-              ))}
+              ) : (
+                <FixtureDetailModal 
+                    isOpen={!!selectedMatchForDetail} 
+                    onClose={() => setSelectedMatchForDetail(null)} 
+                    match={selectedMatchForDetail} 
+                />
+              )}
             </div>
           </div>
         </div>

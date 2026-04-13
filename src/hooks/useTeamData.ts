@@ -39,7 +39,12 @@ export function useTeamData(slug: string | undefined) {
                 const teamsData = await apiService.getTeamsData();
                 console.log('[useTeamData] Fetched teams data:', teamsData?.teams?.length, 'teams');
 
-                // If no teams exist at all, redirect to /teams page
+                // If slug is not ready yet, don't proceed to "not found"
+                if (!router.isReady) {
+                    return;
+                }
+
+                // If no teams exist at all (and we definitely tried fetching), redirect to /teams page
                 if (!teamsData.teams || teamsData.teams.length === 0) {
                     console.warn('[useTeamData] No teams found in database, redirecting to /teams');
                     router.replace('/teams');
@@ -52,10 +57,13 @@ export function useTeamData(slug: string | undefined) {
                 console.log('[useTeamData] Found team:', team?.name, 'for slug:', slug);
 
                 if (!team) {
-                    // Team not found, redirect to /teams page
-                    console.warn(`[useTeamData] Team not found for slug: ${slug}, redirecting to /teams`);
-                    router.replace('/teams');
-                    setLoading(false);
+                    // Give it one more try if teams are still loading or slug is being resolved
+                    // This is a safety measure for first-load hydration
+                    if (teamsData.teams.length > 0) {
+                        console.warn(`[useTeamData] Team not found for slug: ${slug}, redirecting to /teams`);
+                        router.replace('/teams');
+                        setLoading(false);
+                    }
                     return;
                 }
 

@@ -20,6 +20,7 @@ import { useTeamData } from '@/hooks/useTeamData';
 import { GameTicker } from '@/components/team/GameTicker';
 import { LiveEventPop } from '@/components/team/LiveEventPop';
 import { MerchQuickView } from '@/components/merch/MerchQuickView';
+import { TeamSkeleton } from '@/components/team/TeamSkeleton';
 
 export default function TeamPage() {
   const router = useRouter();
@@ -92,15 +93,10 @@ export default function TeamPage() {
     dispatch(toggleFollowPlayer(playerId));
   };
 
-  if (loading) {
+  if (loading || !router.isReady) {
     return (
       <Layout title="Team" description="Loading team data...">
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-4 border-blue-600 mx-auto mb-4" />
-            <p className="text-gray-600 dark:text-gray-400 font-bold">Loading team data...</p>
-          </div>
-        </div>
+        <TeamSkeleton />
       </Layout>
     );
   }
