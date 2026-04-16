@@ -84,12 +84,18 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
     // ... p5 init ...
     if (typeof window !== 'undefined') {
       // ... (keep p5 script loading)
-      const script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js';
-      script.onload = () => {
+      // Load p5
+      const p5Script = document.createElement('script');
+      p5Script.src = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js';
+      p5Script.onload = () => {
         initParticleBackground();
       };
-      document.head.appendChild(script);
+      document.head.appendChild(p5Script);
+
+      // Load ECharts
+      const echartsScript = document.createElement('script');
+      echartsScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js';
+      document.head.appendChild(echartsScript);
     }
   }, []);
 

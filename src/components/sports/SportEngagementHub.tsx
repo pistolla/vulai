@@ -133,14 +133,14 @@ export const SportEngagementHub: React.FC<SportEngagementHubProps> = ({ sportId,
           type: 'radar',
           data: [
             {
-              value: [85, 70, 90, 60, 95],
+              value: rankings[0]?.tacticalStats || [85, 70, 90, 60, 95],
               name: rankings[0]?.name,
               itemStyle: { color: theme.color },
               areaStyle: { color: `${theme.color}33` },
               lineStyle: { width: 3 }
             },
             {
-              value: [70, 85, 75, 90, 65],
+              value: rankings[1]?.tacticalStats || [75, 80, 70, 85, 80],
               name: rankings[1]?.name,
               itemStyle: { color: '#814bf6' },
               areaStyle: { color: 'rgba(129, 75, 246, 0.2)' },
