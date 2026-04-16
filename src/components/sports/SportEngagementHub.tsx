@@ -24,7 +24,8 @@ export const SportEngagementHub: React.FC<SportEngagementHubProps> = ({ sportId,
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
   const [leaderboard, setLeaderboard] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [secondaryRankIndex, setSecondaryRankIndex] = useState(1);
+  const [primaryRankIndex, setPrimaryRankIndex] = useState(0);
+  const [secondaryRankIndex, setSecondaryRankIndex] = useState<number | null>(null);
   const theme = getSportTheme(sportId);
 
   useEffect(() => {
@@ -92,7 +93,7 @@ export const SportEngagementHub: React.FC<SportEngagementHubProps> = ({ sportId,
   }, [fixtures]);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || loading || rankings.length < 2) return;
+    if (typeof window === 'undefined' || loading || rankings.length < 1) return;
 
     const initRadar = () => {
       const echarts = (window as any).echarts;
@@ -102,6 +103,27 @@ export const SportEngagementHub: React.FC<SportEngagementHubProps> = ({ sportId,
       if (!chartDom) return;
 
       const myChart = echarts.init(chartDom, 'dark');
+      
+      const seriesData = [
+        {
+          value: rankings[primaryRankIndex]?.tacticalStats || [85, 70, 90, 60, 95],
+          name: rankings[primaryRankIndex]?.name,
+          itemStyle: { color: theme.color },
+          areaStyle: { color: `${theme.color}33` },
+          lineStyle: { width: 3 }
+        }
+      ];
+
+      if (secondaryRankIndex !== null && rankings[secondaryRankIndex]) {
+        seriesData.push({
+          value: rankings[secondaryRankIndex]?.tacticalStats || [75, 80, 70, 85, 80],
+          name: rankings[secondaryRankIndex]?.name,
+          itemStyle: { color: '#814bf6' },
+          areaStyle: { color: 'rgba(129, 75, 246, 0.2)' },
+          lineStyle: { width: 3, type: 'dashed' } as any
+        });
+      }
+
       const option = {
         backgroundColor: 'transparent',
         radar: {
@@ -121,22 +143,7 @@ export const SportEngagementHub: React.FC<SportEngagementHubProps> = ({ sportId,
         },
         series: [{
           type: 'radar',
-          data: [
-            {
-              value: rankings[0]?.tacticalStats || [85, 70, 90, 60, 95],
-              name: rankings[0]?.name,
-              itemStyle: { color: theme.color },
-              areaStyle: { color: `${theme.color}33` },
-              lineStyle: { width: 3 }
-            },
-            {
-              value: rankings[secondaryRankIndex]?.tacticalStats || [75, 80, 70, 85, 80],
-              name: rankings[secondaryRankIndex]?.name,
-              itemStyle: { color: '#814bf6' },
-              areaStyle: { color: 'rgba(129, 75, 246, 0.2)' },
-              lineStyle: { width: 3, type: 'dashed' }
-            }
-          ],
+          data: seriesData,
           symbol: 'none'
         }]
       };
@@ -145,7 +152,7 @@ export const SportEngagementHub: React.FC<SportEngagementHubProps> = ({ sportId,
 
     const timer = setTimeout(initRadar, 300);
     return () => clearTimeout(timer);
-  }, [loading, rankings, theme.color, secondaryRankIndex]);
+  }, [loading, rankings, theme.color, primaryRankIndex, secondaryRankIndex]);
 
   if (loading) {
     return (
@@ -174,10 +181,15 @@ export const SportEngagementHub: React.FC<SportEngagementHubProps> = ({ sportId,
             {rankings.map((rk: any, idx: number) => (
               <div 
                 key={rk.id} 
-                onClick={() => setSecondaryRankIndex(idx === 0 ? 1 : idx)}
+                onClick={() => {
+                  setPrimaryRankIndex(idx);
+                  if (secondaryRankIndex === idx) setSecondaryRankIndex(null);
+                }}
                 className={`flex items-center gap-4 p-4 rounded-2xl transition-all group cursor-pointer ${
-                  (idx === secondaryRankIndex || (idx === 0 && secondaryRankIndex === 0)) 
-                  ? 'bg-white/10 border border-white/10' 
+                  (idx === primaryRankIndex) 
+                  ? 'bg-white/10 border border-white/20 shadow-xl scale-[1.02]' 
+                  : (idx === secondaryRankIndex)
+                  ? 'bg-unill-purple-600/10 border border-unill-purple-600/30'
                   : 'bg-white/5 hover:bg-white/10 border border-transparent'
                 }`}
               >
@@ -208,21 +220,36 @@ export const SportEngagementHub: React.FC<SportEngagementHubProps> = ({ sportId,
                 </div>
               </div>
             ))}
-            {rankings.length === 0 && (
-              <div className="py-12 text-center opacity-30">
-                <p className="text-sm font-bold uppercase">No data available for this sport</p>
-              </div>
-            )}
           </div>
         </div>
 
         {/* Tactical Radar Chart */}
-        <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-8 shadow-2xl flex flex-col items-center">
-          <div className="w-full text-center mb-6">
-            <h3 className="text-2xl font-black text-white uppercase tracking-tighter flex items-center justify-center gap-3">
-              <FiBarChart2 className="text-unill-purple-400" /> Tactical Profile
-            </h3>
-            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Comparison: {rankings[0]?.name} vs {rankings[secondaryRankIndex]?.name}</p>
+        <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-8 shadow-2xl flex flex-col items-center relative overflow-hidden">
+          <div className="w-full mb-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-2xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
+                  <FiBarChart2 className="text-unill-purple-400" /> Tactical Profile
+                </h3>
+                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
+                  Focus: <span className="text-white">{rankings[primaryRankIndex]?.name}</span> {secondaryRankIndex !== null && <>vs <span className="text-unill-purple-400">{rankings[secondaryRankIndex]?.name}</span></>}
+                </p>
+              </div>
+
+              {/* Subtle Dropdown */}
+              <select 
+                value={secondaryRankIndex === null ? '' : secondaryRankIndex}
+                onChange={(e) => setSecondaryRankIndex(e.target.value === '' ? null : Number(e.target.value))}
+                className="bg-white/5 border border-white/10 rounded-lg text-[10px] font-black text-white uppercase tracking-widest py-1.5 px-3 focus:outline-none focus:ring-1 focus:ring-unill-purple-400 cursor-pointer appearance-none"
+              >
+                <option value="">+ Comparison</option>
+                {rankings.map((rk: any, idx: number) => (
+                  idx !== primaryRankIndex && (
+                    <option key={rk.id} value={idx}>{rk.name}</option>
+                  )
+                ))}
+              </select>
+            </div>
           </div>
           
           <div id="sport-radar-chart" className="w-full h-[350px]"></div>
@@ -230,12 +257,14 @@ export const SportEngagementHub: React.FC<SportEngagementHubProps> = ({ sportId,
           <div className="flex gap-6 mt-4">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: theme.color }}></div>
-              <span className="text-[10px] font-black text-white uppercase tracking-widest">{rankings[0]?.name || 'Seed 1'}</span>
+              <span className="text-[10px] font-black text-white uppercase tracking-widest">{rankings[primaryRankIndex]?.name || 'Seed 1'}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-sm bg-unill-purple-600"></div>
-              <span className="text-[10px] font-black text-white uppercase tracking-widest">{rankings[secondaryRankIndex]?.name || 'Seed 2'}</span>
-            </div>
+            {secondaryRankIndex !== null && (
+              <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-2">
+                <div className="w-3 h-3 rounded-sm bg-unill-purple-600"></div>
+                <span className="text-[10px] font-black text-white uppercase tracking-widest">{rankings[secondaryRankIndex]?.name || 'Seed 2'}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
