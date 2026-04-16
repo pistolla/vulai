@@ -22,41 +22,46 @@ interface UniversityRanking {
 
 export const SportEngagementHub: React.FC<SportEngagementHubProps> = ({ sportId, leagues }) => {
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
+  const [leaderboard, setLeaderboard] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const theme = getSportTheme(sportId);
 
   useEffect(() => {
-    const loadSportFixtures = async () => {
+    const loadSportData = async () => {
       setLoading(true);
       try {
-        const allFixtures: Fixture[] = [];
-        // In a real app, we'd query by sportId. For now, we fetch from the flat 'fixtures' collection
-        // or seasonal subcollections if we had season IDs.
+        // 1. Fetch Optimized Leaderboard Snapshot
+        const { doc, getDoc } = await import('firebase/firestore');
+        const lbSnap = await getDoc(doc(db, 'leaderboards', sportId.toLowerCase()));
+        
+        if (lbSnap.exists()) {
+          setLeaderboard(lbSnap.data());
+        }
+
+        // 2. Fetch Latest Fixtures for Match Narratives
         const snap = await getDocs(collection(db, 'fixtures'));
         const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Fixture));
-        
-        // Filter by sport
         const filtered = data.filter(f => f.sport?.toLowerCase() === sportId.toLowerCase() && f.status === 'completed');
         setFixtures(filtered);
       } catch (error) {
-        console.error('Failed to load sport fixtures:', error);
+        console.error('Failed to load sport engagement data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadSportFixtures();
+    loadSportData();
   }, [sportId]);
 
+  // Fallback rankings calculation if leaderboard doc doesn't exist
   const rankings = useMemo(() => {
-    const uniMap: Record<string, UniversityRanking> = {};
+    if (leaderboard?.rankings) return leaderboard.rankings;
 
+    const uniMap: Record<string, UniversityRanking> = {};
     fixtures.forEach(fixture => {
       if (!fixture.participants) return;
-
       fixture.participants.forEach((p, idx) => {
         if (!p.refId) return;
-        
         if (!uniMap[p.refId]) {
           uniMap[p.refId] = {
             name: p.name || 'Unknown University',
@@ -68,29 +73,22 @@ export const SportEngagementHub: React.FC<SportEngagementHubProps> = ({ sportId,
             efficiency: 0
           };
         }
-
         const stats = uniMap[p.refId];
         const scores = fixture.participants.map(part => part.score || 0);
         const myScore = p.score || 0;
         const otherScores = scores.filter((_, i) => i !== idx);
         const maxOther = Math.max(...otherScores);
 
-        if (myScore > maxOther) {
-          stats.wins += 1;
-          stats.points += 3;
-        } else if (myScore < maxOther) {
-          stats.losses += 1;
-        } else {
-          stats.draws += 1;
-          stats.points += 1;
-        }
+        if (myScore > maxOther) { stats.wins += 1; stats.points += 3; }
+        else if (myScore < maxOther) { stats.losses += 1; }
+        else { stats.draws += 1; stats.points += 1; }
         
         stats.efficiency = (stats.points / (stats.wins + stats.losses + stats.draws)) * 10;
       });
     });
 
     return Object.values(uniMap).sort((a, b) => b.points - a.points || b.efficiency - a.efficiency).slice(0, 5);
-  }, [fixtures]);
+  }, [fixtures, leaderboard]);
 
   const latestStory = useMemo(() => {
     return fixtures
@@ -183,7 +181,7 @@ export const SportEngagementHub: React.FC<SportEngagementHubProps> = ({ sportId,
           </div>
 
           <div className="space-y-3">
-            {rankings.map((rk, idx) => (
+            {rankings.map((rk: any, idx: number) => (
               <div key={rk.id} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-all group">
                 <div className={`text-xl font-black w-8 text-center ${idx === 0 ? 'text-unill-yellow-400' : 'text-gray-600'}`}>
                   {idx + 1}
