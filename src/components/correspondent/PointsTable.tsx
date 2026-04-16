@@ -85,8 +85,8 @@ export const PointsTable: React.FC<{ league: League; group: Group; seasonId?: st
       const hPts = hScore > aScore ? 3 : hScore === aScore ? 1 : 0;
       const aPts = aScore > hScore ? 3 : aScore === hScore ? 1 : 0;
 
-      updateTeam(fixture.homeTeamId, fixture.homeTeamName, hScore, aScore, hPts, hAdj);
-      updateTeam(fixture.awayTeamId, fixture.awayTeamName, aScore, hScore, aPts, aAdj);
+      updateTeam(fixture.homeTeamId || '', fixture.homeTeamName || 'Home', hScore, aScore, hPts, hAdj);
+      updateTeam(fixture.awayTeamId || '', fixture.awayTeamName || 'Away', aScore, hScore, aPts, aAdj);
     });
 
     const sorted = Object.values(table).sort((a, b) => {
@@ -108,8 +108,8 @@ export const PointsTable: React.FC<{ league: League; group: Group; seasonId?: st
       h2hMatches.forEach(m => {
         const fixture = fixtures.find(f => f.matchId === m.id && f.status === 'completed');
         if (!fixture || !fixture.score) return;
-        const aScore = fixture.homeTeamId === a.refId ? fixture.score.home : fixture.score.away;
-        const bScore = fixture.homeTeamId === b.refId ? fixture.score.home : fixture.score.away;
+        const aScore = (fixture.homeTeamId || '') === a.refId ? fixture.score.home : fixture.score.away;
+        const bScore = (fixture.homeTeamId || '') === b.refId ? fixture.score.home : fixture.score.away;
         if (aScore > bScore) aH2HPts += 3;
         else if (bScore > aScore) bH2HPts += 3;
         else { aH2HPts += 1; bH2HPts += 1; }

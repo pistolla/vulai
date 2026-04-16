@@ -25,7 +25,7 @@ export const PlayerStatsTable: React.FC<PlayerStatsTableProps> = ({ fixtures }) 
                     playerMap[key] = {
                         playerName: gt.playerName || 'Unknown Player',
                         teamId: gt.teamId,
-                        teamName: gt.teamId === fixture.homeTeamId ? fixture.homeTeamName : fixture.awayTeamName,
+                        teamName: gt.teamId === fixture.homeTeamId ? (fixture.homeTeamName || 'Home') : (fixture.awayTeamName || 'Away'),
                         goals: 0
                     };
                 }

@@ -1,5 +1,5 @@
 import { Fixture, League, Match, Team, Season } from "@/models";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "@/hooks/redux";
 import { fetchLeagues, fetchFixtures, createFixture, updateFixture } from "@/store/correspondentThunk";
 import { firebaseLeagueService } from "@/services/firebaseCorrespondence";
@@ -8,7 +8,7 @@ import { db } from "@/services/firebase";
 import { doc, setDoc, collection } from "firebase/firestore";
 import dynamic from 'next/dynamic';
 import { useToast } from "@/components/common/ToastProvider";
-import { FiCalendar, FiMapPin, FiUsers, FiCheckCircle, FiAlertCircle, FiArrowRight, FiX } from 'react-icons/fi';
+import { FiCalendar, FiMapPin, FiUsers, FiCheckCircle, FiAlertCircle, FiArrowRight, FiX, FiPlus } from 'react-icons/fi';
 
 const ReactQuill = dynamic(() => import('react-quill'), {
   ssr: false,
@@ -21,6 +21,11 @@ interface TeamOption {
   name: string;
   sport?: string;
   university?: string;
+}
+
+interface PlayerOption {
+  id: string;
+  name: string;
 }
 
 interface FixtureFormProps {
@@ -42,15 +47,23 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
   const [selectedGroupId, setSelectedGroupId] = useState<string>('');
   const [selectedStageId, setSelectedStageId] = useState<string>('');
   const [matches, setMatches] = useState<Match[]>([]);
-  const [homeTeamId, setHomeTeamId] = useState(fixture?.homeTeamId || '');
-  const [awayTeamId, setAwayTeamId] = useState(fixture?.awayTeamId || '');
-  const [homeTeamName, setHomeTeamName] = useState(fixture?.homeTeamName || (match && match.participants[0] ? match.participants[0].name || match.participants[0].refId : ''));
-  const [awayTeamName, setAwayTeamName] = useState(fixture?.awayTeamName || (match && match.participants[1] ? match.participants[1].name || match.participants[1].refId : ''));
+  
+  // NEW: Multi-participant state
+  const [participants, setParticipants] = useState<any[]>(
+    fixture?.participants || 
+    match?.participants || 
+    [
+      { refType: 'team', refId: '', name: '', score: 0 },
+      { refType: 'team', refId: '', name: '', score: 0 }
+    ]
+  );
+  
   const [scheduledAt, setScheduledAt] = useState(fixture?.scheduledAt || match?.date || '');
   const [venue, setVenue] = useState(fixture?.venue || match?.venue || '');
   const [blogContent, setBlogContent] = useState(fixture?.blogContent || '');
   const [teams, setTeams] = useState<TeamOption[]>([]);
   const [filteredTeams, setFilteredTeams] = useState<TeamOption[]>([]);
+  const [players, setPlayers] = useState<PlayerOption[]>([]);
   const [selectedSeasonId, setSelectedSeasonId] = useState(fixture?.seasonId || '');
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [selectedSportId, setSelectedSportId] = useState('');
@@ -62,6 +75,7 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
     dispatch(fetchLeagues());
     dispatch(fetchFixtures());
     loadTeams();
+    loadPlayers();
     loadSports();
   }, [dispatch]);
 
@@ -72,6 +86,44 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
     } catch (e) {
       console.error('Failed to load sports:', e);
     }
+  };
+
+  const loadPlayers = async () => {
+    try {
+      const allPlayers = await apiService.getPlayers();
+      setPlayers(allPlayers.map((p: any) => ({
+        id: p.id || p.uid,
+        name: p.name || `${p.firstName} ${p.lastName}`
+      })));
+    } catch (e) {
+      console.error('Failed to load players:', e);
+    }
+  };
+
+  const addParticipant = () => {
+    setParticipants([...participants, { refType: 'team', refId: '', name: '', score: 0 }]);
+  };
+
+  const removeParticipant = (index: number) => {
+    setParticipants(participants.filter((_, i) => i !== index));
+  };
+
+  const updateParticipant = (index: number, data: any) => {
+    const updated = [...participants];
+    updated[index] = { ...updated[index], ...data };
+    
+    // Auto-update name if refId changed
+    if (data.refId) {
+      if (updated[index].refType === 'team') {
+        const team = teams.find(t => t.id === data.refId);
+        if (team) updated[index].name = team.name;
+      } else {
+        const player = players.find(p => p.id === data.refId);
+        if (player) updated[index].name = player.name;
+      }
+    }
+    
+    setParticipants(updated);
   };
 
   const loadTeams = async () => {
@@ -265,20 +317,11 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
       const match = matches.find(m => m.id === selectedMatch);
       if (match && match.participants && match.participants.length >= 2) {
         
-        // Use real team names if available
-        const p1Name = match.participants[0].name || `Team ${match.participants[0].refId}`;
-        const p2Name = match.participants[1].name || `Team ${match.participants[1].refId}`;
-        
-        setHomeTeamName(p1Name);
-        setAwayTeamName(p2Name);
-        
-        // Find matching teams in the system (try by refId first, then by name)
-        const homeTeam = filteredTeams.find((t: TeamOption) => t.id === match.participants[0].refId || t.name === match.participants[0].name);
-        const awayTeam = filteredTeams.find((t: TeamOption) => t.id === match.participants[1].refId || t.name === match.participants[1].name);
-        
-        // Important: fallback to refId if available as it might be raw team id
-        setHomeTeamId(homeTeam?.id || match.participants[0].refId || '');
-        setAwayTeamId(awayTeam?.id || match.participants[1].refId || '');
+        // Sync participants from match to fixture
+        setParticipants(match.participants.map(p => ({
+          ...p,
+          score: p.score || 0
+        })));
         
         if (match.seasonId) setSelectedSeasonId(match.seasonId);
         if (match.groupId) setSelectedGroupId(match.groupId);
@@ -287,7 +330,7 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
         if (match.venue) setVenue(match.venue);
       }
     }
-  }, [selectedMatch, matches, filteredTeams]);
+  }, [selectedMatch, matches]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -297,9 +340,8 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
     
     const newErrors: Record<string, string> = {};
     if (!selectedSeasonId) newErrors.season = 'Season is required';
-    if (!homeTeamId) newErrors.homeTeam = 'Home team is required';
-    if (!awayTeamId) newErrors.awayTeam = 'Away team is required';
-    if (homeTeamId === awayTeamId) newErrors.sameTeam = 'Home and away teams cannot be the same';
+    if (participants.length < 1) newErrors.participants = 'At least one participant is required';
+    if (participants.some(p => !p.refId)) newErrors.participants = 'All participants must be selected';
     if (!scheduledAt) newErrors.date = 'Date and time is required';
     if (!venue.trim()) newErrors.venue = 'Venue is required';
     
@@ -312,35 +354,8 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
     setIsLoading(true);
 
     try {
-      const homeTeam = filteredTeams.find((t: TeamOption) => t.id === homeTeamId);
-      const awayTeam = filteredTeams.find((t: TeamOption) => t.id === awayTeamId);
-
-      // For friendly matches, teams MUST exist in the teams collection
-      if (type === 'friendly') {
-        if (!homeTeam || !awayTeam) {
-          warning('Teams not found', 'Selected teams must exist in the teams collection. Create teams first.');
-          setIsLoading(false);
-          return;
-        }
-
-        // Validate that teams belong to the selected sport
-        const selectedSport = sports.find((s: any) => s.id === selectedSportId);
-        if (selectedSport) {
-          if (homeTeam.sport && homeTeam.sport.toLowerCase() !== selectedSport.name.toLowerCase()) {
-            warning('Sport mismatch', `Home team sport (${homeTeam.sport}) does not match selected sport (${selectedSport.name})`);
-            setIsLoading(false);
-            return;
-          }
-          if (awayTeam.sport && awayTeam.sport.toLowerCase() !== selectedSport.name.toLowerCase()) {
-            warning('Sport mismatch', `Away team sport (${awayTeam.sport}) does not match selected sport (${selectedSport.name})`);
-            setIsLoading(false);
-            return;
-          }
-        }
-      }
-
-      const finalHomeTeamName = homeTeam?.name || homeTeamName;
-      const finalAwayTeamName = awayTeam?.name || awayTeamName;
+      const p1 = participants[0];
+      const p2 = participants[1];
 
       const leagueObj = leagues.find((l: any) => l.id === selectedLeague);
       let sportNameFinal = '';
@@ -351,10 +366,13 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
       }
 
       const fixtureData: Omit<Fixture, 'id' | 'correspondentId'> = {
-        homeTeamName: finalHomeTeamName,
-        awayTeamName: finalAwayTeamName,
-        homeTeamId: homeTeamId,
-        awayTeamId: awayTeamId,
+        participants,
+        // Legacy fallbacks for compatibility
+        homeTeamName: p1?.name || '',
+        awayTeamName: p2?.name || '',
+        homeTeamId: p1?.refId || '',
+        awayTeamId: p2?.refId || '',
+        
         sport: sportNameFinal,
         scheduledAt,
         venue: venue.trim(),
@@ -366,14 +384,15 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
         stageId: type === 'league' ? selectedStageId : undefined,
         blogContent: blogContent || undefined,
         seasonId: selectedSeasonId,
+        players: fixture?.players || []
       };
 
       if (fixture) {
         await dispatch(updateFixture({ id: fixture.id, fixture: fixtureData }));
-        success('Fixture updated successfully', 'Changes have been saved', 'Add commentary or view match details');
+        success('Fixture updated successfully', 'Changes have been saved');
       } else {
         await dispatch(createFixture(fixtureData));
-        success('Fixture created successfully', 'The fixture is now scheduled', 'Add more fixtures or manage league');
+        success('Fixture created successfully', 'The fixture is now scheduled');
       }
 
       onClose();
@@ -511,81 +530,83 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">
-                Home Team <span className="text-red-500">*</span>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <label className="block text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-widest">
+                Participants <span className="text-red-500">*</span>
               </label>
-              <select
-                value={homeTeamId}
-                onChange={(e) => {
-                  const team = filteredTeams.find((t: TeamOption) => t.id === e.target.value);
-                  setHomeTeamId(e.target.value);
-                  setHomeTeamName(team?.name || '');
-                  setErrors(prev => ({ ...prev, homeTeam: '', sameTeam: '' }));
-                }}
-                className={`w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border-2 ${errors.homeTeam || errors.sameTeam ? 'border-red-300 dark:border-red-600' : 'border-transparent focus:border-blue-500'} dark:text-white font-medium`}
+              <button
+                type="button"
+                onClick={addParticipant}
+                className="text-[10px] font-black text-blue-600 uppercase flex items-center gap-1 hover:underline"
               >
-                <option value="">Select Home Team</option>
-                {filteredTeams.map((team: TeamOption) => (
-                  <option key={team.id} value={team.id}>{team.name}</option>
-                ))}
-                {type === 'league' && homeTeamName && !filteredTeams.some((t: TeamOption) => t.id === homeTeamId) && (
-                  <option value={homeTeamId}>{homeTeamName} (Placeholder)</option>
-                )}
-              </select>
-              <InputError message={errors.homeTeam} />
+                <FiPlus className="w-3 h-3" /> Add Competitor
+              </button>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-2">
-                Away Team <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={awayTeamId}
-                onChange={(e) => {
-                  const team = filteredTeams.find((t: TeamOption) => t.id === e.target.value);
-                  setAwayTeamId(e.target.value);
-                  setAwayTeamName(team?.name || '');
-                  setErrors(prev => ({ ...prev, awayTeam: '', sameTeam: '' }));
-                }}
-                className={`w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border-2 ${errors.awayTeam || errors.sameTeam ? 'border-red-300 dark:border-red-600' : 'border-transparent focus:border-blue-500'} dark:text-white font-medium`}
-              >
-                <option value="">Select Away Team</option>
-                {filteredTeams.filter((t: TeamOption) => t.id !== homeTeamId).map((team: TeamOption) => (
-                  <option key={team.id} value={team.id}>{team.name}</option>
-                ))}
-                {type === 'league' && awayTeamName && !filteredTeams.some((t: TeamOption) => t.id === awayTeamId) && (
-                  <option value={awayTeamId}>{awayTeamName} (Placeholder)</option>
-                )}
-              </select>
-              <InputError message={errors.awayTeam} />
+            <div className="space-y-3">
+              {participants.map((p, index) => (
+                <div key={index} className="flex gap-2 items-start animate-in slide-in-from-left-2 duration-200" style={{ animationDelay: `${index * 50}ms` }}>
+                  <div className="w-24">
+                    <select
+                      value={p.refType}
+                      onChange={(e) => updateParticipant(index, { refType: e.target.value as any, refId: '', name: '' })}
+                      className="w-full px-2 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:text-white text-[10px] font-black uppercase tracking-tighter"
+                    >
+                      <option value="team">Team</option>
+                      <option value="individual">Player</option>
+                    </select>
+                  </div>
+                  
+                  <div className="flex-1">
+                    <select
+                      value={p.refId}
+                      onChange={(e) => updateParticipant(index, { refId: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:text-white font-medium text-sm"
+                    >
+                      <option value="">Select {p.refType === 'team' ? 'Team' : 'Player'}</option>
+                      {p.refType === 'team' ? (
+                        filteredTeams.map(t => (
+                          <option key={t.id} value={t.id}>{t.name}</option>
+                        ))
+                      ) : (
+                        players.map(pl => (
+                          <option key={pl.id} value={pl.id}>{pl.name}</option>
+                        ))
+                      )}
+                    </select>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => removeParticipant(index)}
+                    disabled={participants.length <= 1}
+                    className="p-3 bg-gray-50 dark:bg-gray-700 rounded-xl text-gray-400 hover:text-red-500 transition-all disabled:opacity-30"
+                  >
+                    <FiX className="w-5 h-5" />
+                  </button>
+                </div>
+              ))}
             </div>
+            <InputError message={errors.participants} />
           </div>
 
-          {errors.sameTeam && (
-            <div className="flex items-center gap-2 text-red-500 dark:text-red-400 text-sm animate-in slide-in-from-top-1">
-              <FiAlertCircle className="w-4 h-4" />
-              <span>{errors.sameTeam}</span>
-            </div>
-          )}
-
-          {homeTeamId && awayTeamId && homeTeamId !== awayTeamId && (
-            <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-green-800 dark:text-green-200">Home</span>
-                  <span className="font-bold text-gray-900 dark:text-white">{filteredTeams.find((t: TeamOption) => t.id === homeTeamId)?.name}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <FiArrowRight className="w-5 h-5 text-green-600" />
-                  <span className="font-black text-xl text-green-600">VS</span>
-                  <FiArrowRight className="w-5 h-5 text-green-600" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-gray-900 dark:text-white">{filteredTeams.find((t: TeamOption) => t.id === awayTeamId)?.name}</span>
-                  <span className="text-sm font-bold text-green-800 dark:text-green-200">Away</span>
-                </div>
+          {participants.length >= 2 && (
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+              <div className="flex flex-wrap items-center justify-center gap-4">
+                {participants.map((p, i) => (
+                  <React.Fragment key={i}>
+                    <div className="flex flex-col items-center">
+                      <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-1">{p.refType} {i + 1}</span>
+                      <span className="font-bold text-gray-900 dark:text-white text-center px-3 py-1 bg-white dark:bg-gray-800 rounded-lg shadow-sm">{p.name || '???'}</span>
+                    </div>
+                    {i < participants.length - 1 && (
+                      <div className="flex items-center">
+                        <span className="font-black text-lg text-blue-300 dark:text-blue-700 italic">VS</span>
+                      </div>
+                    )}
+                  </React.Fragment>
+                ))}
               </div>
             </div>
           )}

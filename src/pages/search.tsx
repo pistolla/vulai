@@ -70,8 +70,8 @@ const SearchPage: React.FC = () => {
 
                 // Filter universities with fixtures
                 const activeTeamIds = new Set([
-                    ...leagueFixtures.map(f => f.homeTeamId),
-                    ...leagueFixtures.map(f => f.awayTeamId)
+                    ...(leagueFixtures.map(f => f.homeTeamId).filter(Boolean) as string[]),
+                    ...(leagueFixtures.map(f => f.awayTeamId).filter(Boolean) as string[])
                 ]);
                 const filteredUniversities = (universitiesData || []).filter(uni =>
                     (teamsData || []).some(t => t.universityId === uni.id && activeTeamIds.has(t.id))
@@ -118,8 +118,8 @@ const SearchPage: React.FC = () => {
 
             // University filter
             if (selectedUniversity) {
-                const homeUni = getTeamUniversityId(fixture.homeTeamId);
-                const awayUni = getTeamUniversityId(fixture.awayTeamId);
+                const homeUni = getTeamUniversityId(fixture.homeTeamId || '');
+                const awayUni = getTeamUniversityId(fixture.awayTeamId || '');
                 if (homeUni !== selectedUniversity && awayUni !== selectedUniversity) return false;
             }
 

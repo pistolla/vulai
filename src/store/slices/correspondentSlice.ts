@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { CorrespondentDashboard, LiveCommentary, FixtureVideo, Group, Match, Stage, League, Fixture } from '@/models';
-import { pushCommentaryEvent, attachDriveVideo, createLeague, fetchLeagues, createGroup, createStage, createMatch, updateMatchScores, fetchPointsTable, fetchFixtures, createFixture, updateFixture, deleteStage, deleteMatch, updateStage } from '@/store/correspondentThunk';
+import { pushCommentaryEvent, attachDriveVideo, createLeague, fetchLeagues, createGroup, createStage, createMatch, updateMatchScores, fetchPointsTable, fetchFixtures, createFixture, updateFixture, deleteStage, deleteMatch, updateStage, deleteFixture } from '@/store/correspondentThunk';
 
 // Define proper type for points data
 interface PointsEntry {
@@ -140,6 +140,9 @@ const correspondentSlice = createSlice({
         if (index !== -1) {
           s.fixtures[index] = { ...s.fixtures[index], ...payload };
         }
+      })
+      .addCase(deleteFixture.fulfilled, (s, { payload }) => {
+        s.fixtures = s.fixtures.filter(f => f.id !== payload);
       }),
 });
 

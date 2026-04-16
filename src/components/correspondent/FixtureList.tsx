@@ -1,11 +1,14 @@
 import { useAppSelector, useAppDispatch } from "@/hooks/redux";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { firebaseLeagueService } from "@/services/firebaseCorrespondence";
 import { FixtureResultPopup } from "./FixtureResultPopup";
 import { Fixture, Match, League, Group, Stage } from "@/models";
-import { updateFixture } from "@/store/correspondentThunk";
+import { updateFixture, deleteFixture } from "@/store/correspondentThunk";
 
-import { FiClock, FiCheckCircle, FiActivity, FiMapPin, FiCalendar } from 'react-icons/fi';
+import { FiClock, FiCheckCircle, FiActivity, FiMapPin, FiCalendar, FiTrash2, FiUsers, FiFileText, FiEdit3 } from 'react-icons/fi';
+import { FixturePlayerManager } from "./FixturePlayerManager";
+import { FixtureNewsEditor } from "./FixtureNewsEditor";
+import { useToast } from "@/components/common/ToastProvider";
 
 interface FixtureListProps {
   onSelect: (match: Match, league: League) => void;
@@ -18,9 +21,24 @@ export const FixtureList: React.FC<FixtureListProps> = ({ onSelect, onEditFixtur
   const fixtures = useAppSelector((state) => state.correspondent.fixtures) || [];
   const leagues = useAppSelector((state) => state.correspondent.leagues) || [];
   const [selectedFixture, setSelectedFixture] = useState<Fixture | null>(null);
+  const [managingPlayersFixture, setManagingPlayersFixture] = useState<Fixture | null>(null);
+  const [editingNewsFixture, setEditingNewsFixture] = useState<Fixture | null>(null);
+  
   const dispatch = useAppDispatch();
+  const { success, error: showError } = useToast();
 
-  // Explorer State
+  const handleDeleteFixture = async (fixture: Fixture) => {
+    if (!window.confirm(`Are you sure you want to delete the fixture: ${fixture.homeTeamName} vs ${fixture.awayTeamName}? This cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await dispatch(deleteFixture({ id: fixture.id, seasonId: fixture.seasonId! })).unwrap();
+      success('Fixture Deleted', 'The fixture has been removed from your log.');
+    } catch (err) {
+      showError('Delete Failed', 'Could not delete fixture. Ensure you have permissions.');
+    }
+  };
   const [selectedLeagueId, setSelectedLeagueId] = useState<string>('');
   const [selectedGroupId, setSelectedGroupId] = useState<string>('');
   const [selectedStageId, setSelectedStageId] = useState<string>('');
@@ -157,8 +175,19 @@ export const FixtureList: React.FC<FixtureListProps> = ({ onSelect, onEditFixtur
                   <div className="flex justify-between items-start">
                     <div className="flex flex-col gap-1">
                       <div className="text-xs font-black text-gray-400 uppercase tracking-widest">{f.type} • {f.sport}</div>
-                      <div className="font-bold text-lg dark:text-white flex items-center gap-2">
-                        {f.homeTeamName} vs {f.awayTeamName}
+                      <div className="font-bold text-lg dark:text-white flex flex-wrap items-center gap-2">
+                        {f.participants && f.participants.length > 0 ? (
+                          f.participants.map((p, i) => (
+                            <React.Fragment key={p.refId || i}>
+                              <span>{p.name}</span>
+                              {i < f.participants.length - 1 && (
+                                <span className="text-gray-400 text-sm font-black italic">vs</span>
+                              )}
+                            </React.Fragment>
+                          ))
+                        ) : (
+                          <>{f.homeTeamName} vs {f.awayTeamName}</>
+                        )}
                       </div>
                     </div>
                     {statusBadge(f)}
@@ -182,13 +211,31 @@ export const FixtureList: React.FC<FixtureListProps> = ({ onSelect, onEditFixtur
                     )}
                   </div>
 
-                  <div className="pt-3 border-t border-gray-200 dark:border-gray-600 flex gap-2 justify-end mt-auto">
+                  <div className="pt-3 border-t border-gray-200 dark:border-gray-600 flex flex-wrap gap-2 justify-end mt-auto">
                     {onEditFixture && (
-                      <button onClick={(e) => { e.stopPropagation(); onEditFixture(f); }} className="text-gray-600 dark:text-gray-300 hover:text-blue-600 text-sm font-bold px-3 py-1 bg-gray-200 dark:bg-gray-600 rounded">
-                        Edit
+                      <button onClick={(e) => { e.stopPropagation(); onEditFixture(f); }} className="text-gray-600 dark:text-gray-300 hover:text-blue-600 text-sm font-bold px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center gap-1.5 transition-all">
+                        <FiEdit3 /> Edit
                       </button>
                     )}
-                    <button onClick={(e) => { e.stopPropagation(); setSelectedFixture(f); }} className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-sm font-bold flex items-center gap-1 transition-colors">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setManagingPlayersFixture(f); }} 
+                      className="text-gray-600 dark:text-gray-300 hover:text-blue-600 text-sm font-bold px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center gap-1.5 transition-all"
+                    >
+                      <FiUsers /> Players
+                    </button>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setEditingNewsFixture(f); }} 
+                      className="text-gray-600 dark:text-gray-300 hover:text-blue-600 text-sm font-bold px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center gap-1.5 transition-all"
+                    >
+                      <FiFileText /> News
+                    </button>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleDeleteFixture(f); }} 
+                      className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm font-bold px-3 py-1.5 bg-red-50 dark:bg-red-900/20 rounded-lg flex items-center gap-1.5 transition-all"
+                    >
+                      <FiTrash2 /> Delete
+                    </button>
+                    <button onClick={(e) => { e.stopPropagation(); setSelectedFixture(f); }} className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1.5 transition-all shadow-lg shadow-purple-500/20">
                       <FiActivity /> Live Center
                     </button>
                   </div>
@@ -292,6 +339,20 @@ export const FixtureList: React.FC<FixtureListProps> = ({ onSelect, onEditFixtur
         <FixtureResultPopup
           fixture={selectedFixture}
           onClose={() => setSelectedFixture(null)}
+        />
+      )}
+
+      {managingPlayersFixture && (
+        <FixturePlayerManager
+          fixture={managingPlayersFixture}
+          onClose={() => setManagingPlayersFixture(null)}
+        />
+      )}
+
+      {editingNewsFixture && (
+        <FixtureNewsEditor
+          fixture={editingNewsFixture}
+          onClose={() => setEditingNewsFixture(null)}
         />
       )}
     </div>

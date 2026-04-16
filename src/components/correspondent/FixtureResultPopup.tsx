@@ -31,7 +31,7 @@ export const FixtureResultPopup: React.FC<FixtureResultPopupProps> = ({ fixture,
     const [blogContent, setBlogContent] = useState<string>(fixture.blogContent || '');
     const [newGoal, setNewGoal] = useState<{ minute: number; teamId: string; playerName: string }>({
         minute: 0,
-        teamId: fixture.homeTeamId,
+        teamId: fixture.homeTeamId || '',
         playerName: ''
     });
     const [saving, setSaving] = useState(false);
@@ -97,8 +97,8 @@ export const FixtureResultPopup: React.FC<FixtureResultPopupProps> = ({ fixture,
             if (fixture.matchId && score.home !== score.away) {
                 const match = await firebaseLeagueService.findMatchById(fixture.matchId);
                 if (match && match.nextMatchId) {
-                    const winnerId = score.home > score.away ? fixture.homeTeamId : fixture.awayTeamId;
-                    const winnerName = score.home > score.away ? fixture.homeTeamName : fixture.awayTeamName;
+                    const winnerId = score.home > score.away ? (fixture.homeTeamId || '') : (fixture.awayTeamId || '');
+                    const winnerName = score.home > score.away ? (fixture.homeTeamName || '') : (fixture.awayTeamName || '');
                     await firebaseLeagueService.advanceWinner(
                         fixture.sport,
                         winnerId,

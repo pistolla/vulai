@@ -13,10 +13,10 @@ export const generateMatchReport = (fixture: Fixture): string => {
 
     // 1. Headline
     if (!winner) {
-        report += `STALEMATE: ${homeTeamName} and ${awayTeamName} share the spoils in a ${hScore}-${aScore} draw. `;
+        report += `STALEMATE: ${homeTeamName || 'Home'} and ${awayTeamName || 'Away'} share the spoils in a ${hScore}-${aScore} draw. `;
     } else {
         const intensity = Math.abs(hScore - aScore) >= 3 ? "dominant" : "hard-fought";
-        report += `VICTORY: ${winner} secure a ${intensity} ${Math.max(hScore, aScore)}-${Math.min(hScore, aScore)} win over ${loser}. `;
+        report += `VICTORY: ${winner || 'Winners'} secure a ${intensity} ${Math.max(hScore, aScore)}-${Math.min(hScore, aScore)} win over ${loser || 'Losers'}. `;
     }
 
     // 2. Goal Analysis
@@ -25,7 +25,7 @@ export const generateMatchReport = (fixture: Fixture): string => {
 
         report += "\n\nHighlights of the match:";
         sortedGoals.forEach(gt => {
-            const team = gt.teamId === fixture.homeTeamId ? homeTeamName : awayTeamName;
+            const team = gt.teamId === fixture.homeTeamId ? (homeTeamName || 'Home') : (awayTeamName || 'Away');
             report += `\n• ${gt.minute}': Goal for ${team}${gt.playerName ? ` scored by ${gt.playerName}` : ''}.`;
         });
 
@@ -38,7 +38,7 @@ export const generateMatchReport = (fixture: Fixture): string => {
     }
 
     // 3. Significance
-    report += `\n\nThis result will certainly shake up the standings as the season progresses. #Unillsport #${homeTeamName.replace(/\s+/g, '')}V${awayTeamName.replace(/\s+/g, '')}`;
+    report += `\n\nThis result will certainly shake up the standings as the season progresses. #Unillsport #${(homeTeamName || 'Home').replace(/\s+/g, '')}V${(awayTeamName || 'Away').replace(/\s+/g, '')}`;
 
     return report;
 };

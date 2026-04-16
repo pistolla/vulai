@@ -421,6 +421,11 @@ class FirebaseLeagueService {
     });
   }
 
+  async deleteFixture(seasonId: string, fixtureId: string) {
+    const path = seasonId ? `fixtures/${seasonId}/matches/${fixtureId}` : `fixtures/${fixtureId}`;
+    await deleteDoc(doc(db, path));
+  }
+
   async advanceWinner(leagueId: string, winnerRefId: string, winnerName: string, nextMatchId: string, slot: number = 0) {
     const leaguesSnap = await getDocs(collection(db, 'leagues'));
     for (const leagueDoc of leaguesSnap.docs) {

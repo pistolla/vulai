@@ -229,10 +229,31 @@ export const createFixture = createAsyncThunk('fixtures/create', async (fixture:
   return { id, correspondentId: uid, ...fixture, approved: false } as Fixture;
 });
 
-export const updateFixture = createAsyncThunk('fixtures/update', async ({ id, fixture }: { id: string; fixture: Partial<Fixture> }) => {
-  const seasonId = fixture.seasonId;
-  await firebaseLeagueService.updateFixture(seasonId!, id, fixture);
+export const updateFixture = createAsyncThunk('fixtures/update', async ({ id, fixture }: { id: string; fixture: Partial<Fixture> }, { getState }) => {
+  const state = getState() as RootState;
+  const existing = state.correspondent.fixtures.find(f => f.id === id);
+  const seasonId = fixture.seasonId || existing?.seasonId;
+  
+  if (!seasonId) throw new Error("Season ID is required to update fixture.");
+  
+  await firebaseLeagueService.updateFixture(seasonId, id, fixture);
   return { id, ...fixture } as Fixture;
+});
+
+export const deleteFixture = createAsyncThunk('fixtures/delete', async ({ id, seasonId }: { id: string; seasonId: string }) => {
+  await firebaseLeagueService.deleteFixture(seasonId, id);
+  return id;
+});
+
+export const fetchPlayersByTeam = createAsyncThunk('players/fetchByTeam', async (teamId: string) => {
+  const q = query(collection(db, 'players'), where('teamId', '==', teamId));
+  const snap = await getDocs(q);
+  return { teamId, players: snap.docs.map(d => ({ id: d.id, ...d.data() } as Athlete)) };
+});
+
+export const addPlayer = createAsyncThunk('players/add', async (player: Omit<Athlete, 'id'>) => {
+  const ref = await addDoc(collection(db, 'players'), player);
+  return { id: ref.id, ...player } as Athlete;
 });
 
 /* ---------- merchandise documents ---------- */

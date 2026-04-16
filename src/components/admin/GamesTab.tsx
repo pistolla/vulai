@@ -20,10 +20,6 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
   const [stages, setStages] = useState<any[]>([]);
   const [matches, setMatches] = useState<any[]>([]);
 
-  const currentSport = sports.find((s: any) => s.name.toLowerCase() === formData.sport.toLowerCase());
-  const isTeamSport = currentSport?.category === 'team';
-  const participants = isTeamSport ? teams : players;
-
   useEffect(() => {
     if (leagues) setLeaguesData(leagues);
   }, [leagues]);
@@ -58,11 +54,52 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
     }
   }, [formData.selectedStage, stages]);
 
+  const addParticipant = () => {
+    const updated = [...(formData.participants || [])];
+    updated.push({ refType: 'team', refId: '', name: '', score: 0 });
+    setFormData({ ...formData, participants: updated });
+  };
+
+  const removeParticipant = (index: number) => {
+    const updated = [...(formData.participants || [])];
+    updated.splice(index, 1);
+    setFormData({ ...formData, participants: updated });
+  };
+
+  const updateParticipant = (index: number, data: any) => {
+    const updated = [...(formData.participants || [])];
+    updated[index] = { ...updated[index], ...data };
+    
+    // Auto-update name if refId changed
+    if (data.refId) {
+      if (updated[index].refType === 'team') {
+        const team = teams.find((t: any) => t.id === data.refId);
+        if (team) updated[index].name = team.name;
+      } else {
+        const player = players.find((p: any) => p.id === data.refId);
+        if (player) updated[index].name = player.name;
+      }
+    }
+    
+    // Sync legacy home/away fields for backward compatibility if there are at least 2
+    const home = updated[0];
+    const away = updated[1];
+    
+    setFormData({ 
+      ...formData, 
+      participants: updated,
+      homeTeamId: home?.refId || '',
+      homeTeamName: home?.name || '',
+      awayTeamId: away?.refId || '',
+      awayTeamName: away?.name || ''
+    });
+  };
+
   return (
     <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Type</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Type</label>
           <select
             value={formData.type || 'friendly'}
             onChange={(e) => setFormData({ ...formData, type: e.target.value, sport: e.target.value === 'league' ? '' : formData.sport, selectedLeague: '', selectedGroup: '', selectedStage: '', selectedMatch: '' })}
@@ -75,7 +112,7 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
         {formData.type === 'league' ? (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">League</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">League</label>
               <select
                 value={formData.selectedLeague}
                 onChange={(e) => setFormData({ ...formData, selectedLeague: e.target.value, selectedGroup: '', selectedStage: '', selectedMatch: '' })}
@@ -85,7 +122,6 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
                 {leaguesData.filter((l: any) => {
                   if (!formData.sport) return true;
                   const sportLower = formData.sport.toLowerCase();
-                  // Match by sportId (most reliable), then sportName
                   return (l.sportId && l.sportId.toLowerCase() === sportLower) || 
                          (l.sportName?.toLowerCase() === sportLower) ||
                          (l.sportName?.toLowerCase().includes(sportLower)) ||
@@ -96,7 +132,7 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Sport</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Sport</label>
               <select
                 value={formData.sport}
                 onChange={(e) => setFormData({ ...formData, sport: e.target.value, selectedLeague: '', selectedGroup: '', selectedStage: '', selectedMatch: '' })}
@@ -113,7 +149,7 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
           </>
         ) : (
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Sport</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Sport</label>
             <select
               value={formData.sport}
               onChange={(e) => setFormData({ ...formData, sport: e.target.value })}
@@ -128,7 +164,7 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
           </div>
         )}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Season</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Season</label>
           <select
             value={formData.seasonId || ''}
             onChange={(e) => setFormData({ ...formData, seasonId: e.target.value })}
@@ -144,7 +180,7 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
         {formData.type === 'league' && (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Group</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Group</label>
               <select
                 value={formData.selectedGroup}
                 onChange={(e) => setFormData({ ...formData, selectedGroup: e.target.value, selectedStage: '', selectedMatch: '' })}
@@ -157,11 +193,11 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Stage</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Stage</label>
               <select
                 value={formData.selectedStage}
                 onChange={(e) => setFormData({ ...formData, selectedStage: e.target.value, selectedMatch: '' })}
-                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:ring-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="">Select Stage</option>
                 {stages.map((s: any) => (
@@ -170,7 +206,7 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Match</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Match</label>
               <select
                 value={formData.selectedMatch}
                 onChange={(e) => setFormData({ ...formData, selectedMatch: e.target.value })}
@@ -184,42 +220,72 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
             </div>
           </>
         )}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Home Team</label>
-          <select
-            required
-            value={formData.homeTeamId}
-            onChange={(e) => {
-              const team = teams.find((t: any) => t.id === e.target.value);
-              setFormData({ ...formData, homeTeamId: e.target.value, homeTeamName: team?.name || '' });
-            }}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+      </div>
+
+      <div className="mt-6 space-y-4">
+        <div className="flex justify-between items-center">
+          <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+            Participants <FiUsers className="inline ml-1" />
+          </label>
+          <button
+            type="button"
+            onClick={addParticipant}
+            className="text-xs font-black text-blue-600 dark:text-blue-400 uppercase hover:underline"
           >
-            <option value="">Select Home Team</option>
-            {teams.map((team: any) => (
-              <option key={team.id} value={team.id}>{team.name}</option>
-            ))}
-          </select>
+            + Add Competitor
+          </button>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Away Team</label>
-          <select
-            required
-            value={formData.awayTeamId}
-            onChange={(e) => {
-              const team = teams.find((t: any) => t.id === e.target.value);
-              setFormData({ ...formData, awayTeamId: e.target.value, awayTeamName: team?.name || '' });
-            }}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-          >
-            <option value="">Select Away Team</option>
-            {teams.map((team: any) => (
-              <option key={team.id} value={team.id}>{team.name}</option>
-            ))}
-          </select>
+
+        <div className="space-y-3">
+          {(formData.participants || []).map((p: any, index: number) => (
+            <div key={index} className="flex gap-2 items-center">
+              <div className="w-24">
+                <select
+                  value={p.refType}
+                  onChange={(e) => updateParticipant(index, { refType: e.target.value, refId: '', name: '' })}
+                  className="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-[10px] font-black uppercase text-gray-900 dark:text-white"
+                >
+                  <option value="team">Team</option>
+                  <option value="individual">Player</option>
+                </select>
+              </div>
+              
+              <div className="flex-1">
+                <select
+                  required
+                  value={p.refId}
+                  onChange={(e) => updateParticipant(index, { refId: e.target.value })}
+                  className="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white"
+                >
+                  <option value="">Select {p.refType === 'team' ? 'Team' : 'Player'}</option>
+                  {p.refType === 'team' ? (
+                    teams.map((t: any) => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))
+                  ) : (
+                    players.map((pl: any) => (
+                      <option key={pl.id} value={pl.id}>{pl.name}</option>
+                    ))
+                  )}
+                </select>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => removeParticipant(index)}
+                disabled={(formData.participants || []).length <= 1}
+                className="p-2 text-gray-400 hover:text-red-500 disabled:opacity-30"
+              >
+                <FiTrash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Date</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label>
           <input
             type="date"
             required
@@ -229,7 +295,7 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Time</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Time</label>
           <input
             type="time"
             required
@@ -239,7 +305,7 @@ function GameForm({ formData, setFormData, teams, players, sports, onSubmit, sub
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Venue</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Venue</label>
           <input
             type="text"
             required
@@ -293,7 +359,12 @@ function ShimmerGameCard() {
 
 // Prediction Form Component
 function PredictionForm({ game, onSave }: { game: any; onSave: (data: any) => void }) {
-  const [predictions, setPredictions] = useState(game.predictions || { homeWinOdds: 0, drawOdds: 0, awayWinOdds: 0 });
+  const [predictions, setPredictions] = useState(game.predictions || { 
+    homeWinOdds: 0, 
+    drawOdds: 0, 
+    awayWinOdds: 0,
+    participantOdds: (game.participants || []).map((p: any) => ({ refId: p.refId, name: p.name, odds: 0 }))
+  });
   const [ranking, setRanking] = useState(game.ranking || 0);
 
   const handleSubmit = (e: any) => {
@@ -301,54 +372,108 @@ function PredictionForm({ game, onSave }: { game: any; onSave: (data: any) => vo
     onSave({ predictions, ranking });
   };
 
+  const isMultiParticipant = (game.participants || []).length > 2;
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <h4 className="text-lg font-medium">{game.homeTeamName} vs {game.awayTeamName}</h4>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="pb-4 border-b border-gray-100 dark:border-gray-700">
+        <h4 className="text-lg font-bold text-gray-900 dark:text-white">
+          {isMultiParticipant 
+            ? `Multi-Participant Event: ${game.sport || 'Match'}`
+            : `${game.homeTeamName || 'Home'} vs ${game.awayTeamName || 'Away'}`}
+        </h4>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Set match odds and ranking for predictions</p>
       </div>
-      <div className="grid grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm font-medium">Home Win Odds</label>
-          <input
-            type="number"
-            step="0.01"
-            value={predictions.homeWinOdds}
-            onChange={(e) => setPredictions({ ...predictions, homeWinOdds: +e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
+
+      {!isMultiParticipant ? (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Home Win Odds</label>
+            <input
+              type="number"
+              step="0.01"
+              value={predictions.homeWinOdds}
+              onChange={(e) => setPredictions({ ...predictions, homeWinOdds: +e.target.value })}
+              className="block w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Draw Odds</label>
+            <input
+              type="number"
+              step="0.01"
+              value={predictions.drawOdds}
+              onChange={(e) => setPredictions({ ...predictions, drawOdds: +e.target.value })}
+              className="block w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Away Win Odds</label>
+            <input
+              type="number"
+              step="0.01"
+              value={predictions.awayWinOdds}
+              onChange={(e) => setPredictions({ ...predictions, awayWinOdds: +e.target.value })}
+              className="block w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
+          </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium">Draw Odds</label>
-          <input
-            type="number"
-            step="0.01"
-            value={predictions.drawOdds}
-            onChange={(e) => setPredictions({ ...predictions, drawOdds: +e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
+      ) : (
+        <div className="space-y-4">
+          <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Participant Winner Odds</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {(game.participants || []).map((p: any, idx: number) => {
+              const currentOdds = predictions.participantOdds?.find((po: any) => po.refId === p.refId)?.odds || 0;
+              return (
+                <div key={p.refId || idx} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{p.name}</p>
+                    <p className="text-[10px] text-gray-500 uppercase">{p.refType}</p>
+                  </div>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="Odds"
+                    value={currentOdds}
+                    onChange={(e) => {
+                      const newParticipantOdds = [...(predictions.participantOdds || [])];
+                      const existingIdx = newParticipantOdds.findIndex((po: any) => po.refId === p.refId);
+                      if (existingIdx >= 0) {
+                        newParticipantOdds[existingIdx] = { ...newParticipantOdds[existingIdx], odds: +e.target.value };
+                      } else {
+                        newParticipantOdds.push({ refId: p.refId, name: p.name, odds: +e.target.value });
+                      }
+                      setPredictions({ ...predictions, participantOdds: newParticipantOdds });
+                    }}
+                    className="w-24 rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium">Away Win Odds</label>
-          <input
-            type="number"
-            step="0.01"
-            value={predictions.awayWinOdds}
-            onChange={(e) => setPredictions({ ...predictions, awayWinOdds: +e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-      </div>
-      <div>
-        <label className="block text-sm font-medium">Match Ranking</label>
+      )}
+
+      <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+        <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Match Ranking (Importance Score)</label>
         <input
           type="number"
+          min="0"
+          max="100"
           value={ranking}
           onChange={(e) => setRanking(+e.target.value)}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="block w-full rounded-lg border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
         />
+        <p className="mt-1 text-[10px] text-gray-500">Scale of 0-100. Higher numbers rank the match higher in featured lists.</p>
       </div>
-      <div className="flex justify-end">
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Save</button>
+
+      <div className="flex justify-end pt-4">
+        <button 
+          type="submit" 
+          className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/30"
+        >
+          Save Predictions
+        </button>
       </div>
     </form>
   );
@@ -389,6 +514,10 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
     awayTeamId: '',
     homeTeamName: '',
     awayTeamName: '',
+    participants: [
+      { refType: 'team', refId: '', name: '', score: 0 },
+      { refType: 'team', refId: '', name: '', score: 0 }
+    ],
     date: '',
     time: '',
     venue: '',
@@ -407,6 +536,10 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
       awayTeamId: '',
       homeTeamName: '',
       awayTeamName: '',
+      participants: [
+        { refType: 'team', refId: '', name: '', score: 0 },
+        { refType: 'team', refId: '', name: '', score: 0 }
+      ],
       date: '',
       time: '',
       venue: '',
@@ -575,12 +708,12 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
   }, [newGame.type, newGame.sport, newGame.selectedLeague, sports.length, leagues.length]);
 
   const handleAddGame = async () => {
-    if (!newGame.homeTeamId || !newGame.awayTeamId) {
-      warning('Teams required', 'Please select both home and away teams');
+    if (!newGame.participants || newGame.participants.length < 1) {
+      warning('Participants required', 'Please add at least one participant');
       return;
     }
-    if (newGame.homeTeamId === newGame.awayTeamId) {
-      warning('Invalid matchup', 'Home and away teams cannot be the same');
+    if (newGame.participants.some((p: any) => !p.refId)) {
+      warning('Participants incomplete', 'Please select all participants');
       return;
     }
     if (!newGame.seasonId) {
@@ -614,29 +747,18 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
             return;
           }
         }
-      }
-
-      const finalHomeTeamName = homeTeam?.name || newGame.homeTeamName;
-      const finalAwayTeamName = awayTeam?.name || newGame.awayTeamName;
-
+      }      // The participants array and legacy fields are already synced in GameForm's updateParticipant
       const gameData = {
         ...newGame,
-        homeTeamName: finalHomeTeamName,
-        awayTeamName: finalAwayTeamName,
-        homeTeamId: newGame.homeTeamId,
-        awayTeamId: newGame.awayTeamId,
-        type: newGame.type,
-        matchId: newGame.type === 'league' ? newGame.selectedMatch : undefined,
-        leagueId: newGame.type === 'league' ? newGame.selectedLeague : undefined,
-        groupId: newGame.type === 'league' ? newGame.selectedGroup : undefined,
-        stageId: newGame.type === 'league' ? newGame.selectedStage : undefined,
         status: 'scheduled',
         createdAt: new Date().toISOString(),
         scheduledAt: `${newGame.date}T${newGame.time}:00`,
         seasonId: newGame.seasonId
       };
+      
       const fixtureRef = await addDoc(collection(db, `fixtures/${newGame.seasonId}/matches`), gameData);
       await updateDoc(fixtureRef, { id: fixtureRef.id });
+;
 
       if (newGame.type === 'league' && newGame.selectedMatch && newGame.selectedLeague && newGame.selectedGroup && newGame.selectedStage) {
         try {
@@ -649,7 +771,8 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
         }
       }
 
-      success('Game added successfully', `${finalHomeTeamName} vs ${finalAwayTeamName} scheduled`, 'Add another game or manage existing fixtures');
+      const eventName = newGame.participants?.[0]?.name ? `${newGame.participants[0].name} vs ${newGame.participants?.[1]?.name || 'TBD'}` : 'New event';
+      success('Game added successfully', `${eventName} scheduled`, 'Add another game or manage existing fixtures');
       resetNewGame();
       setShowAddModal(false);
 
@@ -686,12 +809,12 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
   };
 
   const handleEditGame = async () => {
-    if (!editingGame.homeTeam || !editingGame.awayTeam) {
-      warning('Teams required', 'Please select both home and away teams');
+    if (!editingGame.participants || editingGame.participants.length < 1) {
+      warning('Participants required', 'Please add at least one participant');
       return;
     }
-    if (editingGame.homeTeam === editingGame.awayTeam) {
-      warning('Invalid matchup', 'Home and away teams cannot be the same');
+    if (editingGame.participants.some((p: any) => !p.refId)) {
+      warning('Participants incomplete', 'Please select all participants');
       return;
     }
     if (!editingGame.seasonId) {
@@ -699,39 +822,12 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
       return;
     }
     try {
-      let homeTeamId = teams.find(t => t.name === editingGame.homeTeam)?.id;
-      if (!homeTeamId) {
-        const teamRef = await addDoc(collection(db, 'teams'), {
-          name: editingGame.homeTeam,
-          sport: editingGame.sport,
-          universityId: '',
-          foundedYear: new Date().getFullYear(),
-          createdAt: serverTimestamp()
-        });
-        homeTeamId = teamRef.id;
-      }
-
-      let awayTeamId = teams.find(t => t.name === editingGame.awayTeam)?.id;
-      if (!awayTeamId) {
-        const teamRef = await addDoc(collection(db, 'teams'), {
-          name: editingGame.awayTeam,
-          sport: editingGame.sport,
-          universityId: '',
-          foundedYear: new Date().getFullYear(),
-          createdAt: serverTimestamp()
-        });
-        awayTeamId = teamRef.id;
-      }
-
       const gameData = {
         ...editingGame,
-        homeTeamName: editingGame.homeTeam,
-        awayTeamName: editingGame.awayTeam,
-        homeTeamId: homeTeamId,
-        awayTeamId: awayTeamId,
         scheduledAt: `${editingGame.date}T${editingGame.time}:00`
       };
-      await updateDoc(doc(db, `fixtures/${editingGame.seasonId}/matches`, editingGame.fixtureId), gameData);
+      await updateDoc(doc(db, `fixtures/${editingGame.seasonId}/matches`, editingGame.fixtureId || editingGame.id), gameData);
+;
 
       if (editingGame.type === 'league' && editingGame.matchId && editingGame.selectedLeague && editingGame.selectedGroup && editingGame.selectedStage) {
         try {
@@ -1113,7 +1209,18 @@ export default function GamesTab({ updateScore, startG, endG }: any) {
                       </td>
                       <td className="px-4 py-2 text-sm space-x-2">
                         <button onClick={() => startG(g.fixtureId)} className="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700">Start</button>
-                        <button onClick={() => { setEditingGame({ ...g, date: g.scheduledAt.split('T')[0], time: g.scheduledAt.split('T')[1].substring(0, 5) }); setShowEditModal(true); }} className="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700">Edit</button>
+                        <button onClick={() => { 
+                          setEditingGame({ 
+                            ...g, 
+                            participants: g.participants || [
+                              { refType: 'team', refId: g.homeTeamId || '', name: g.homeTeamName || '', score: g.score?.home || 0 },
+                              { refType: 'team', refId: g.awayTeamId || '', name: g.awayTeamName || '', score: g.score?.away || 0 }
+                            ],
+                            date: g.scheduledAt.split('T')[0], 
+                            time: g.scheduledAt.split('T')[1].substring(0, 5) 
+                          }); 
+                          setShowEditModal(true); 
+                        }} className="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700">Edit</button>
                         <button onClick={() => handleDeleteGame(g.fixtureId, g.seasonId)} className="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700">Delete</button>
                       </td>
                     </tr>

@@ -4,7 +4,7 @@ import { apiService, ScheduleData } from '../services/apiService';
 import { Match } from '../types';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { fetchLeagues } from '../store/correspondentThunk';
-import { League, Fixture, Season } from '../models';
+import { League, Fixture, Season, Participant, MatchPlayer } from '../models';
 import { useTheme } from '../components/ThemeProvider';
 import { loadLiveGames, loadUpcomingGames, loadApprovedFixtures } from '../services/firestoreAdmin';
 import { firebaseLeagueService } from '../services/firebaseCorrespondence';
@@ -20,6 +20,9 @@ type DisplayMatch = {
   date: string;
   time: string;
   venue: string;
+  participants?: Participant[];
+  players?: MatchPlayer[];
+  seasonId?: string;
 };
 
 const SchedulePage: React.FC = () => {
@@ -111,18 +114,23 @@ const SchedulePage: React.FC = () => {
             setFixtures(allFixtures);
 
             // Map to display format
-            setDisplayFixtures(allFixtures.map(f => ({
-              id: f.id || '',
-              status: f.status === 'scheduled' ? 'upcoming' : f.status === 'postponed' ? 'upcoming' : f.status,
-              sport: f.sport,
-              homeTeam: f.homeTeamName,
-              awayTeam: f.awayTeamName,
-              score: f.score,
-              date: new Date(f.scheduledAt).toISOString().split('T')[0],
-              time: new Date(f.scheduledAt).toLocaleTimeString(),
-              venue: f.venue,
-              seasonId: (f as any).seasonId // Preserve seasonId for filtering
-            })));
+            setDisplayFixtures(allFixtures.map(f => {
+              const participants = f.participants || [];
+              return {
+                id: f.id || '',
+                status: f.status === 'scheduled' ? 'upcoming' : f.status === 'postponed' ? 'upcoming' : f.status,
+                sport: f.sport,
+                homeTeam: f.homeTeamName || (participants[0]?.name) || 'Home',
+                awayTeam: f.awayTeamName || (participants[1]?.name) || 'Away',
+                score: f.score,
+                date: new Date(f.scheduledAt).toISOString().split('T')[0],
+                time: new Date(f.scheduledAt).toLocaleTimeString(),
+                venue: f.venue,
+                participants: participants,
+                players: f.players || [],
+                seasonId: (f as any).seasonId
+              };
+            }));
           } catch (fixtureError) {
             console.error('Failed to load fixtures:', fixtureError);
           }
@@ -230,9 +238,9 @@ const SchedulePage: React.FC = () => {
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
           // Schedule reminder using Firebase Cloud Messaging
-          const homeTeam = ('homeTeamName' in match) ? match.homeTeamName : match.homeTeam;
-          const awayTeam = ('awayTeamName' in match) ? match.awayTeamName : match.awayTeam;
-          const time = ('scheduledAt' in match) ? new Date(match.scheduledAt).toLocaleTimeString() : match.time;
+          const homeTeam = ('homeTeamName' in match) ? (match as any).homeTeamName : (match as any).homeTeam;
+          const awayTeam = ('awayTeamName' in match) ? (match as any).awayTeamName : (match as any).awayTeam;
+          const time = ('scheduledAt' in match) ? new Date((match as any).scheduledAt).toLocaleTimeString() : (match as any).time;
           alert(`Reminder set for ${homeTeam} vs ${awayTeam} at ${time}`);
         } else {
           alert('Please enable notifications to set reminders');

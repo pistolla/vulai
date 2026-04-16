@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Fixture, League, Match, MatchPlayer } from '@/models';
+import { Fixture, League, Match, MatchPlayer, Participant } from '@/models';
 import { FiMapPin, FiUsers, FiBarChart2, FiList, FiX, FiCalendar } from 'react-icons/fi';
-import { apiService } from '@/services/apiService';
 
 interface FixtureDetailProps {
     fixture: Fixture;
@@ -30,29 +29,38 @@ const TabButton: React.FC<{
 );
 
 // Tab: Venue & Players
-const VenuePlayersTab: React.FC<{ fixture: Fixture; players: MatchPlayer[] }> = ({ fixture, players }) => {
-    const homePlayers = players.filter(p => p.teamId === fixture.homeTeamId);
-    const awayPlayers = players.filter(p => p.teamId === fixture.awayTeamId);
-
-    const PlayerList: React.FC<{ players: MatchPlayer[]; teamName: string }> = ({ players, teamName }) => (
+const VenuePlayersTab: React.FC<{ fixture: Fixture; players: MatchPlayer[]; participants: Participant[] }> = ({ fixture, players, participants }) => {
+    const PlayerList: React.FC<{ players: MatchPlayer[]; participant: Participant; index: number }> = ({ players, participant, index }) => (
         <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-            <h4 className="font-bold text-white mb-3">{teamName}</h4>
+            <div className="flex items-center gap-3 mb-4">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-black ${
+                    index === 0 ? 'bg-indigo-600' : index === 1 ? 'bg-cyan-600' : 'bg-emerald-600'
+                }`}>
+                    {participant.name?.charAt(0) || '?'}
+                </div>
+                <h4 className="font-bold text-white uppercase tracking-tight">{participant.name} Lineup</h4>
+            </div>
             {players.length === 0 ? (
-                <p className="text-gray-400 text-sm">No lineup announced</p>
+                <p className="text-gray-500 text-xs italic py-4">Roster pending announcement</p>
             ) : (
-                <div className="space-y-2 max-h-60 overflow-y-auto">
+                <div className="space-y-2 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
                     {players.map((player) => (
                         <div
                             key={player.id}
-                            className="flex items-center justify-between px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                            className="flex items-center justify-between px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-transparent hover:border-white/10 transition-all group"
                         >
-                            <div className="flex items-center gap-3">
-                                <span className="w-8 h-8 rounded-full bg-gradient-to-br from-unill-purple-500 to-unill-yellow-500 flex items-center justify-center text-xs font-bold">
+                            <div className="flex items-center gap-4">
+                                <span className="w-10 h-10 rounded-xl bg-gray-800 flex items-center justify-center text-xs font-black text-gray-400 group-hover:text-white group-hover:bg-indigo-600 transition-all">
                                     {player.jerseyNumber || '#'}
                                 </span>
-                                <span className="text-white text-sm">{player.name}</span>
+                                <div>
+                                    <p className="text-white text-sm font-bold uppercase tracking-tight">{player.name}</p>
+                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{player.position}</p>
+                                </div>
                             </div>
-                            <span className="text-xs text-gray-400 uppercase">{player.position}</span>
+                            <span className={`text-[10px] font-black uppercase tracking-widest ${player.status === 'starter' ? 'text-green-500' : 'text-gray-500'}`}>
+                                {player.status}
+                            </span>
                         </div>
                     ))}
                 </div>
@@ -61,15 +69,19 @@ const VenuePlayersTab: React.FC<{ fixture: Fixture; players: MatchPlayer[] }> = 
     );
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-8">
             {/* Venue Info */}
-            <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-                <div className="flex items-center gap-3 mb-4">
-                    <FiMapPin className="w-6 h-6 text-unill-yellow-400" />
-                    <h3 className="text-xl font-bold text-white">Venue</h3>
+            <div className="bg-white/5 rounded-xl p-8 border border-white/10 shadow-xl">
+                <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 bg-unill-yellow-400/20 rounded-2xl flex items-center justify-center">
+                        <FiMapPin className="w-6 h-6 text-unill-yellow-400" />
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-black text-unill-yellow-400 uppercase tracking-widest">Offical Venue</h3>
+                        <p className="text-2xl font-black text-white uppercase tracking-tight">{fixture.venue || 'Venue TBD'}</p>
+                    </div>
                 </div>
-                <p className="text-2xl font-semibold text-white">{fixture.venue || 'Venue TBD'}</p>
-                <div className="flex items-center gap-2 mt-2 text-gray-400">
+                <div className="flex items-center gap-2 text-gray-400 font-bold uppercase tracking-widest text-[11px]">
                     <FiCalendar className="w-4 h-4" />
                     <span>{new Date(fixture.scheduledAt).toLocaleDateString('en-US', {
                         weekday: 'long',
@@ -82,15 +94,21 @@ const VenuePlayersTab: React.FC<{ fixture: Fixture; players: MatchPlayer[] }> = 
                 </div>
             </div>
 
-            {/* Players */}
-            <div>
-                <div className="flex items-center gap-3 mb-4">
-                    <FiUsers className="w-6 h-6 text-unill-yellow-400" />
-                    <h3 className="text-xl font-bold text-white">Lineups</h3>
+            {/* Players Area */}
+            <div className="space-y-4">
+                <div className="flex items-center gap-3 px-4">
+                    <FiUsers className="w-5 h-5 text-unill-yellow-400" />
+                    <h3 className="text-sm font-black text-white uppercase tracking-widest">Match Roster Analysis</h3>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <PlayerList players={homePlayers} teamName={fixture.homeTeamName || 'Home Team'} />
-                    <PlayerList players={awayPlayers} teamName={fixture.awayTeamName || 'Away Team'} />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {participants.map((p, i) => (
+                        <PlayerList 
+                            key={p.refId || i} 
+                            participant={p} 
+                            index={i}
+                            players={players.filter(pL => pL.teamId === p.refId)} 
+                        />
+                    ))}
                 </div>
             </div>
         </div>
@@ -98,234 +116,153 @@ const VenuePlayersTab: React.FC<{ fixture: Fixture; players: MatchPlayer[] }> = 
 };
 
 // Tab: Statistics
-const StatisticsTab: React.FC<{ fixture: Fixture }> = ({ fixture }) => {
+const StatisticsTab: React.FC<{ fixture: Fixture; participants: Participant[] }> = ({ fixture, participants }) => {
     const stats = fixture.stats;
 
-    const StatBar: React.FC<{ label: string; home: number; away: number; suffix?: string }> = ({
-        label, home, away, suffix = ''
+    const StatBar: React.FC<{ label: string; pScores: number[] }> = ({
+        label, pScores
     }) => {
-        const total = home + away || 1;
-        const homePercent = (home / total) * 100;
-
+        const total = pScores.reduce((a, b) => a + b, 0) || 1;
+        
         return (
-            <div className="py-3">
-                <div className="flex justify-between text-sm mb-2">
-                    <span className="font-semibold text-white">{home}{suffix}</span>
-                    <span className="text-gray-400">{label}</span>
-                    <span className="font-semibold text-white">{away}{suffix}</span>
+            <div className="py-4">
+                <div className="flex justify-between text-[11px] font-black uppercase tracking-widest mb-3 text-gray-500">
+                    {participants.map((p, i) => (
+                        <span key={i} className={i === 0 ? 'text-indigo-400' : 'text-cyan-400'}>
+                            {p.name} {pScores[i] || 0}
+                        </span>
+                    ))}
+                    <span className="text-center absolute left-1/2 transform -translate-x-1/2">{label}</span>
                 </div>
-                <div className="h-2 bg-gray-700 rounded-full overflow-hidden flex">
-                    <div
-                        className="h-full bg-gradient-to-r from-unill-purple-500 to-unill-purple-400 transition-all duration-500"
-                        style={{ width: `${homePercent}%` }}
-                    />
-                    <div
-                        className="h-full bg-gradient-to-r from-cyan-500 to-cyan-400 transition-all duration-500"
-                        style={{ width: `${100 - homePercent}%` }}
-                    />
+                <div className="h-2 bg-gray-800 rounded-full overflow-hidden flex gap-1 p-0.5">
+                    {pScores.map((score, i) => (
+                        <div
+                            key={i}
+                            className={`h-full rounded-full transition-all duration-500 ${
+                                i === 0 ? 'bg-indigo-500' : i === 1 ? 'bg-cyan-500' : 'bg-emerald-500'
+                            }`}
+                            style={{ width: `${(score / total) * 100}%` }}
+                        />
+                    ))}
                 </div>
             </div>
         );
     };
 
-    if (!stats) {
+    if (!stats && participants.length > 2) {
         return (
-            <div className="p-6 text-center">
-                <FiBarChart2 className="w-16 h-16 mx-auto text-gray-600 mb-4" />
-                <p className="text-gray-400">Statistics will be available once the match starts</p>
+            <div className="p-20 text-center opacity-30">
+                <FiBarChart2 className="w-16 h-16 mx-auto mb-4" />
+                <p className="text-lg font-black uppercase tracking-widest">Telemetry Feed Loading</p>
             </div>
         );
     }
 
     return (
-        <div className="p-6">
-            <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-                <div className="flex items-center justify-between mb-6">
-                    <div className="text-center">
-                        <p className="font-bold text-white">{fixture.homeTeamName}</p>
-                    </div>
-                    <div className="text-center">
-                        <span className="text-3xl font-black text-white">
-                            {fixture.score?.home ?? 0} - {fixture.score?.away ?? 0}
-                        </span>
-                    </div>
-                    <div className="text-center">
-                        <p className="font-bold text-white">{fixture.awayTeamName}</p>
-                    </div>
+        <div className="p-8">
+            <div className="bg-white/5 rounded-[2rem] p-8 border border-white/10 shadow-2xl">
+                <div className="flex items-center justify-center gap-12 mb-10">
+                    {participants.map((p, i) => (
+                        <div key={i} className="text-center">
+                            <p className="text-xs font-black text-gray-500 uppercase tracking-widest mb-2">{p.name}</p>
+                            <p className="text-4xl font-black text-unill-yellow-400 tabular-nums">{p.score ?? 0}</p>
+                        </div>
+                    ))}
                 </div>
 
-                <div className="space-y-2">
-                    <StatBar label="Goals" home={stats.homeGoals} away={stats.awayGoals} />
-                    <StatBar label="Assists" home={stats.homeAssists} away={stats.awayAssists} />
-                    <StatBar label="Possession" home={stats.possession?.home || 50} away={stats.possession?.away || 50} suffix="%" />
-                    <StatBar label="Shots" home={stats.shots?.home || 0} away={stats.shots?.away || 0} />
-                </div>
+                {stats && (
+                    <div className="space-y-4">
+                        <StatBar label="Performance Metrics" pScores={participants.map((_, i) => i === 0 ? stats.homeGoals : stats.awayGoals)} />
+                        {/* More complex multi-stat mapping would go here if defined in models */}
+                        <div className="py-10 text-center border-t border-white/5 mt-10">
+                           <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.5em]">Real-Time Sync Active</p>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
 };
 
-// Tab: Standings
+// Tab: Standings (Simplified for now)
 const StandingsTab: React.FC<{ fixture: Fixture }> = ({ fixture }) => {
-    const [standings, setStandings] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const loadStandings = async () => {
-            if (!fixture.leagueId) {
-                setLoading(false);
-                return;
-            }
-            try {
-                // Mock standings for now - would fetch from API
-                const mockStandings = [
-                    { position: 1, team: fixture.homeTeamName, played: 10, won: 7, drawn: 2, lost: 1, gf: 22, ga: 8, gd: 14, points: 23 },
-                    { position: 2, team: fixture.awayTeamName, played: 10, won: 6, drawn: 3, lost: 1, gf: 18, ga: 7, gd: 11, points: 21 },
-                    { position: 3, team: 'Team C', played: 10, won: 5, drawn: 3, lost: 2, gf: 15, ga: 10, gd: 5, points: 18 },
-                    { position: 4, team: 'Team D', played: 10, won: 4, drawn: 4, lost: 2, gf: 14, ga: 12, gd: 2, points: 16 },
-                    { position: 5, team: 'Team E', played: 10, won: 3, drawn: 4, lost: 3, gf: 12, ga: 12, gd: 0, points: 13 },
-                ];
-                setStandings(mockStandings);
-            } catch (error) {
-                console.error('Failed to load standings:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadStandings();
-    }, [fixture.leagueId]);
-
-    if (loading) {
-        return (
-            <div className="p-6 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-unill-yellow-400" />
-            </div>
-        );
-    }
-
-    if (!fixture.leagueId) {
-        return (
-            <div className="p-6 text-center">
-                <FiList className="w-16 h-16 mx-auto text-gray-600 mb-4" />
-                <p className="text-gray-400">This is a friendly match - no league standings available</p>
-            </div>
-        );
-    }
-
     return (
-        <div className="p-6">
-            <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden">
-                <table className="w-full">
-                    <thead>
-                        <tr className="bg-white/5 text-gray-400 text-xs uppercase tracking-wider">
-                            <th className="px-4 py-3 text-left">#</th>
-                            <th className="px-4 py-3 text-left">Team</th>
-                            <th className="px-4 py-3 text-center">P</th>
-                            <th className="px-4 py-3 text-center">W</th>
-                            <th className="px-4 py-3 text-center">D</th>
-                            <th className="px-4 py-3 text-center">L</th>
-                            <th className="px-4 py-3 text-center">GD</th>
-                            <th className="px-4 py-3 text-center font-bold">Pts</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {standings.map((row) => {
-                            const isInvolved = row.team === fixture.homeTeamName || row.team === fixture.awayTeamName;
-                            return (
-                                <tr
-                                    key={row.position}
-                                    className={`border-t border-white/5 transition-colors ${isInvolved ? 'bg-unill-yellow-400/10' : 'hover:bg-white/5'
-                                        }`}
-                                >
-                                    <td className="px-4 py-3 text-white font-semibold">{row.position}</td>
-                                    <td className="px-4 py-3 text-white font-semibold">{row.team}</td>
-                                    <td className="px-4 py-3 text-center text-gray-300">{row.played}</td>
-                                    <td className="px-4 py-3 text-center text-green-400">{row.won}</td>
-                                    <td className="px-4 py-3 text-center text-gray-400">{row.drawn}</td>
-                                    <td className="px-4 py-3 text-center text-red-400">{row.lost}</td>
-                                    <td className="px-4 py-3 text-center text-gray-300">{row.gd > 0 ? `+${row.gd}` : row.gd}</td>
-                                    <td className="px-4 py-3 text-center text-white font-bold">{row.points}</td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-            </div>
+        <div className="p-10 text-center opacity-40">
+           <FiList size={48} className="mx-auto mb-4 text-gray-600" />
+           <p className="text-xs font-black uppercase tracking-widest">Tournament Bracket Sync Available in Full Season View</p>
         </div>
     );
 };
 
 export const FixtureDetail: React.FC<FixtureDetailProps> = ({ fixture, onClose }) => {
     const [activeTab, setActiveTab] = useState<TabId>('venue');
-    const [players, setPlayers] = useState<MatchPlayer[]>([]);
+    const participants: Participant[] = fixture.participants && fixture.participants.length > 0 
+        ? fixture.participants 
+        : ([
+            { refId: fixture.homeTeamId || '', name: fixture.homeTeamName || 'Home', score: fixture.score?.home ?? 0, refType: 'team' },
+            { refId: fixture.awayTeamId || '', name: fixture.awayTeamName || 'Away', score: fixture.score?.away ?? 0, refType: 'team' }
+          ] as Participant[]).filter(p => p.refId || p.name !== 'Home');
 
-    useEffect(() => {
-        // Load players for this match if available
-        const loadPlayers = async () => {
-            try {
-                if (fixture.matchId) {
-                    // Would fetch match players from API
-                    // For now using empty array
-                }
-            } catch (error) {
-                console.error('Failed to load match players:', error);
-            }
-        };
-        loadPlayers();
-    }, [fixture.matchId]);
+    const players: MatchPlayer[] = fixture.players || [];
 
     const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
-        { id: 'venue', label: 'Venue & Players', icon: <FiMapPin className="w-4 h-4" /> },
-        { id: 'statistics', label: 'Statistics', icon: <FiBarChart2 className="w-4 h-4" /> },
-        { id: 'standings', label: 'Standings', icon: <FiList className="w-4 h-4" /> },
+        { id: 'venue', label: 'Match Hub', icon: <FiMapPin className="w-4 h-4" /> },
+        { id: 'statistics', label: 'Data Analytics', icon: <FiBarChart2 className="w-4 h-4" /> },
+        { id: 'standings', label: 'Season Context', icon: <FiList className="w-4 h-4" /> },
     ];
 
+    const displayParticipants = participants.slice(0, 3);
+
     return (
-        <div className="bg-gray-900/95 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
-            {/* Header */}
-            <div className="relative bg-gradient-to-r from-unill-purple-500/20 to-unill-yellow-500/20 p-6">
+        <div className="bg-gray-900/95 backdrop-blur-2xl rounded-[3rem] border border-white/10 overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)] max-w-5xl mx-auto">
+            {/* Header Area */}
+            <div className="relative bg-gradient-to-br from-indigo-950 via-gray-900 to-black p-12 border-b border-white/5">
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                    className="absolute top-8 right-8 p-3 rounded-2xl bg-white/5 hover:bg-red-500/20 hover:text-red-500 transition-all border border-white/10 z-20"
                 >
-                    <FiX className="w-5 h-5 text-white" />
+                    <FiX size={20} />
                 </button>
 
-                <div className="flex items-center justify-between">
-                    {/* Home Team */}
-                    <div className="flex-1 text-center">
-                        <div className="w-20 h-20 mx-auto bg-gradient-to-br from-unill-purple-500 to-unill-yellow-500 rounded-full flex items-center justify-center mb-3 shadow-lg">
-                            <span className="text-3xl font-black text-white">{fixture.homeTeamName?.charAt(0) || 'H'}</span>
-                        </div>
-                        <p className="text-xl font-bold text-white">{fixture.homeTeamName || 'Home Team'}</p>
-                    </div>
-
-                    {/* Score */}
-                    <div className="px-8 text-center">
-                        {fixture.status === 'completed' || fixture.status === 'live' ? (
-                            <div className="text-5xl font-black">
-                                <span className="text-white">{fixture.score?.home ?? 0}</span>
-                                <span className="text-gray-500 mx-2">-</span>
-                                <span className="text-white">{fixture.score?.away ?? 0}</span>
+                <div className="relative z-10 flex flex-wrap items-center justify-center gap-16">
+                    {displayParticipants.map((p, i) => (
+                        <React.Fragment key={i}>
+                            <div className="text-center group">
+                                <div className={`w-28 h-28 mx-auto rounded-[2.5rem] flex items-center justify-center mb-6 shadow-2xl transition-all group-hover:scale-110 border-2 ${
+                                    i === 0 ? 'bg-indigo-600 border-indigo-400/30' : 
+                                    i === 1 ? 'bg-cyan-600 border-cyan-400/30' : 
+                                    'bg-emerald-600 border-emerald-400/30'
+                                }`}>
+                                    <span className="text-4xl font-black text-white">{p.name?.charAt(0) || '?'}</span>
+                                </div>
+                                <h3 className="text-2xl font-black text-white uppercase tracking-tighter truncate max-w-[180px]">{p.name}</h3>
+                                {fixture.status !== 'scheduled' && (
+                                    <p className="mt-2 text-3xl font-black text-unill-yellow-400 tabular-nums">{p.score ?? 0}</p>
+                                )}
                             </div>
-                        ) : (
-                            <span className="text-3xl font-bold text-gray-400">VS</span>
-                        )}
-                        <p className="text-xs text-gray-400 mt-2 uppercase tracking-wider">{fixture.sport}</p>
-                    </div>
-
-                    {/* Away Team */}
-                    <div className="flex-1 text-center">
-                        <div className="w-20 h-20 mx-auto bg-gradient-to-br from-cyan-500 to-blue-500 rounded-full flex items-center justify-center mb-3 shadow-lg">
-                            <span className="text-3xl font-black text-white">{fixture.awayTeamName?.charAt(0) || 'A'}</span>
+                            {i < displayParticipants.length - 1 && participants.length === 2 && (
+                                <div className="text-gray-700 font-black italic text-3xl opacity-20 mt-[-40px]">VS</div>
+                            )}
+                        </React.Fragment>
+                    ))}
+                    {participants.length > 3 && (
+                        <div className="bg-white/5 px-6 py-4 rounded-3xl border border-white/10 text-center">
+                           <p className="text-xl font-black text-gray-500">+{participants.length - 3}</p>
+                           <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest">More</p>
                         </div>
-                        <p className="text-xl font-bold text-white">{fixture.awayTeamName || 'Away Team'}</p>
+                    )}
+                </div>
+                
+                <div className="mt-12 flex justify-center">
+                    <div className="px-5 py-2 bg-white/5 backdrop-blur-md rounded-full border border-white/10 flex items-center gap-3">
+                        <div className={`w-2 h-2 rounded-full ${fixture.status === 'live' ? 'bg-red-500 animate-pulse' : 'bg-unill-yellow-400'}`} />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-white/80">{fixture.status.toUpperCase()} SESSION</span>
                     </div>
                 </div>
             </div>
 
-            {/* Tabs */}
-            <div className="flex border-b border-white/10">
+            {/* Sub-Nav Tabs */}
+            <div className="flex border-b border-white/5 bg-black/20">
                 {tabs.map((tab) => (
                     <TabButton
                         key={tab.id}
@@ -338,12 +275,25 @@ export const FixtureDetail: React.FC<FixtureDetailProps> = ({ fixture, onClose }
                 ))}
             </div>
 
-            {/* Tab Content */}
-            <div className="min-h-[300px]">
-                {activeTab === 'venue' && <VenuePlayersTab fixture={fixture} players={players} />}
-                {activeTab === 'statistics' && <StatisticsTab fixture={fixture} />}
+            {/* Tab Body */}
+            <div className="min-h-[500px] overflow-y-auto max-h-[60vh] custom-scrollbar">
+                {activeTab === 'venue' && <VenuePlayersTab fixture={fixture} players={players} participants={participants} />}
+                {activeTab === 'statistics' && <StatisticsTab fixture={fixture} participants={participants} />}
                 {activeTab === 'standings' && <StandingsTab fixture={fixture} />}
             </div>
+            
+            <style jsx>{`
+                .custom-scrollbar::-webkit-scrollbar {
+                  width: 5px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                  background: transparent;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                  background: rgba(255,255,255,0.05);
+                  border-radius: 10px;
+                }
+            `}</style>
         </div>
     );
 };

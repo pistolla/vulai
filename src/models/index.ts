@@ -52,17 +52,13 @@ export interface GoalTiming {
 }
 
 export interface Fixture {
-  homeTeamName: string;
-  awayTeamName: string;
   id: string;
   correspondentId?: string;
-  homeTeamId: string;
-  awayTeamId: string;
   sport: string;
   scheduledAt: string; // ISO
   venue: string;
   status: 'scheduled' | 'live' | 'completed' | 'postponed';
-  score?: { home: number; away: number };
+  score?: { home: number; away: number }; // Keeping legacy score for now
   stats?: {
     homeGoals: number;
     awayGoals: number;
@@ -72,6 +68,11 @@ export interface Fixture {
     shots: { home: number; away: number };
   };
   type: 'league' | 'friendly';
+  participants: Participant[]; // NEW: Unified participant model
+  homeTeamName?: string; // Legacy/Fallback
+  awayTeamName?: string; // Legacy/Fallback
+  homeTeamId?: string; // Legacy/Fallback
+  awayTeamId?: string; // Legacy/Fallback
   matchId?: string; // for league fixtures, links to Match
   leagueId?: string; // for league fixtures, links to League
   groupId?: string; // for league fixtures, links to Group
@@ -82,6 +83,7 @@ export interface Fixture {
   pointsAdded?: { home: number; away: number };
   pointsDeducted?: { home: number; away: number };
   goalTimings?: GoalTiming[];
+  players?: MatchPlayer[]; // Local players for this specific fixture
 }
 
 export interface News {
@@ -181,13 +183,18 @@ export interface Participant {
 }
 
 export interface MatchPlayer {
-  id: string;
-  name: string;
+  id: string; // athlete's docId
+  firstName: string;
+  lastName: string;
+  name: string; // Full name for convenience
   teamId: string;
   teamName: string;
   position: string;
-  entranceTime?: string; // ISO datetime when they entered the match
   jerseyNumber?: number;
+  year?: string;
+  status: 'starter' | 'bench' | 'reserve' | 'injured' | 'suspended' | 'other';
+  role?: string; // Tactical role override
+  entranceTime?: string; // ISO datetime when they entered the match
 }
 
 export interface Match {
