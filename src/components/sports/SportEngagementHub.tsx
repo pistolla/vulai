@@ -24,13 +24,13 @@ export const SportEngagementHub: React.FC<SportEngagementHubProps> = ({ sportId,
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
   const [leaderboard, setLeaderboard] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [secondaryRankIndex, setSecondaryRankIndex] = useState(1);
   const theme = getSportTheme(sportId);
 
   useEffect(() => {
     const loadSportData = async () => {
       setLoading(true);
       try {
-        // 1. Fetch Optimized Leaderboard Snapshot
         const { doc, getDoc } = await import('firebase/firestore');
         const lbSnap = await getDoc(doc(db, 'leaderboards', sportId.toLowerCase()));
         
@@ -38,7 +38,6 @@ export const SportEngagementHub: React.FC<SportEngagementHubProps> = ({ sportId,
           setLeaderboard(lbSnap.data());
         }
 
-        // 2. Fetch Latest Fixtures for Match Narratives
         const snap = await getDocs(collection(db, 'fixtures'));
         const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Fixture));
         const filtered = data.filter(f => f.sport?.toLowerCase() === sportId.toLowerCase() && f.status === 'completed');
@@ -53,10 +52,8 @@ export const SportEngagementHub: React.FC<SportEngagementHubProps> = ({ sportId,
     loadSportData();
   }, [sportId]);
 
-  // Fallback rankings calculation if leaderboard doc doesn't exist
   const rankings = useMemo(() => {
     if (leaderboard?.rankings) return leaderboard.rankings;
-
     const uniMap: Record<string, UniversityRanking> = {};
     fixtures.forEach(fixture => {
       if (!fixture.participants) return;
@@ -82,11 +79,9 @@ export const SportEngagementHub: React.FC<SportEngagementHubProps> = ({ sportId,
         if (myScore > maxOther) { stats.wins += 1; stats.points += 3; }
         else if (myScore < maxOther) { stats.losses += 1; }
         else { stats.draws += 1; stats.points += 1; }
-        
         stats.efficiency = (stats.points / (stats.wins + stats.losses + stats.draws)) * 10;
       });
     });
-
     return Object.values(uniMap).sort((a, b) => b.points - a.points || b.efficiency - a.efficiency).slice(0, 5);
   }, [fixtures, leaderboard]);
 
@@ -96,7 +91,6 @@ export const SportEngagementHub: React.FC<SportEngagementHubProps> = ({ sportId,
       .sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())[0];
   }, [fixtures]);
 
-  // Radar Chart Effect
   useEffect(() => {
     if (typeof window === 'undefined' || loading || rankings.length < 2) return;
 
@@ -120,11 +114,7 @@ export const SportEngagementHub: React.FC<SportEngagementHubProps> = ({ sportId,
           ],
           shape: 'polygon',
           splitNumber: 5,
-          axisName: {
-            color: '#94a3b8',
-            fontWeight: '800',
-            fontSize: 10
-          },
+          axisName: { color: '#94a3b8', fontWeight: '800', fontSize: 10 },
           splitLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.05)' } },
           splitArea: { show: false },
           axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.1)' } }
@@ -140,8 +130,8 @@ export const SportEngagementHub: React.FC<SportEngagementHubProps> = ({ sportId,
               lineStyle: { width: 3 }
             },
             {
-              value: rankings[1]?.tacticalStats || [75, 80, 70, 85, 80],
-              name: rankings[1]?.name,
+              value: rankings[secondaryRankIndex]?.tacticalStats || [75, 80, 70, 85, 80],
+              name: rankings[secondaryRankIndex]?.name,
               itemStyle: { color: '#814bf6' },
               areaStyle: { color: 'rgba(129, 75, 246, 0.2)' },
               lineStyle: { width: 3, type: 'dashed' }
@@ -153,9 +143,9 @@ export const SportEngagementHub: React.FC<SportEngagementHubProps> = ({ sportId,
       myChart.setOption(option);
     };
 
-    const timer = setTimeout(initRadar, 500);
+    const timer = setTimeout(initRadar, 300);
     return () => clearTimeout(timer);
-  }, [loading, rankings, theme.color]);
+  }, [loading, rankings, theme.color, secondaryRankIndex]);
 
   if (loading) {
     return (
@@ -182,15 +172,34 @@ export const SportEngagementHub: React.FC<SportEngagementHubProps> = ({ sportId,
 
           <div className="space-y-3">
             {rankings.map((rk: any, idx: number) => (
-              <div key={rk.id} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-all group">
+              <div 
+                key={rk.id} 
+                onClick={() => setSecondaryRankIndex(idx === 0 ? 1 : idx)}
+                className={`flex items-center gap-4 p-4 rounded-2xl transition-all group cursor-pointer ${
+                  (idx === secondaryRankIndex || (idx === 0 && secondaryRankIndex === 0)) 
+                  ? 'bg-white/10 border border-white/10' 
+                  : 'bg-white/5 hover:bg-white/10 border border-transparent'
+                }`}
+              >
                 <div className={`text-xl font-black w-8 text-center ${idx === 0 ? 'text-unill-yellow-400' : 'text-gray-600'}`}>
                   {idx + 1}
                 </div>
                 <div className="flex-1">
-                  <div className="font-black text-white uppercase tracking-tight group-hover:text-unill-yellow-400 transition-colors">{rk.name}</div>
-                  <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest flex gap-4 mt-1">
+                  <div className="font-black text-white uppercase tracking-tight group-hover:text-unill-yellow-400 transition-colors">
+                    {rk.name}
+                  </div>
+                  {rk.teamName && (
+                    <a 
+                      href={`/team/${rk.teamSlug}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-[10px] text-unill-yellow-400/80 font-bold uppercase tracking-widest hover:text-unill-yellow-400 transition-colors block mt-0.5"
+                    >
+                      {rk.teamName}
+                    </a>
+                  )}
+                  <div className="text-[9px] text-gray-500 font-bold uppercase tracking-widest flex gap-4 mt-1 opacity-60">
                     <span>{rk.wins}W - {rk.losses}L</span>
-                    <span className="text-unill-yellow-400/50">{rk.points} PTS</span>
+                    <span className="text-white/30">{rk.points} PTS</span>
                   </div>
                 </div>
                 <div className="text-right">
@@ -213,7 +222,7 @@ export const SportEngagementHub: React.FC<SportEngagementHubProps> = ({ sportId,
             <h3 className="text-2xl font-black text-white uppercase tracking-tighter flex items-center justify-center gap-3">
               <FiBarChart2 className="text-unill-purple-400" /> Tactical Profile
             </h3>
-            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Top University Comparison</p>
+            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Comparison: {rankings[0]?.name} vs {rankings[secondaryRankIndex]?.name}</p>
           </div>
           
           <div id="sport-radar-chart" className="w-full h-[350px]"></div>
@@ -225,7 +234,7 @@ export const SportEngagementHub: React.FC<SportEngagementHubProps> = ({ sportId,
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-sm bg-unill-purple-600"></div>
-              <span className="text-[10px] font-black text-white uppercase tracking-widest">{rankings[1]?.name || 'Seed 2'}</span>
+              <span className="text-[10px] font-black text-white uppercase tracking-widest">{rankings[secondaryRankIndex]?.name || 'Seed 2'}</span>
             </div>
           </div>
         </div>
