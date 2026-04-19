@@ -56,7 +56,7 @@ export interface Player {
   height: string;
   weight: string;
   avatar: string;
-  universityId: string;
+  universityId?: string;
   sportId: string;
   teamId?: string; // Reference to team for querying
   stats?: PlayerStats;

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Fixture, Participant } from '@/models';
+import { useTheme } from '../ThemeProvider';
 import { FiMapPin, FiClock, FiCalendar } from 'react-icons/fi';
 
 interface FixtureCardProps {
@@ -26,6 +27,8 @@ const StatusBadge: React.FC<{ status: Fixture['status'] }> = ({ status }) => {
 };
 
 export const FixtureCard: React.FC<FixtureCardProps> = ({ fixture, leagueName, onClick, isSelected }) => {
+    const { theme, mounted: themeMounted } = useTheme();
+    
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         const today = new Date();
@@ -57,11 +60,15 @@ export const FixtureCard: React.FC<FixtureCardProps> = ({ fixture, leagueName, o
             onClick={onClick}
             className={`group cursor-pointer rounded-[2rem] border transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl ${isSelected
                 ? 'bg-gradient-to-br from-indigo-900/40 via-unill-purple-900/40 to-indigo-950/40 border-unill-yellow-400/50 shadow-xl'
-                : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
+                : themeMounted && theme === 'light' 
+                  ? 'bg-white/60 border-mauve-200 hover:bg-white/80 hover:border-unill-purple-300 shadow-sm' 
+                  : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
             }`}
         >
             {/* Status Bar */}
-            <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-black/20 rounded-t-[2rem]">
+            <div className={`px-6 py-4 border-b flex items-center justify-between rounded-t-[2rem] ${
+                themeMounted && theme === 'light' ? 'bg-gray-50/50 border-mauve-100' : 'bg-black/20 border-white/5'
+            }`}>
                 <div className="flex flex-col">
                     <span className="text-[10px] text-unill-yellow-400 uppercase tracking-[0.2em] font-black">{fixture.sport}</span>
                     {leagueName && (
@@ -84,7 +91,9 @@ export const FixtureCard: React.FC<FixtureCardProps> = ({ fixture, leagueName, o
                                 }`}>
                                     <span className="text-xl font-black text-white">{p.name?.charAt(0) || '?'}</span>
                                 </div>
-                                <p className="font-black text-white text-[11px] leading-tight mb-1 uppercase tracking-tight line-clamp-2 h-8">{p.name || 'Competitor'}</p>
+                                <p className={`font-black text-[11px] leading-tight mb-1 uppercase tracking-tight line-clamp-2 h-8 ${
+                                    themeMounted && theme === 'light' ? 'text-gray-900' : 'text-white'
+                                }`}>{p.name || 'Competitor'}</p>
                                 
                                 {(fixture.status === 'completed' || fixture.status === 'live') && (
                                     <span className="text-xl font-black text-unill-yellow-400 tabular-nums">
@@ -101,8 +110,10 @@ export const FixtureCard: React.FC<FixtureCardProps> = ({ fixture, leagueName, o
                     
                     {hasMore && (
                         <div className="flex flex-col items-center justify-center text-center">
-                            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center mb-3 border border-white/20">
-                                <span className="text-xs font-black text-white">+{participants.length - 3}</span>
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 border ${
+                                themeMounted && theme === 'light' ? 'bg-black/5 border-mauve-200' : 'bg-white/10 border-white/20'
+                            }`}>
+                                <span className={`text-xs font-black ${themeMounted && theme === 'light' ? 'text-gray-600' : 'text-white'}`}>+{participants.length - 3}</span>
                             </div>
                             <span className="text-[9px] font-black text-gray-500 uppercase">Others</span>
                         </div>
@@ -111,18 +122,22 @@ export const FixtureCard: React.FC<FixtureCardProps> = ({ fixture, leagueName, o
             </div>
 
             {/* Footer Info */}
-            <div className="px-6 py-5 border-t border-white/5 flex items-center justify-between bg-black/10 rounded-b-[2rem]">
-                <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2 text-white font-bold">
+            <div className={`px-6 py-5 border-t flex items-center justify-between rounded-b-[2rem] ${
+                themeMounted && theme === 'light' ? 'bg-gray-50/50 border-mauve-100' : 'bg-black/10 border-white/5'
+            }`}>
+                 <div className="flex flex-col gap-1">
+                    <div className={`flex items-center gap-2 font-bold ${themeMounted && theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
                         <FiClock className="w-4 h-4 text-unill-yellow-400" />
                         <span className="text-xs tracking-tighter uppercase font-black">{formatTime(fixture.scheduledAt)}</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-black uppercase tracking-widest opacity-60">
                         <FiCalendar className="w-3 h-3" />
                         <span>{formatDate(fixture.scheduledAt)}</span>
-                    </div>
+                     </div>
                 </div>
-                <div className="flex items-center gap-2 text-[10px] text-gray-300 bg-white/5 px-4 py-2 rounded-2xl border border-white/10 transition-all group-hover:border-unill-yellow-400/30">
+                <div className={`flex items-center gap-2 text-[10px] px-4 py-2 rounded-2xl border transition-all group-hover:border-unill-yellow-400/30 ${
+                    themeMounted && theme === 'light' ? 'text-gray-700 bg-black/5 border-mauve-200' : 'text-gray-300 bg-white/5 border-white/10'
+                }`}>
                     <FiMapPin className="w-3 h-3 text-red-500" />
                     <span className="font-black uppercase tracking-widest truncate max-w-[80px]">{fixture.venue || 'TBD'}</span>
                 </div>

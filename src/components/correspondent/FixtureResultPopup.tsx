@@ -1,11 +1,13 @@
-import { Fixture, GoalTiming } from "@/models";
+import { Fixture, GoalTiming, Participant } from "@/models";
 import { useState } from "react";
 import { useAppDispatch } from "@/hooks/redux";
-import { updateFixture } from "@/store/correspondentThunk";
+import { updateFixture, updateMatchScores } from "@/store/correspondentThunk";
 import { firebaseLeagueService } from "@/services/firebaseCorrespondence";
 import { generateMatchReport } from "@/utils/reportGenerator";
 import { useToast } from "@/components/common/ToastProvider";
-import { FiRefreshCw, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { FiRefreshCw, FiCheckCircle, FiAlertCircle, FiUser } from 'react-icons/fi';
+import Select, { StylesConfig } from 'react-select';
+import { useMemo } from 'react';
 
 interface FixtureResultPopupProps {
     fixture: Fixture;
@@ -36,6 +38,67 @@ export const FixtureResultPopup: React.FC<FixtureResultPopupProps> = ({ fixture,
     });
     const [saving, setSaving] = useState(false);
     const [syncing, setSyncing] = useState(false);
+
+    // Prepare selectable players for the dropdown
+    const playerOptions = useMemo(() => {
+        const fixturePlayers = (fixture as any).players || [];
+        const options = fixturePlayers.map((p: any) => ({
+            value: p.name || `${p.firstName} ${p.lastName}`,
+            label: p.name || `${p.firstName} ${p.lastName}`,
+            teamId: p.teamId
+        }));
+        
+        // Return only players on the selected team
+        return options.filter((o: any) => o.teamId === newGoal.teamId);
+    }, [fixture, newGoal.teamId]);
+
+    const selectStyles: StylesConfig<any, false> = {
+        control: (base, state) => ({
+            ...base,
+            backgroundColor: 'transparent',
+            borderColor: 'transparent',
+            borderRadius: '0.75rem',
+            padding: '2px',
+            boxShadow: 'none',
+            '&:hover': {
+                borderColor: 'transparent',
+            }
+        }),
+        menu: (base) => ({
+            ...base,
+            backgroundColor: document.documentElement.classList.contains('dark') ? '#1f2937' : 'white',
+            borderRadius: '1rem',
+            overflow: 'hidden',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+            zIndex: 100
+        }),
+        option: (base, state) => ({
+            ...base,
+            backgroundColor: state.isFocused 
+                ? (document.documentElement.classList.contains('dark') ? '#374151' : '#f3f4f6')
+                : 'transparent',
+            color: document.documentElement.classList.contains('dark') ? 'white' : '#111827',
+            padding: '10px 15px',
+            fontSize: '0.75rem',
+            fontWeight: '600',
+            cursor: 'pointer'
+        }),
+        input: (base) => ({
+            ...base,
+            color: document.documentElement.classList.contains('dark') ? 'white' : '#111827',
+        }),
+        singleValue: (base) => ({
+            ...base,
+            color: document.documentElement.classList.contains('dark') ? 'white' : '#111827',
+            fontSize: '0.75rem',
+            fontWeight: '600'
+        }),
+        placeholder: (base) => ({
+            ...base,
+            fontSize: '0.75rem',
+            color: '#9ca3af'
+        })
+    };
 
     const handleSyncWithLive = async () => {
         try {
@@ -94,13 +157,35 @@ export const FixtureResultPopup: React.FC<FixtureResultPopupProps> = ({ fixture,
                 }
             })).unwrap();
 
-            if (fixture.matchId && score.home !== score.away) {
+            if (fixture.matchId && fixture.leagueId && fixture.groupId && fixture.stageId) {
+                const updatedParticipants: Participant[] = fixture.participants && fixture.participants.length >= 2 
+                    ? [...fixture.participants] 
+                    : [
+                        { refId: fixture.homeTeamId || '', name: fixture.homeTeamName || '', score: score.home, refType: 'team' },
+                        { refId: fixture.awayTeamId || '', name: fixture.awayTeamName || '', score: score.away, refType: 'team' }
+                    ];
+                
+                if (updatedParticipants.length >= 2) {
+                    updatedParticipants[0].score = score.home;
+                    updatedParticipants[1].score = score.away;
+                }
+                
+                await dispatch(updateMatchScores({
+                    leagueId: fixture.leagueId,
+                    groupId: fixture.groupId,
+                    stageId: fixture.stageId,
+                    matchId: fixture.matchId,
+                    participants: updatedParticipants
+                })).unwrap();
+            }
+
+            if (fixture.matchId && score.home !== score.away && fixture.leagueId) {
                 const match = await firebaseLeagueService.findMatchById(fixture.matchId);
                 if (match && match.nextMatchId) {
                     const winnerId = score.home > score.away ? (fixture.homeTeamId || '') : (fixture.awayTeamId || '');
                     const winnerName = score.home > score.away ? (fixture.homeTeamName || '') : (fixture.awayTeamName || '');
                     await firebaseLeagueService.advanceWinner(
-                        fixture.sport,
+                        fixture.leagueId,
                         winnerId,
                         winnerName,
                         match.nextMatchId,
@@ -259,13 +344,20 @@ export const FixtureResultPopup: React.FC<FixtureResultPopupProps> = ({ fixture,
                                 <option value={fixture.homeTeamId}>{fixture.homeTeamName}</option>
                                 <option value={fixture.awayTeamId}>{fixture.awayTeamName}</option>
                             </select>
-                            <input
-                                type="text"
-                                placeholder="Scorer Name"
-                                value={newGoal.playerName}
-                                onChange={(e) => setNewGoal({ ...newGoal, playerName: e.target.value })}
-                                className="col-span-1 p-2 bg-white dark:bg-gray-800 border rounded-lg text-xs"
-                            />
+                            <div className="col-span-1">
+                                <Select
+                                    instanceId="player-select"
+                                    options={playerOptions}
+                                    styles={selectStyles}
+                                    placeholder="Scorer..."
+                                    value={newGoal.playerName ? { value: newGoal.playerName, label: newGoal.playerName } : null}
+                                    onChange={(option: any) => setNewGoal({ ...newGoal, playerName: option?.value || '' })}
+                                    className="react-select-container"
+                                    classNamePrefix="react-select"
+                                    isClearable
+                                    noOptionsMessage={() => "No enrolled players found"}
+                                />
+                            </div>
                             <button
                                 type="button"
                                 onClick={handleAddGoal}

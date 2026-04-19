@@ -1,5 +1,6 @@
 import React from 'react';
 import { League, University, Sport } from '@/models';
+import { useTheme } from '../ThemeProvider';
 import { FiChevronDown, FiChevronRight, FiLayers, FiHome, FiActivity } from 'react-icons/fi';
 
 interface FilterSection {
@@ -28,17 +29,20 @@ const FilterItem: React.FC<{
     item: { id: string; name: string };
     isSelected: boolean;
     onClick: () => void;
-}> = ({ item, isSelected, onClick }) => (
-    <button
-        onClick={onClick}
-        className={`w-full text-left px-4 py-2 text-sm rounded-lg transition-all ${isSelected
-                ? 'bg-gradient-to-r from-unill-purple-500/30 to-unill-yellow-500/30 text-white border border-unill-yellow-400/50'
-                : 'text-gray-300 hover:bg-white/5 hover:text-white'
-            }`}
-    >
-        {item.name}
-    </button>
-);
+}> = ({ item, isSelected, onClick }) => {
+    const { theme, mounted: themeMounted } = useTheme();
+    return (
+        <button
+            onClick={onClick}
+            className={`w-full text-left px-4 py-2 text-sm rounded-lg transition-all ${isSelected
+                    ? 'bg-gradient-to-r from-unill-purple-500/30 to-unill-yellow-500/30 text-unill-yellow-600 dark:text-white border border-unill-yellow-400/50'
+                    : `hover:bg-black/5 dark:hover:bg-white/5 ${themeMounted && theme === 'light' ? 'text-gray-700 hover:text-gray-900' : 'text-gray-300 hover:text-white'}`
+                }`}
+        >
+            {item.name}
+        </button>
+    );
+};
 
 const CollapsibleSection: React.FC<FilterSection & { selectedId: string | null; onSelect: (id: string | null) => void }> = ({
     title,
@@ -48,14 +52,18 @@ const CollapsibleSection: React.FC<FilterSection & { selectedId: string | null; 
     onToggle,
     selectedId,
     onSelect,
-}) => (
-    <div className="mb-4">
-        <button
-            onClick={onToggle}
-            className="w-full flex items-center justify-between px-3 py-3 text-sm font-bold uppercase tracking-wider text-gray-400 hover:text-white transition-colors"
-        >
-            <div className="flex items-center gap-2">
-                {icon}
+}) => {
+    const { theme, mounted: themeMounted } = useTheme();
+    return (
+        <div className="mb-4">
+            <button
+                onClick={onToggle}
+                className={`w-full flex items-center justify-between px-3 py-3 text-sm font-bold uppercase tracking-wider transition-colors ${
+                    themeMounted && theme === 'light' ? 'text-gray-500 hover:text-gray-900' : 'text-gray-400 hover:text-white'
+                }`}
+            >
+                <div className="flex items-center gap-2">
+                    {icon}
                 <span>{title}</span>
                 {selectedId && (
                     <span className="ml-2 w-2 h-2 rounded-full bg-unill-yellow-400 animate-pulse" />
@@ -69,8 +77,8 @@ const CollapsibleSection: React.FC<FilterSection & { selectedId: string | null; 
                 <button
                     onClick={() => onSelect(null)}
                     className={`w-full text-left px-4 py-2 text-sm rounded-lg transition-all ${!selectedId
-                            ? 'bg-gradient-to-r from-unill-purple-500/30 to-unill-yellow-500/30 text-white border border-unill-yellow-400/50'
-                            : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                            ? 'bg-gradient-to-r from-unill-purple-500/30 to-unill-yellow-500/30 text-unill-yellow-600 dark:text-white border border-unill-yellow-400/50'
+                            : `hover:bg-black/5 dark:hover:bg-white/5 ${themeMounted && theme === 'light' ? 'text-gray-700 hover:text-gray-900' : 'text-gray-300 hover:text-white'}`
                         }`}
                 >
                     All {title}
@@ -85,8 +93,9 @@ const CollapsibleSection: React.FC<FilterSection & { selectedId: string | null; 
                 ))}
             </div>
         )}
-    </div>
-);
+        </div>
+    );
+};
 
 export const SearchSidebar: React.FC<SearchSidebarProps> = ({
     leagues,
@@ -101,13 +110,16 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({
     expandedSections,
     onToggleSection,
 }) => {
+    const { theme, mounted: themeMounted } = useTheme();
     const hasActiveFilters = selectedLeague || selectedUniversity || selectedSport;
 
     return (
-        <div className="w-72 bg-white/5 backdrop-blur-md border-r border-white/10 h-full overflow-y-auto">
+        <div className={`w-72 backdrop-blur-md border-r h-full overflow-y-auto ${
+            themeMounted && theme === 'light' ? 'bg-white/40 border-mauve-200' : 'bg-white/5 border-white/10'
+        }`}>
             {/* Header */}
-            <div className="p-4 border-b border-white/10">
-                <h2 className="text-lg font-bold text-white">Filters</h2>
+            <div className={`p-4 border-b ${themeMounted && theme === 'light' ? 'border-mauve-200' : 'border-white/10'}`}>
+                <h2 className={`text-lg font-bold ${themeMounted && theme === 'light' ? 'text-gray-900' : 'text-white'}`}>Filters</h2>
                 {hasActiveFilters && (
                     <button
                         onClick={() => {

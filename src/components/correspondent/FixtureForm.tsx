@@ -8,7 +8,8 @@ import { db } from "@/services/firebase";
 import { doc, setDoc, collection } from "firebase/firestore";
 import dynamic from 'next/dynamic';
 import { useToast } from "@/components/common/ToastProvider";
-import { FiCalendar, FiMapPin, FiUsers, FiCheckCircle, FiAlertCircle, FiArrowRight, FiX, FiPlus } from 'react-icons/fi';
+import { FiCalendar, FiMapPin, FiUsers, FiCheckCircle, FiAlertCircle, FiArrowRight, FiX, FiPlus, FiSearch } from 'react-icons/fi';
+import Select, { StylesConfig } from 'react-select';
 
 const ReactQuill = dynamic(() => import('react-quill'), {
   ssr: false,
@@ -404,6 +405,54 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
     }
   };
 
+    const selectStyles: StylesConfig<any, false> = {
+        control: (base, state) => ({
+            ...base,
+            backgroundColor: 'transparent',
+            borderColor: 'transparent',
+            borderRadius: '0.75rem',
+            padding: '2px',
+            boxShadow: 'none',
+            '&:hover': {
+                borderColor: 'transparent',
+            }
+        }),
+        menu: (base) => ({
+            ...base,
+            backgroundColor: document.documentElement.classList.contains('dark') ? '#1f2937' : 'white',
+            borderRadius: '1rem',
+            overflow: 'hidden',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            zIndex: 100
+        }),
+        option: (base, state) => ({
+            ...base,
+            backgroundColor: state.isFocused 
+                ? (document.documentElement.classList.contains('dark') ? '#374151' : '#f3f4f6')
+                : 'transparent',
+            color: document.documentElement.classList.contains('dark') ? 'white' : '#111827',
+            padding: '12px 15px',
+            fontSize: '0.875rem',
+            fontWeight: '600',
+            cursor: 'pointer'
+        }),
+        input: (base) => ({
+            ...base,
+            color: document.documentElement.classList.contains('dark') ? 'white' : '#111827',
+        }),
+        singleValue: (base) => ({
+            ...base,
+            color: document.documentElement.classList.contains('dark') ? 'white' : '#111827',
+            fontSize: '0.875rem',
+            fontWeight: '600'
+        }),
+        placeholder: (base) => ({
+            ...base,
+            fontSize: '0.875rem',
+            color: '#9ca3af'
+        })
+    };
+
   const InputError = ({ message }: { message?: string }) => (
     message ? (
       <div className="flex items-center gap-1 mt-1 text-red-500 dark:text-red-400 text-xs animate-in slide-in-from-top-1">
@@ -559,22 +608,26 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
                   </div>
                   
                   <div className="flex-1">
-                    <select
-                      value={p.refId}
-                      onChange={(e) => updateParticipant(index, { refId: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 border-2 border-transparent focus:border-blue-500 dark:text-white font-medium text-sm"
-                    >
-                      <option value="">Select {p.refType === 'team' ? 'Team' : 'Player'}</option>
-                      {p.refType === 'team' ? (
-                        filteredTeams.map(t => (
-                          <option key={t.id} value={t.id}>{t.name}</option>
-                        ))
-                      ) : (
-                        players.map(pl => (
-                          <option key={pl.id} value={pl.id}>{pl.name}</option>
-                        ))
-                      )}
-                    </select>
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-xl border-2 border-transparent focus-within:border-blue-500 transition-all overflow-hidden">
+                      <Select
+                        instanceId={`participant-select-${index}`}
+                        options={p.refType === 'team' 
+                          ? filteredTeams.map(t => ({ value: t.id, label: t.name }))
+                          : players.map(pl => ({ value: pl.id, label: pl.name }))
+                        }
+                        styles={selectStyles}
+                        placeholder={`Select ${p.refType === 'team' ? 'Team' : 'Player'}...`}
+                        value={p.refId ? { 
+                          value: p.refId, 
+                          label: p.refType === 'team' 
+                            ? (teams.find(t => t.id === p.refId)?.name || p.name)
+                            : (players.find(pl => pl.id === p.refId)?.name || p.name)
+                        } : null}
+                        onChange={(option: any) => updateParticipant(index, { refId: option?.value || '' })}
+                        isClearable
+                        noOptionsMessage={() => `No ${p.refType === 'team' ? 'teams' : 'players'} found`}
+                      />
+                    </div>
                   </div>
 
                   <button

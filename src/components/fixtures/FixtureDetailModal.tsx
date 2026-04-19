@@ -42,8 +42,8 @@ const FixtureDetailModal: React.FC<FixtureDetailModalProps> = ({ isOpen, onClose
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[100] p-4 transition-all duration-500 overflow-y-auto">
-      <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] border border-white/10 shadow-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in slide-in-from-bottom-10 duration-500 my-auto">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-xl flex items-center justify-center z-[100] p-4 md:p-8 transition-all duration-500 overflow-y-auto">
+      <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] border border-white/10 shadow-3xl w-full max-w-7xl min-h-[90vh] h-fit flex flex-col overflow-visible animate-in fade-in zoom-in slide-in-from-bottom-10 duration-500 my-auto">
         
         {/* Modal Header */}
         <div className="px-8 py-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/20 shrink-0">
@@ -69,8 +69,8 @@ const FixtureDetailModal: React.FC<FixtureDetailModalProps> = ({ isOpen, onClose
         </div>
 
         {/* Match Hero Section */}
-        <div className="px-8 pt-8 pb-4 shrink-0">
-            <div className={`bg-gradient-to-br from-indigo-900 via-unill-purple-900 to-indigo-950 rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-2xl`}>
+        <div className="px-8 pt-6 pb-2 shrink-0">
+            <div className={`bg-gradient-to-br from-indigo-900 via-unill-purple-900 to-indigo-950 rounded-[2.5rem] p-6 md:p-8 text-white relative overflow-hidden shadow-2xl`}>
               <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
               
               <div className="relative z-10">
@@ -96,10 +96,10 @@ const FixtureDetailModal: React.FC<FixtureDetailModalProps> = ({ isOpen, onClose
                       </React.Fragment>
                     ))}
                  </div>
-                 <div className="mt-8 flex justify-center">
-                    <div className="px-6 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/10 flex items-center gap-3">
+                 <div className="mt-4 flex justify-center">
+                    <div className="px-5 py-1.5 bg-black/40 backdrop-blur-md rounded-full border border-white/10 flex items-center gap-3">
                        <div className={`w-2 h-2 rounded-full ${status === 'live' ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`} />
-                       <span className="text-xs font-black uppercase tracking-widest">{status.toUpperCase()}</span>
+                       <span className="text-[10px] font-black uppercase tracking-widest">{status.toUpperCase()}</span>
                     </div>
                  </div>
               </div>
@@ -129,7 +129,7 @@ const FixtureDetailModal: React.FC<FixtureDetailModalProps> = ({ isOpen, onClose
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-10 custom-scrollbar bg-gray-50/30 dark:bg-black/10">
+        <div className="p-10 bg-gray-50/30 dark:bg-black/10">
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             {activeTab === 'lineups' && (
               <div className="space-y-12">

@@ -12,7 +12,7 @@ export interface University {
 
 export interface Team {
   id: string;
-  universityId: string;
+  universityId?: string;
   name: string;
   slug: string; // Human-readable URL slug for team pages
   sport: string;

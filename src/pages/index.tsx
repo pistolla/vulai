@@ -257,9 +257,9 @@ const HomePage: React.FC = () => {
           )}
           {/* Live Matches Slider for Logged-in Users */}
           {user && liveMatches.length > 0 && (
-            <div className="mb-8">
+            <div className="mb-8 overflow-hidden">
               <h2 className="text-2xl font-bold text-white mb-4">🔴 LIVE NOW</h2>
-              <div className="flex gap-4 overflow-x-auto scroll-snap-x mandatory pb-4 max-w-4xl items-center justify-center">
+              <div className="flex gap-6 overflow-x-auto scroll-snap-x mandatory pb-6 px-4 -mx-4 items-center justify-start md:justify-center no-scrollbar">
                 {liveMatches.map((match) => (
                   <LiveMatchCard key={match.id} match={match} />
                 ))}
@@ -288,8 +288,7 @@ const HomePage: React.FC = () => {
                    </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="flex flex-wrap justify-center gap-8">
                    {[...liveMatches, ...upcomingMatches].slice(0, 3).map((match) => {
                       const participants: Participant[] = match.participants && match.participants.length > 0 
                         ? match.participants 
@@ -307,7 +306,7 @@ const HomePage: React.FC = () => {
                             setSelectedMatchForDetail(match);
                             setIsDetailModalOpen(true);
                           }}
-                          className={`group relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2rem] p-6 text-left transition-all hover:bg-white/10 ${match.status === 'live' ? 'border-red-500/50 hover:border-red-500 shadow-lg shadow-red-500/10' : 'hover:border-unill-yellow-400/50'} hover:-translate-y-2`}
+                          className={`group relative w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.5rem)] max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2rem] p-6 text-left transition-all hover:bg-white/10 ${match.status === 'live' ? 'border-red-500/50 hover:border-red-500 shadow-lg shadow-red-500/10' : 'hover:border-unill-yellow-400/50'} hover:-translate-y-2`}
                         >
                            <div className="flex justify-between items-start mb-6">
                               <span className={`px-3 py-1 ${match.status === 'live' ? 'bg-red-500' : 'bg-unill-purple-600'} rounded-full text-[10px] font-black text-white uppercase tracking-widest leading-none`}>
@@ -356,8 +355,7 @@ const HomePage: React.FC = () => {
                            </div>
                         </button>
                       );
-                   })}
-                </div>
+                    })}
                 </div>
                 
                 <div className="mt-10">
@@ -387,7 +385,7 @@ const HomePage: React.FC = () => {
             <p className="text-xl text-gray-700">Stay updated with the latest university sports action</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="flex flex-wrap justify-center gap-8">
             {([...liveMatches, ...upcomingMatches].length > 0 ? [...liveMatches, ...upcomingMatches] : (data?.matches || [])).map((match) => {
               const participants: Participant[] = (match as any).participants && (match as any).participants.length > 0 
                 ? (match as any).participants 
@@ -401,7 +399,7 @@ const HomePage: React.FC = () => {
               return (
               <div
                 key={match.id}
-                className={`bg-white/10 backdrop-blur-md rounded-[2rem] p-8 border border-white/20 hover:bg-white/15 transition-all group ${match.status === 'live' ? 'animate-pulse-live shadow-lg shadow-red-500/10' : ''
+                className={`w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.5rem)] max-w-md bg-white/10 backdrop-blur-md rounded-[2rem] p-8 border border-white/20 hover:bg-white/15 transition-all group ${match.status === 'live' ? 'animate-pulse-live shadow-lg shadow-red-500/10' : ''
                   }`}
               >
                 <div className="flex items-center justify-between mb-8">

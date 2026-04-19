@@ -12,12 +12,12 @@ import { FiPlus, FiEdit2, FiTrash2, FiUsers, FiAward, FiCalendar, FiCheckCircle,
 import { generateTeamSlug } from '@/utils/slugUtils';
 
 // Input Wrapper Component for enhanced styling and error states
-const InputWrapper = ({ children, error, label, labelExtra }: { children: React.ReactNode; error?: string; label: string; labelExtra?: string }) => (
+const InputWrapper = ({ children, error, label, labelExtra, required = false }: { children: React.ReactNode; error?: string; label: string; labelExtra?: string; required?: boolean }) => (
   <div className={`relative ${error ? 'mb-6' : 'mb-4'}`}>
     <div className="flex items-baseline justify-between mb-2">
       <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest">
         {label}
-        <span className="text-red-500 ml-1">*</span>
+        {required && <span className="text-red-500 ml-1">*</span>}
       </label>
       {labelExtra && (
         <span className="text-[10px] text-gray-400 font-medium italic">{labelExtra}</span>
@@ -217,7 +217,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputWrapper label="Team Name" error={errors.name}>
+        <InputWrapper label="Team Name" error={errors.name} required>
           <div className="relative">
             <input
               type="text"
@@ -258,7 +258,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
           </div>
         </InputWrapper>
 
-        <InputWrapper label="Sport" error={errors.sport} labelExtra={formData.league ? "(Linked to League)" : ""}>
+        <InputWrapper label="Sport" error={errors.sport} labelExtra={formData.league ? "(Linked to League)" : ""} required>
           <div className="relative">
             <select
               value={formData.sport}
@@ -309,7 +309,7 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
                 } text-gray-900 dark:text-white font-bold ${isCorrespondent ? 'opacity-70 cursor-not-allowed' : ''}`}
               disabled={isCorrespondent}
             >
-              <option value="">Select University</option>
+              <option value="">Independent / No University</option>
               {universities.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
             </select>
             {formData.universityId && !errors.universityId && (

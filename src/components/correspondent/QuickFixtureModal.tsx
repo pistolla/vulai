@@ -8,7 +8,8 @@ import { firebaseLeagueService } from '@/services/firebaseCorrespondence';
 import { toISO } from '@/utils/csvHelpers';
 import { apiService } from '@/services/apiService';
 import { useToast } from '@/components/common/ToastProvider';
-import { FiCalendar, FiMapPin, FiUsers, FiCheckCircle, FiAlertCircle, FiPlus, FiArrowRight, FiX } from 'react-icons/fi';
+import { FiCalendar, FiMapPin, FiUsers, FiCheckCircle, FiAlertCircle, FiPlus, FiArrowRight, FiX, FiSearch } from 'react-icons/fi';
+import Select, { StylesConfig } from 'react-select';
 
 interface QuickFixtureModalProps {
     isOpen: boolean;
@@ -147,6 +148,54 @@ export const QuickFixtureModal: React.FC<QuickFixtureModalProps> = ({ isOpen, on
         if (!venue.trim()) newErrors.venue = 'Enter venue';
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
+    };
+
+    const selectStyles: StylesConfig<any, false> = {
+        control: (base, state) => ({
+            ...base,
+            backgroundColor: 'transparent',
+            borderColor: 'transparent',
+            borderRadius: '0.75rem',
+            padding: '2px',
+            boxShadow: 'none',
+            '&:hover': {
+                borderColor: 'transparent',
+            }
+        }),
+        menu: (base) => ({
+            ...base,
+            backgroundColor: document.documentElement.classList.contains('dark') ? '#1f2937' : 'white',
+            borderRadius: '1rem',
+            overflow: 'hidden',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            zIndex: 100
+        }),
+        option: (base, state) => ({
+            ...base,
+            backgroundColor: state.isFocused 
+                ? (document.documentElement.classList.contains('dark') ? '#374151' : '#f3f4f6')
+                : 'transparent',
+            color: document.documentElement.classList.contains('dark') ? 'white' : '#111827',
+            padding: '12px 15px',
+            fontSize: '0.875rem',
+            fontWeight: '600',
+            cursor: 'pointer'
+        }),
+        input: (base) => ({
+            ...base,
+            color: document.documentElement.classList.contains('dark') ? 'white' : '#111827',
+        }),
+        singleValue: (base) => ({
+            ...base,
+            color: document.documentElement.classList.contains('dark') ? 'white' : '#111827',
+            fontSize: '0.875rem',
+            fontWeight: '600'
+        }),
+        placeholder: (base) => ({
+            ...base,
+            fontSize: '0.875rem',
+            color: '#9ca3af'
+        })
     };
 
     const getSelectedTeam = (teamId: string) => teams.find(t => t.id === teamId);
@@ -337,21 +386,23 @@ export const QuickFixtureModal: React.FC<QuickFixtureModalProps> = ({ isOpen, on
                     </label>
                     <div className="flex items-center gap-4">
                         <div className="flex-1">
-                            <select
-                                value={homeTeamId}
-                                onChange={e => {
-                                    setHomeTeamId(e.target.value);
-                                    setErrors(prev => ({ ...prev, homeTeam: '', sameTeam: '' }));
-                                }}
-                                className={`w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-2 ${
-                                    errors.homeTeam || errors.sameTeam ? 'border-red-300 dark:border-red-600' : 'border-transparent focus:border-blue-500'
-                                } dark:text-white font-bold appearance-none`}
-                            >
-                                <option value="">Home Team</option>
-                                {teams.map(t => (
-                                    <option key={t.id} value={t.id}>{t.name}</option>
-                                ))}
-                            </select>
+                            <div className={`bg-gray-50 dark:bg-gray-800 rounded-xl border-2 transition-all ${
+                                errors.homeTeam || errors.sameTeam ? 'border-red-300 dark:border-red-600' : 'border-transparent focus-within:border-blue-500'
+                            }`}>
+                                <Select
+                                    instanceId="home-team-select"
+                                    options={teams.map(t => ({ value: t.id, label: t.name }))}
+                                    styles={selectStyles}
+                                    placeholder="Home Team..."
+                                    value={homeTeamId ? { value: homeTeamId, label: teams.find(t => t.id === homeTeamId)?.name || '' } : null}
+                                    onChange={(option: any) => {
+                                        setHomeTeamId(option?.value || '');
+                                        setErrors(prev => ({ ...prev, homeTeam: '', sameTeam: '' }));
+                                    }}
+                                    isClearable
+                                    noOptionsMessage={() => "No teams found"}
+                                />
+                            </div>
                             <InputError message={errors.homeTeam} />
                         </div>
                         
@@ -362,21 +413,23 @@ export const QuickFixtureModal: React.FC<QuickFixtureModalProps> = ({ isOpen, on
                         </div>
                         
                         <div className="flex-1">
-                            <select
-                                value={awayTeamId}
-                                onChange={e => {
-                                    setAwayTeamId(e.target.value);
-                                    setErrors(prev => ({ ...prev, awayTeam: '', sameTeam: '' }));
-                                }}
-                                className={`w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-2 ${
-                                    errors.awayTeam || errors.sameTeam ? 'border-red-300 dark:border-red-600' : 'border-transparent focus:border-blue-500'
-                                } dark:text-white font-bold appearance-none`}
-                            >
-                                <option value="">Away Team</option>
-                                {teams.filter(t => t.id !== homeTeamId).map(t => (
-                                    <option key={t.id} value={t.id}>{t.name}</option>
-                                ))}
-                            </select>
+                            <div className={`bg-gray-50 dark:bg-gray-800 rounded-xl border-2 transition-all ${
+                                errors.awayTeam || errors.sameTeam ? 'border-red-300 dark:border-red-600' : 'border-transparent focus-within:border-blue-500'
+                            }`}>
+                                <Select
+                                    instanceId="away-team-select"
+                                    options={teams.filter(t => t.id !== homeTeamId).map(t => ({ value: t.id, label: t.name }))}
+                                    styles={selectStyles}
+                                    placeholder="Away Team..."
+                                    value={awayTeamId ? { value: awayTeamId, label: teams.find(t => t.id === awayTeamId)?.name || '' } : null}
+                                    onChange={(option: any) => {
+                                        setAwayTeamId(option?.value || '');
+                                        setErrors(prev => ({ ...prev, awayTeam: '', sameTeam: '' }));
+                                    }}
+                                    isClearable
+                                    noOptionsMessage={() => "No teams found"}
+                                />
+                            </div>
                             <InputError message={errors.awayTeam} />
                         </div>
                     </div>

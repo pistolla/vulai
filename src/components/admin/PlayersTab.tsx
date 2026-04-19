@@ -10,12 +10,12 @@ import { FiUserPlus, FiEdit2, FiTrash2, FiStar, FiImage, FiCheckCircle, FiAlertC
 import { confirmDelete } from '@/utils/confirmDialog';
 
 // Input Wrapper Component for enhanced styling and error states
-const InputWrapper = ({ children, error, label, labelExtra }: { children: React.ReactNode; error?: string; label: string; labelExtra?: string }) => (
+const InputWrapper = ({ children, error, label, labelExtra, required = false }: { children: React.ReactNode; error?: string; label: string; labelExtra?: string; required?: boolean }) => (
   <div className={`relative ${error ? 'mb-6' : 'mb-4'}`}>
     <div className="flex items-baseline justify-between mb-2">
       <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest">
         {label}
-        <span className="text-red-500 ml-1">*</span>
+        {required && <span className="text-red-500 ml-1">*</span>}
       </label>
       {labelExtra && (
         <span className="text-[10px] text-gray-400 font-medium italic">{labelExtra}</span>
@@ -276,7 +276,7 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
       number: player.number.toString(),
       height: player.height,
       weight: player.weight,
-      universityId: player.universityId,
+      universityId: player.universityId || '',
       sportId: player.sportId,
       teamId: player.teamId || '',
       avatar: player.avatar,
@@ -376,7 +376,9 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-white">
                     {teams.find((t: any) => t.id === player.teamId)?.name || '-'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-white">{player.university}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-white">
+                    {player.university || (player.universityId ? (universities.find((u: any) => u.id === player.universityId)?.name || 'Unknown') : 'Independent')}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-white">{player.year}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                     <button
@@ -475,7 +477,7 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <InputWrapper label="Name">
+        <InputWrapper label="Name" required>
           <input
             type="text"
             required
@@ -486,7 +488,7 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
           />
         </InputWrapper>
 
-        <InputWrapper label="Position">
+        <InputWrapper label="Position" required>
           <input
             type="text"
             required
@@ -541,9 +543,10 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
           />
         </InputWrapper>
 
-        <InputWrapper label="Sport">
+        <InputWrapper label="Sport" required>
           <select
             value={formData.sportId}
+            required
             onChange={(e) => setFormData({ ...formData, sportId: e.target.value })}
             className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold appearance-none transition-all"
           >
@@ -559,16 +562,17 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
             onChange={(e) => setFormData({ ...formData, universityId: e.target.value })}
             className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold appearance-none transition-all"
           >
-            <option value="">Select University</option>
+            <option value="">Independent / No University</option>
             {universities.map((university: any) => (
               <option key={university.id} value={university.id}>{university.name}</option>
             ))}
           </select>
         </InputWrapper>
 
-        <InputWrapper label="Team">
+        <InputWrapper label="Team" required>
           <select
             value={formData.teamId}
+            required
             onChange={(e) => setFormData({ ...formData, teamId: e.target.value })}
             className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold appearance-none transition-all"
           >

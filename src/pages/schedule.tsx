@@ -360,18 +360,18 @@ const SchedulePage: React.FC = () => {
             className={`flex-shrink-0 w-20 h-20 rounded-2xl border flex flex-col items-center justify-center cursor-pointer transition-all duration-300 relative group
               ${isToday
                 ? 'bg-unill-yellow-400 border-unill-yellow-500 shadow-lg shadow-unill-yellow-400/30 -translate-y-1'
-                : 'bg-white/5 border-white/10 hover:bg-white/10'
+                : 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 hover:bg-black/10 dark:hover:bg-white/10'
               } 
-              ${hasMatches && !isToday ? 'bg-unill-purple-500/20 border-unill-purple-500/30' : ''}`}
+              ${hasMatches && !isToday ? 'bg-unill-purple-500/10 border-unill-purple-500/20' : ''}`}
             onClick={() => showDayDetails(dateStr)}
           >
-            <div className={`font-black text-lg ${isToday ? 'text-gray-900' : 'text-white'}`}>{day}</div>
+            <div className={`font-black text-lg ${isToday ? 'text-gray-900' : 'text-gray-900 dark:text-white'}`}>{day}</div>
             {hasMatches ? (
               <div className={`text-[10px] font-bold uppercase mt-1 ${isToday ? 'text-gray-900/60' : 'text-unill-yellow-400'}`}>
                 {matchesOnDay.length} Match{matchesOnDay.length > 1 ? 'es' : ''}
               </div>
             ) : (
-              <div className={`text-[10px] font-medium opacity-40 ${isToday ? 'text-gray-900' : ''}`}>Empty</div>
+              <div className={`text-[10px] font-medium opacity-40 ${isToday ? 'text-gray-900' : 'text-gray-500 dark:text-gray-400'}`}>Empty</div>
             )}
             {isToday && (
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-unill-yellow-400 animate-pulse" />
@@ -438,12 +438,12 @@ const SchedulePage: React.FC = () => {
         days.push(
           <div
             key={day}
-            className={`calendar-day p-2 border border-white/10 min-h-24 cursor-pointer transition-all duration-300 relative
-              ${isToday ? 'bg-unill-yellow-400 border-unill-yellow-500 shadow-lg shadow-unill-yellow-400/20 z-10' : 'hover:bg-unill-purple-500/20'}
-              ${hasMatches && !isToday ? 'bg-unill-yellow-500/10' : ''}`}
+            className={`calendar-day p-4 border border-black/5 dark:border-white/10 min-h-32 cursor-pointer transition-all duration-300 relative
+              ${isToday ? 'bg-unill-yellow-400 border-unill-yellow-500 shadow-lg shadow-unill-yellow-400/20 z-10' : 'bg-black/[0.02] dark:bg-white/[0.02] hover:bg-unill-purple-500/10'}
+              ${hasMatches && !isToday ? 'bg-unill-yellow-500/10 border-unill-yellow-500/20' : ''}`}
             onClick={() => showDayDetails(dateStr)}
           >
-            <div className={`font-black text-lg ${isToday ? 'text-gray-900' : 'text-white'}`}>{day}</div>
+            <div className={`font-black text-lg ${isToday ? 'text-gray-900' : 'text-gray-900 dark:text-white'}`}>{day}</div>
             {hasMatches && (
               <div className={`text-[10px] font-bold uppercase mt-1 ${isToday ? 'text-gray-900/60' : 'text-unill-yellow-400'}`}>
                 {matchesOnDay.length} Match{matchesOnDay.length > 1 ? 'es' : ''}
@@ -910,8 +910,8 @@ const SchedulePage: React.FC = () => {
 
       {/* Match Details Modal */}
       {modalOpen && selectedDate && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300">
-          <div className="bg-white dark:bg-gray-900 rounded-[2rem] border border-white/10 shadow-2xl w-full max-w-4xl overflow-hidden animate-in fade-in zoom-in duration-300">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-xl flex items-center justify-center z-50 p-4 md:p-8 transition-all duration-300 overflow-y-auto">
+          <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] border border-white/10 shadow-3xl w-full max-w-5xl min-h-[90vh] h-fit flex flex-col overflow-visible animate-in fade-in zoom-in duration-300 my-auto">
             {/* Modal Header */}
             <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
               <div className="flex items-center space-x-4">
@@ -951,7 +951,7 @@ const SchedulePage: React.FC = () => {
             </div>
 
             {/* Modal Content */}
-            <div className={`p-6 max-h-[80vh] overflow-y-auto custom-scrollbar ${selectedMatchForDetail ? 'bg-transparent' : 'bg-white dark:bg-gray-900'}`}>
+            <div className={`p-6 ${selectedMatchForDetail ? 'bg-transparent' : 'bg-white dark:bg-gray-900'}`}>
               {!selectedMatchForDetail ? (
                 /* List View */
                 <div className="space-y-4">

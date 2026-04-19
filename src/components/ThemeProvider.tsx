@@ -44,6 +44,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   useEffect(() => {
     // Apply theme to document - only on client side
     if (mounted) {
+      document.documentElement.setAttribute('data-theme', theme);
       if (theme === 'dark') {
         document.documentElement.classList.add('dark');
       } else {

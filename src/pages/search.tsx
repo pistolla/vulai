@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Layout from '../components/Layout';
+import { useTheme } from '../components/ThemeProvider';
 import { SearchSidebar } from '../components/search/SearchSidebar';
 import FixtureCard from '../components/search/FixtureCard';
 import { FixtureDetail } from '../components/search/FixtureDetail';
@@ -13,6 +14,7 @@ const isFixtureSelected = (fixture: FixtureModel, selectedFixture: FixtureModel 
 };
 
 const SearchPage: React.FC = () => {
+    const { theme, mounted: themeMounted } = useTheme();
     // Data state
     const [fixtures, setFixtures] = useState<FixtureModel[]>([]);
     const [leagues, setLeagues] = useState<League[]>([]);
@@ -173,10 +175,10 @@ const SearchPage: React.FC = () => {
     if (loading) {
         return (
             <Layout title="Search Fixtures" description="Search and browse upcoming and past fixtures">
-                <div className="min-h-screen flex items-center justify-center bg-gray-900">
+                <div className={`min-h-screen flex items-center justify-center ${themeMounted && theme === 'light' ? 'bg-mauve-50' : 'bg-gray-900'}`}>
                     <div className="text-center">
                         <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-unill-yellow-400 mx-auto mb-4" />
-                        <p className="text-gray-400">Loading fixtures...</p>
+                        <p className={themeMounted && theme === 'light' ? 'text-gray-600' : 'text-gray-400'}>Loading fixtures...</p>
                     </div>
                 </div>
             </Layout>
@@ -185,9 +187,9 @@ const SearchPage: React.FC = () => {
 
     return (
         <Layout title="Search Fixtures" description="Search and browse upcoming and past fixtures">
-            <div className="min-h-screen bg-gray-900 pt-20">
+            <div className={`min-h-screen pt-20 transition-colors duration-500 ${themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-50 via-mauve-100 to-mauve-200' : 'bg-gray-900'}`}>
                 {/* Search Header */}
-                <div className="bg-gradient-to-r from-unill-purple-500/20 to-unill-yellow-500/20 border-b border-white/10">
+                <div className={`${themeMounted && theme === 'light' ? 'bg-white/40 border-mauve-200' : 'bg-gradient-to-r from-unill-purple-500/20 to-unill-yellow-500/20 border-white/10'} backdrop-blur-md border-b`}>
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                         <div className="flex items-center gap-4">
                             {/* Mobile Sidebar Toggle */}
@@ -206,7 +208,11 @@ const SearchPage: React.FC = () => {
                                     placeholder="Search fixtures by team, venue, or sport..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-12 pr-12 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-unill-yellow-400 focus:border-transparent transition-all"
+                                    className={`w-full pl-12 pr-12 py-3 backdrop-blur-md border rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-unill-yellow-400 focus:border-transparent ${
+                                        themeMounted && theme === 'light' 
+                                        ? 'bg-white/60 border-mauve-200 text-gray-900 placeholder-gray-400 shadow-sm' 
+                                        : 'bg-white/10 border-white/20 text-white placeholder-gray-400'
+                                    }`}
                                 />
                                 {searchQuery && (
                                     <button
@@ -290,9 +296,9 @@ const SearchPage: React.FC = () => {
                         ) : filteredFixtures.length === 0 ? (
                             /* Empty State */
                             <div className="flex flex-col items-center justify-center h-full text-center py-16">
-                                <FiCalendar className="w-20 h-20 text-gray-600 mb-4" />
-                                <h3 className="text-2xl font-bold text-white mb-2">No Fixtures Found</h3>
-                                <p className="text-gray-400 max-w-md">
+                                <FiCalendar className={`w-20 h-20 mb-4 ${themeMounted && theme === 'light' ? 'text-mauve-300' : 'text-gray-600'}`} />
+                                <h3 className={`text-2xl font-bold mb-2 ${themeMounted && theme === 'light' ? 'text-gray-900' : 'text-white'}`}>No Fixtures Found</h3>
+                                <p className={`max-w-md ${themeMounted && theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>
                                     {searchQuery || hasActiveFilters
                                         ? 'Try adjusting your search or filters to find more fixtures.'
                                         : 'No fixtures are scheduled for the next 7 days.'}
@@ -316,10 +322,10 @@ const SearchPage: React.FC = () => {
                             <div className="space-y-8">
                                 {groupedFixtures.map((group: { date: string; displayDate: string; fixtures: FixtureModel[] }) => (
                                     <div key={group.date}>
-                                        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                                        <h3 className={`text-lg font-bold mb-4 flex items-center gap-2 ${themeMounted && theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
                                             <FiCalendar className="w-5 h-5 text-unill-yellow-400" />
                                             {group.displayDate}
-                                            <span className="text-sm font-normal text-gray-400">
+                                            <span className={`text-sm font-normal ${themeMounted && theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
                                                 ({group.fixtures.length} fixture{group.fixtures.length !== 1 ? 's' : ''})
                                             </span>
                                         </h3>
