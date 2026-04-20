@@ -257,7 +257,7 @@ export const FixtureDetail: React.FC<FixtureDetailProps> = ({ fixture, onClose }
                                 <h3 className={`text-lg md:text-2xl font-black uppercase tracking-tighter truncate max-w-[120px] md:max-w-[180px] ${
                                     themeMounted && theme === 'light' ? 'text-gray-900' : 'text-white'
                                 }`}>{p.name}</h3>
-                                {fixture.status !== 'scheduled' && (
+                                {(fixture.status === 'live' || fixture.status === 'completed') && (
                                     <p className="mt-2 text-2xl md:text-3xl font-black text-unill-yellow-400 tabular-nums">{p.score ?? 0}</p>
                                 )}
                             </div>
@@ -278,10 +278,20 @@ export const FixtureDetail: React.FC<FixtureDetailProps> = ({ fixture, onClose }
                     <div className={`px-5 py-2 backdrop-blur-md rounded-full border flex items-center gap-3 ${
                         themeMounted && theme === 'light' ? 'bg-black/5 border-mauve-200' : 'bg-white/5 border-white/10 shadow-sm'
                     }`}>
-                        <div className={`w-2 h-2 rounded-full ${fixture.status === 'live' ? 'bg-red-500 animate-pulse' : 'bg-unill-yellow-400'}`} />
+                        <div className={`w-2 h-2 rounded-full ${
+                            fixture.status === 'live' ? 'bg-red-500 animate-pulse' :
+                            fixture.status === 'completed' ? 'bg-green-500' :
+                            fixture.status === 'postponed' ? 'bg-yellow-500' :
+                            'bg-unill-yellow-400'
+                        }`} />
                         <span className={`text-[10px] font-black uppercase tracking-widest ${
                             themeMounted && theme === 'light' ? 'text-gray-700' : 'text-white/80'
-                        }`}>{fixture.status.toUpperCase()} SESSION</span>
+                        }`}>
+                            {fixture.status === 'live' ? 'LIVE NOW' :
+                             fixture.status === 'completed' ? 'FULL TIME' :
+                             fixture.status === 'postponed' ? 'POSTPONED' :
+                             'SCHEDULED'}
+                        </span>
                     </div>
                 </div>
             </div>

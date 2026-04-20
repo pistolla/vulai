@@ -12,7 +12,7 @@ import FixtureDetailModal from '@/components/fixtures/FixtureDetailModal';
 
 type DisplayMatch = {
   id: string;
-  status: 'live' | 'upcoming' | 'completed';
+  status: 'live' | 'upcoming' | 'completed' | 'postponed' | 'scheduled';
   sport: string;
   homeTeam: string;
   awayTeam: string;
@@ -118,7 +118,7 @@ const SchedulePage: React.FC = () => {
               const participants = f.participants || [];
               return {
                 id: f.id || '',
-                status: f.status === 'scheduled' ? 'upcoming' : f.status === 'postponed' ? 'upcoming' : f.status,
+                status: f.status === 'scheduled' ? 'upcoming' : f.status,
                 sport: f.sport,
                 homeTeam: f.homeTeamName || (participants[0]?.name) || 'Home',
                 awayTeam: f.awayTeamName || (participants[1]?.name) || 'Away',
@@ -725,11 +725,16 @@ const SchedulePage: React.FC = () => {
                 data-status={match.status}
               >
                 <div className="flex items-center justify-between mb-4">
-                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${match.status === 'live' ? 'bg-red-500 text-white' :
-                    match.status === 'upcoming' ? 'bg-blue-500 text-white' :
-                      'bg-green-500 text-white'
-                    }`}>
-                    {match.status.toUpperCase()}
+                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                    match.status === 'live' ? 'bg-red-500 text-white' :
+                    match.status === 'completed' ? 'bg-green-600 text-white' :
+                    match.status === 'postponed' ? 'bg-yellow-600 text-white' :
+                    'bg-blue-500 text-white'
+                  }`}>
+                    {match.status === 'live' ? 'LIVE' :
+                     match.status === 'completed' ? 'FULL TIME' :
+                     match.status === 'postponed' ? 'POSTPONED' :
+                     'UPCOMING'}
                   </span>
                   <span className="text-sm text-gray-700 capitalize">{match.sport}</span>
                 </div>
@@ -775,7 +780,7 @@ const SchedulePage: React.FC = () => {
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => match.status === 'live' ? handleWatchLive(match) : handleSetReminder(match)}
+                    onClick={() => match.status === 'live' ? handleWatchLive(match as any) : handleSetReminder(match as any)}
                     className="flex-1 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-500 text-white px-4 py-2 rounded text-sm font-semibold hover:from-unill-yellow-500 hover:to-unill-purple-600 transition-all"
                   >
                     {match.status === 'live' ? 'Watch Live' : 'Set Reminder'}

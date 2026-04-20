@@ -98,8 +98,18 @@ const FixtureDetailModal: React.FC<FixtureDetailModalProps> = ({ isOpen, onClose
                  </div>
                  <div className="mt-4 flex justify-center">
                     <div className="px-5 py-1.5 bg-black/40 backdrop-blur-md rounded-full border border-white/10 flex items-center gap-3">
-                       <div className={`w-2 h-2 rounded-full ${status === 'live' ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`} />
-                       <span className="text-[10px] font-black uppercase tracking-widest">{status.toUpperCase()}</span>
+                       <div className={`w-2 h-2 rounded-full ${
+                           status === 'live' ? 'bg-red-500 animate-pulse' :
+                           status === 'completed' ? 'bg-green-500' :
+                           status === 'postponed' ? 'bg-yellow-500' :
+                           'bg-blue-400'
+                       }`} />
+                       <span className="text-[10px] font-black uppercase tracking-widest">
+                           {status === 'live' ? 'LIVE NOW' :
+                            status === 'completed' ? 'FULL TIME' :
+                            status === 'postponed' ? 'POSTPONED' :
+                            'SCHEDULED'}
+                       </span>
                     </div>
                  </div>
               </div>

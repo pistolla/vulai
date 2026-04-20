@@ -97,6 +97,25 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
       echartsScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js';
       document.head.appendChild(echartsScript);
     }
+
+    // --- Automation Singleton: Throttled to once per hour ---
+    const AUTOMATION_KEY = 'unill_automation_last_run';
+    const ONE_HOUR_MS = 60 * 60 * 1000;
+    const lastRun = localStorage.getItem(AUTOMATION_KEY);
+    const now = Date.now();
+
+    if (!lastRun || now - parseInt(lastRun, 10) > ONE_HOUR_MS) {
+      // Fire and forget — don't block render
+      fetch('/api/automations/run', { method: 'GET' })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success && data.changes > 0) {
+            console.log(`[Automation] Applied ${data.changes} fixture status update(s).`);
+          }
+          localStorage.setItem(AUTOMATION_KEY, String(now));
+        })
+        .catch(() => {/* Gracefully silent — never block UI */});
+    }
   }, []);
 
   // ... (keep other useEffects for clicks and cart) ...

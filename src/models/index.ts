@@ -279,6 +279,7 @@ export interface Sport {
   season?: string; // Legacy field
   seasons?: Season[]; // To be populated if needed
   positions: string[];
+  durationMinutes?: number; // Duration allocated for the event
   stats?: {
     wins: number;
     losses: number;
@@ -444,4 +445,15 @@ export interface MerchItem {
   team?: string;
   availableSizes?: string[];
   selectedSize?: string;
+}
+
+/* ----- Automation Tracker ----- */
+export interface AutomationLog {
+  id?: string;
+  timestamp: string; // ISO
+  fixtureId: string;
+  sport: string;
+  oldStatus: string;
+  newStatus: string;
+  reason: string;
 }

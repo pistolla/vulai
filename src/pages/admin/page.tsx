@@ -4,7 +4,7 @@ import AdminGuard from '@/guards/AdminGuard';
 import UserHeader from '@/components/UserHeader';
 import { apiService, AdminData } from '../../services/apiService';
 import { ToastProvider, useToast } from '@/components/common/ToastProvider';
-import { FiGrid, FiUsers, FiMap, FiAward, FiTarget, FiBox, FiCheckCircle, FiCalendar, FiPlus, FiX, FiPackage, FiUser, FiMail, FiActivity } from 'react-icons/fi';
+import { FiGrid, FiUsers, FiMap, FiAward, FiTarget, FiBox, FiCheckCircle, FiCalendar, FiPlus, FiX, FiPackage, FiUser, FiMail, FiActivity, FiCpu } from 'react-icons/fi';
 import { Modal } from '@/components/common/Modal';
 import DashboardTab from '../../components/admin/DashboardTab';
 import UsersTab from '../../components/admin/UsersTab';
@@ -21,6 +21,7 @@ import GamesTab from '../../components/admin/GamesTab';
 import { ImportedDataTab } from '../../components/admin/ImportedDataTab';
 import LeaguesTab from '../../components/admin/LeaguesTab';
 import ContactTab from '../../components/admin/ContactTab';
+import AutomationsTab from '../../components/admin/AutomationsTab';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/services/firebase';
 import {
@@ -69,7 +70,7 @@ export default function AdminDashboardPage() {
   const { live, upcoming } = useAppSelector(s => s.games);
 
   /* ---------- Local UI state ---------- */
-  type TabId = 'dashboard' | 'users' | 'universities' | 'teams' | 'players' | 'sports' | 'merchandise' | 'store' | 'manager' | 'orders' | 'contact' | 'games' | 'importedData' | 'leagues' | 'balance';
+  type TabId = 'dashboard' | 'users' | 'universities' | 'teams' | 'players' | 'sports' | 'merchandise' | 'store' | 'manager' | 'orders' | 'contact' | 'games' | 'importedData' | 'leagues' | 'balance' | 'automations';
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [modals, setModals] = useState({
     addUser: false,
@@ -302,6 +303,7 @@ export default function AdminDashboardPage() {
     { id: 'games', label: 'Live Games', icon: FiCalendar },
     { id: 'importedData', label: 'Data Imports', icon: FiBox },
     { id: 'leagues', label: 'Leagues', icon: FiTarget },
+    { id: 'automations', label: 'Automations', icon: FiCpu },
   ];
 
   const renderContent = () => {
@@ -320,6 +322,7 @@ export default function AdminDashboardPage() {
       case 'games': return <GamesTab live={live} upcoming={upcoming} updateScore={updateScore} startG={startGame} endG={endGame} />;
       case 'importedData': return <ImportedDataTab />;
       case 'leagues': return <LeaguesTab adminData={adminData} />;
+      case 'automations': return <AutomationsTab />;
       default: return null;
     }
   };

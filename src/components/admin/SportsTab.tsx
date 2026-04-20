@@ -373,6 +373,15 @@ function SportForm({ formData, setFormData, onSubmit, submitLabel }: any) {
             className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-unill-purple-500 focus:ring-unill-purple-500"
           />
         </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Match Duration (Minutes)</label>
+          <input
+            type="number"
+            value={formData.durationMinutes || 120}
+            onChange={(e) => setFormData({ ...formData, durationMinutes: +e.target.value })}
+            className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-unill-purple-500 focus:ring-unill-purple-500"
+          />
+        </div>
         <div className="col-span-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Description</label>
           <textarea
@@ -457,6 +466,7 @@ export default function SportsTab({ adminData }: any) {
     image: '',
     base64Image: '',
     players: 11,
+    durationMinutes: 120,
     positions: [] as string[],
     stats: { wins: 0, losses: 0, championships: 0 }
   });
@@ -478,6 +488,7 @@ export default function SportsTab({ adminData }: any) {
       image: '',
       base64Image: '',
       players: 11,
+      durationMinutes: 120,
       positions: [],
       stats: { wins: 0, losses: 0, championships: 0 }
     });

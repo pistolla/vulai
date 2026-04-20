@@ -289,7 +289,14 @@ const HomePage: React.FC = () => {
                 </div>
 
                 <div className="flex flex-wrap justify-center gap-8">
-                   {[...liveMatches, ...upcomingMatches].slice(0, 3).map((match) => {
+                   {[...liveMatches, ...upcomingMatches]
+                     .sort((a, b) => {
+                       // Live fixtures always rise to the top
+                       if (a.status === 'live' && b.status !== 'live') return -1;
+                       if (b.status === 'live' && a.status !== 'live') return 1;
+                       return 0;
+                     })
+                     .slice(0, 2).map((match) => {
                       const participants: Participant[] = match.participants && match.participants.length > 0 
                         ? match.participants 
                         : ([
@@ -309,9 +316,17 @@ const HomePage: React.FC = () => {
                           className={`group relative w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.5rem)] max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2rem] p-6 text-left transition-all hover:bg-white/10 ${match.status === 'live' ? 'border-red-500/50 hover:border-red-500 shadow-lg shadow-red-500/10' : 'hover:border-unill-yellow-400/50'} hover:-translate-y-2`}
                         >
                            <div className="flex justify-between items-start mb-6">
-                              <span className={`px-3 py-1 ${match.status === 'live' ? 'bg-red-500' : 'bg-unill-purple-600'} rounded-full text-[10px] font-black text-white uppercase tracking-widest leading-none`}>
-                                 {match.status === 'live' ? 'LIVE' : match.sport}
-                              </span>
+                              <span className={`px-3 py-1 ${
+                                 match.status === 'live' ? 'bg-red-500' :
+                                 match.status === 'completed' ? 'bg-green-600' :
+                                 match.status === 'postponed' ? 'bg-yellow-600' :
+                                 'bg-unill-purple-600'
+                               } rounded-full text-[10px] font-black text-white uppercase tracking-widest leading-none`}>
+                               {match.status === 'live' ? 'LIVE' :
+                                match.status === 'completed' ? 'FT' :
+                                match.status === 'postponed' ? 'PPD' :
+                                match.sport}
+                            </span>
                               <span className="text-[10px] font-bold text-gray-400 uppercase">
                                  {match.status === 'live' ? 'Live Now' : new Date(match.scheduledAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                               </span>
@@ -403,11 +418,16 @@ const HomePage: React.FC = () => {
                   }`}
               >
                 <div className="flex items-center justify-between mb-8">
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase ${match.status === 'live' ? 'bg-red-500 text-white' :
-                    match.status === 'scheduled' || match.status === 'upcoming' ? 'bg-unill-purple-600 text-white' :
-                      'bg-green-600 text-white'
-                    }`}>
-                    {match.status === 'scheduled' || match.status === 'upcoming' ? 'UPCOMING' : match.status.toUpperCase()}
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase ${
+                    match.status === 'live' ? 'bg-red-500 text-white' :
+                    match.status === 'completed' ? 'bg-green-600 text-white' :
+                    match.status === 'postponed' ? 'bg-yellow-600 text-white' :
+                    'bg-unill-purple-600 text-white'
+                  }`}>
+                  {match.status === 'live' ? 'LIVE' :
+                   match.status === 'completed' ? 'FULL TIME' :
+                   match.status === 'postponed' ? 'POSTPONED' :
+                   'UPCOMING'}
                   </span>
                   <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{match.sport}</span>
                 </div>
