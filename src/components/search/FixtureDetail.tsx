@@ -82,7 +82,7 @@ const VenuePlayersTab: React.FC<{ fixture: Fixture; players: MatchPlayer[]; part
     return (
         <div className="p-6 space-y-8">
             {/* Venue Info */}
-            <div className={`rounded-xl p-8 border shadow-xl ${themeMounted && theme === 'light' ? 'bg-white/60 border-mauve-200' : 'bg-white/5 border-white/10'}`}>
+            <div className={`rounded-xl p-4 md:p-8 border shadow-xl ${themeMounted && theme === 'light' ? 'bg-white/60 border-mauve-200' : 'bg-white/5 border-white/10'}`}>
                 <div className="flex items-center gap-4 mb-6">
                     <div className="w-12 h-12 bg-unill-yellow-400/20 rounded-2xl flex items-center justify-center">
                         <FiMapPin className="w-6 h-6 text-unill-yellow-400" />
@@ -171,8 +171,8 @@ const StatisticsTab: React.FC<{ fixture: Fixture; participants: Participant[] }>
     }
 
     return (
-        <div className="p-8">
-            <div className={`rounded-[2rem] p-8 border shadow-2xl ${themeMounted && theme === 'light' ? 'bg-white/60 border-mauve-200' : 'bg-white/5 border-white/10 shadow-2xl'}`}>
+        <div className="p-4 md:p-8">
+            <div className={`rounded-[2rem] p-4 md:p-8 border shadow-2xl ${themeMounted && theme === 'light' ? 'bg-white/60 border-mauve-200' : 'bg-white/5 border-white/10 shadow-2xl'}`}>
                 <div className="flex items-center justify-center gap-12 mb-10">
                     {participants.map((p, i) => (
                         <div key={i} className="text-center">
@@ -231,7 +231,7 @@ export const FixtureDetail: React.FC<FixtureDetailProps> = ({ fixture, onClose }
             themeMounted && theme === 'light' ? 'bg-white/80 border-mauve-200' : 'bg-gray-900/95 border-white/10'
         }`}>
             {/* Header Area */}
-            <div className={`relative p-12 border-b ${
+            <div className={`relative p-6 md:p-12 border-b ${
                 themeMounted && theme === 'light' ? 'bg-gradient-to-br from-mauve-100 via-white to-mauve-50 border-mauve-200' : 'bg-gradient-to-br from-indigo-950 via-gray-900 to-black border-white/5'
             }`}>
                 <button
@@ -243,26 +243,26 @@ export const FixtureDetail: React.FC<FixtureDetailProps> = ({ fixture, onClose }
                     <FiX size={20} />
                 </button>
 
-                <div className="relative z-10 flex flex-wrap items-center justify-center gap-16">
+                <div className="relative z-10 flex flex-wrap items-center justify-center gap-6 md:gap-16">
                     {displayParticipants.map((p, i) => (
                         <React.Fragment key={i}>
                             <div className="text-center group">
-                                <div className={`w-28 h-28 mx-auto rounded-[2.5rem] flex items-center justify-center mb-6 shadow-2xl transition-all group-hover:scale-110 border-2 ${
+                                <div className={`w-20 h-20 md:w-28 md:h-28 mx-auto rounded-[2rem] md:rounded-[2.5rem] flex items-center justify-center mb-4 md:mb-6 shadow-2xl transition-all group-hover:scale-110 border-2 ${
                                     i === 0 ? 'bg-indigo-600 border-indigo-400/30' : 
                                     i === 1 ? 'bg-cyan-600 border-cyan-400/30' : 
                                     'bg-emerald-600 border-emerald-400/30'
                                 }`}>
-                                    <span className="text-4xl font-black text-white">{p.name?.charAt(0) || '?'}</span>
+                                    <span className="text-3xl md:text-4xl font-black text-white">{p.name?.charAt(0) || '?'}</span>
                                 </div>
-                                <h3 className={`text-2xl font-black uppercase tracking-tighter truncate max-w-[180px] ${
+                                <h3 className={`text-lg md:text-2xl font-black uppercase tracking-tighter truncate max-w-[120px] md:max-w-[180px] ${
                                     themeMounted && theme === 'light' ? 'text-gray-900' : 'text-white'
                                 }`}>{p.name}</h3>
                                 {fixture.status !== 'scheduled' && (
-                                    <p className="mt-2 text-3xl font-black text-unill-yellow-400 tabular-nums">{p.score ?? 0}</p>
+                                    <p className="mt-2 text-2xl md:text-3xl font-black text-unill-yellow-400 tabular-nums">{p.score ?? 0}</p>
                                 )}
                             </div>
                             {i < displayParticipants.length - 1 && participants.length === 2 && (
-                                <div className="text-gray-700 font-black italic text-3xl opacity-20 mt-[-40px]">VS</div>
+                                <div className="text-gray-700 font-black italic text-2xl md:text-3xl opacity-20 mt-[-20px] md:mt-[-40px]">VS</div>
                             )}
                         </React.Fragment>
                     ))}
@@ -287,7 +287,7 @@ export const FixtureDetail: React.FC<FixtureDetailProps> = ({ fixture, onClose }
             </div>
 
             {/* Sub-Nav Tabs */}
-            <div className={`flex border-b ${themeMounted && theme === 'light' ? 'bg-gray-50 border-mauve-200' : 'bg-black/20 border-white/5'}`}>
+            <div className={`flex overflow-x-auto whitespace-nowrap custom-scrollbar border-b ${themeMounted && theme === 'light' ? 'bg-gray-50 border-mauve-200' : 'bg-black/20 border-white/5'}`}>
                 {tabs.map((tab) => (
                     <TabButton
                         key={tab.id}

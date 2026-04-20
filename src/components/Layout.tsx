@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Head from 'next/head';
+import SEO from './common/SEO';
 import { useRouter } from 'next/router';
 import { useTheme } from './ThemeProvider';
 import { useAppSelector } from '../hooks/redux';
@@ -175,12 +175,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title, description = "Univers
 
   return (
     <RealtimeProvider>
-      <Head>
-        <title>{title} - Uni Limelight Sports</title>
-        <meta name="description" content={description} />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="icon" href="/images/logo.png" />
-      </Head>
+      <SEO title={`${title} - Uni Limelight Sports`} description={description} />
 
       {/* Global Realtime Elements */}
       <GlobalRealtimeUI />

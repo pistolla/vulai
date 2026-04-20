@@ -43,10 +43,10 @@ const FixtureDetailModal: React.FC<FixtureDetailModalProps> = ({ isOpen, onClose
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-xl flex items-center justify-center z-[100] p-4 md:p-8 transition-all duration-500 overflow-y-auto">
-      <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] border border-white/10 shadow-3xl w-full max-w-7xl min-h-[90vh] h-fit flex flex-col overflow-visible animate-in fade-in zoom-in slide-in-from-bottom-10 duration-500 my-auto">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl md:rounded-[2.5rem] border border-white/10 shadow-3xl w-full max-w-7xl min-h-[90vh] h-fit flex flex-col overflow-visible animate-in fade-in zoom-in slide-in-from-bottom-10 duration-500 my-auto">
         
         {/* Modal Header */}
-        <div className="px-8 py-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/20 shrink-0">
+        <div className="px-4 md:px-8 py-4 md:py-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/20 shrink-0">
           <div className="flex items-center space-x-4">
             <div className="w-10 h-10 rounded-xl bg-unill-purple-600 flex items-center justify-center text-white shadow-lg shadow-unill-purple-600/20">
               <FiTrendingUp className="w-5 h-5" />
@@ -69,17 +69,17 @@ const FixtureDetailModal: React.FC<FixtureDetailModalProps> = ({ isOpen, onClose
         </div>
 
         {/* Match Hero Section */}
-        <div className="px-8 pt-6 pb-2 shrink-0">
-            <div className={`bg-gradient-to-br from-indigo-900 via-unill-purple-900 to-indigo-950 rounded-[2.5rem] p-6 md:p-8 text-white relative overflow-hidden shadow-2xl`}>
+        <div className="px-4 md:px-8 pt-4 md:pt-6 pb-2 shrink-0">
+            <div className={`bg-gradient-to-br from-indigo-900 via-unill-purple-900 to-indigo-950 rounded-2xl md:rounded-[2.5rem] p-6 md:p-8 text-white relative overflow-hidden shadow-2xl`}>
               <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
               
               <div className="relative z-10">
-                 <div className="flex flex-wrap items-center justify-center gap-12">
+                 <div className="flex flex-wrap items-center justify-center gap-6 md:gap-12">
                     {participants.map((p, index) => (
                       <React.Fragment key={p.refId || index}>
                          <div className="text-center group">
-                            <div className="w-24 h-24 bg-white/10 rounded-[2rem] flex items-center justify-center mx-auto mb-4 border-2 border-white/20 shadow-xl transition-all group-hover:scale-110 group-hover:border-unill-yellow-400">
-                               <span className="text-4xl font-black text-white">{p.name?.charAt(0) || '?'}</span>
+                            <div className="w-16 h-16 md:w-24 md:h-24 bg-white/10 rounded-2xl md:rounded-[2rem] flex items-center justify-center mx-auto mb-4 border-2 border-white/20 shadow-xl transition-all group-hover:scale-110 group-hover:border-unill-yellow-400">
+                               <span className="text-3xl md:text-4xl font-black text-white">{p.name?.charAt(0) || '?'}</span>
                             </div>
                             <h3 className="text-xl font-black uppercase tracking-tight max-w-[150px] mx-auto">{p.name}</h3>
                             <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
@@ -90,7 +90,7 @@ const FixtureDetailModal: React.FC<FixtureDetailModalProps> = ({ isOpen, onClose
                          {index < participants.length - 1 && participants.length === 2 && (
                             <div className="flex flex-col items-center">
                                <div className="px-4 py-1 bg-unill-yellow-400 text-gray-900 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">VS</div>
-                               <div className="w-px h-16 bg-gradient-to-b from-white/0 via-white/20 to-white/0" />
+                               <div className="w-px h-8 md:h-16 bg-gradient-to-b from-white/0 via-white/20 to-white/0" />
                             </div>
                          )}
                       </React.Fragment>
@@ -107,7 +107,7 @@ const FixtureDetailModal: React.FC<FixtureDetailModalProps> = ({ isOpen, onClose
         </div>
 
         {/* Navigation Tabs */}
-        <div className="px-8 py-2 flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 shrink-0">
+        <div className="px-4 md:px-8 py-2 flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 shrink-0 overflow-x-auto whitespace-nowrap custom-scrollbar">
           {[
             { id: 'lineups' as const, label: 'Tactical Roster', icon: <FiUsers /> },
             { id: 'statistics' as const, label: 'Match Analytics', icon: <FiBarChart2 /> },
@@ -116,7 +116,7 @@ const FixtureDetailModal: React.FC<FixtureDetailModalProps> = ({ isOpen, onClose
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all ${
+              className={`flex items-center gap-3 px-4 md:px-8 py-3 md:py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all ${
                 activeTab === tab.id 
                   ? 'bg-unill-purple-600 text-white shadow-xl shadow-unill-purple-600/30' 
                   : 'text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
@@ -129,7 +129,7 @@ const FixtureDetailModal: React.FC<FixtureDetailModalProps> = ({ isOpen, onClose
         </div>
 
         {/* Content Area */}
-        <div className="p-10 bg-gray-50/30 dark:bg-black/10">
+        <div className="p-4 md:p-10 bg-gray-50/30 dark:bg-black/10">
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             {activeTab === 'lineups' && (
               <div className="space-y-12">

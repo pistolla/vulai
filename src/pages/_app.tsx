@@ -1,5 +1,6 @@
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
+import SEO from '@/components/common/SEO';
 import '@/styles/global.css';
 import { Provider } from 'react-redux';
 import { store } from '@/store';
@@ -73,9 +74,9 @@ export default function App({ Component, pageProps }: AppProps) {
     <>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="description" content="University sports excellence at Unill" />
         <link rel="icon" href="/images/logo.png" />
       </Head>
+      <SEO />
       <Provider store={store}>
         <ThemeProvider>
           <ToastProvider>
