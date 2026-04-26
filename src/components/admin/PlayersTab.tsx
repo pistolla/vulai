@@ -6,7 +6,8 @@ import { RootState } from '@/store';
 import { Player, PlayerSocial } from '@/types';
 import { Modal } from '@/components/common/Modal';
 import { useToast } from '@/components/common/ToastProvider';
-import { FiUserPlus, FiEdit2, FiTrash2, FiStar, FiImage, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { FiUserPlus, FiEdit2, FiTrash2, FiStar, FiImage, FiCheckCircle, FiAlertCircle, FiUser } from 'react-icons/fi';
+import { CloudinaryUpload } from '../common/CloudinaryUpload';
 import { confirmDelete } from '@/utils/confirmDialog';
 
 // Input Wrapper Component for enhanced styling and error states
@@ -363,9 +364,13 @@ export default function PlayersTab({ adminData }: PlayersTabProps) {
                 <tr key={player.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-sm">{player.avatar}</span>
-                      </div>
+                      {player.avatar?.startsWith('http') ? (
+                        <img src={player.avatar} alt={player.name} className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-gray-700 shadow-sm" />
+                      ) : (
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                          <span className="text-white font-bold text-sm">{player.avatar || player.name?.charAt(0)}</span>
+                        </div>
+                      )}
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900 dark:text-white">{player.name}</div>
                         <div className="text-sm text-gray-500 dark:text-white">#{player.number}</div>
@@ -583,15 +588,14 @@ function PlayerForm({ formData, setFormData, onSubmit, submitLabel, universities
           </select>
         </InputWrapper>
 
-        <InputWrapper label="Avatar (Initials)">
-          <input
-            type="text"
+        <div className="col-span-2">
+          <CloudinaryUpload
+            label="Player Profile Image"
             value={formData.avatar}
-            onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
-            className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400 transition-all"
-            placeholder="e.g. JD"
+            onChange={(url) => setFormData({ ...formData, avatar: url })}
+            description="Professional profile photo or action shot"
           />
-        </InputWrapper>
+        </div>
 
         <InputWrapper label="Body Fat (%)">
           <input
@@ -774,25 +778,20 @@ function AvatarForm({ avatarData, setAvatarData, onSubmit, onDelete, submitLabel
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <InputWrapper label="Base64 Image">
-        <textarea
-          rows={4}
-          placeholder="Paste base64 encoded image"
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <CloudinaryUpload
+          label="Avatar Thumbnail (Base64 Replacement)"
           value={avatarData.base64Image}
-          onChange={(e) => setAvatarData({ ...avatarData, base64Image: e.target.value })}
-          className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400 transition-all"
+          onChange={(url) => setAvatarData({ ...avatarData, base64Image: url })}
+          description="Small optimized version for quick loading"
         />
-      </InputWrapper>
-
-      <InputWrapper label="Full Size Image URL">
-        <input
-          type="text"
-          placeholder="URL to full size image"
+        <CloudinaryUpload
+          label="Full Size Avatar Image"
           value={avatarData.fullSizeImage}
-          onChange={(e) => setAvatarData({ ...avatarData, fullSizeImage: e.target.value })}
-          className="w-full px-5 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 text-gray-900 dark:text-white font-bold placeholder-gray-400 transition-all"
+          onChange={(url) => setAvatarData({ ...avatarData, fullSizeImage: url })}
+          description="High-resolution source for the player's 3D avatar"
         />
-      </InputWrapper>
+      </div>
 
       <InputWrapper label="3D Assets (JSON)">
         <textarea

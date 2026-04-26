@@ -52,7 +52,7 @@ export const QuickFixtureModal: React.FC<QuickFixtureModalProps> = ({ isOpen, on
             const sportId = league?.sportId;
             const sportName = league?.sportName?.toLowerCase() || '';
             
-            const filteredTeams = allTeams.filter((t: any) => {
+            let filteredTeams = allTeams.filter((t: any) => {
                 // 1. Try matching by sportId if both have it
                 if (sportId && t.sportId === sportId) return true;
                 
@@ -65,6 +65,12 @@ export const QuickFixtureModal: React.FC<QuickFixtureModalProps> = ({ isOpen, on
                 // 3. If no filter criteria defined for the league, include all teams
                 return !sportId && !sportName;
             });
+
+            // Fallback: If filtered result is empty, show all teams so the user isn't stuck
+            if (filteredTeams.length === 0 && allTeams.length > 0) {
+                console.warn('[QuickFixtureModal] No teams matched the sport filter. Falling back to all teams.');
+                filteredTeams = allTeams;
+            }
             
             // Format teams with university info
             const formattedTeams: TeamOption[] = filteredTeams.map((t: any) => ({

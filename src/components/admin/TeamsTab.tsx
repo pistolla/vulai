@@ -8,7 +8,8 @@ import { useToast } from '@/components/common/ToastProvider';
 import { Modal } from '@/components/common/Modal';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { addPlayerToSquadT, approveTeamT, rejectTeamT } from '@/store/adminThunk';
-import { FiPlus, FiEdit2, FiTrash2, FiUsers, FiAward, FiCalendar, FiCheckCircle, FiAlertCircle, FiUploadCloud, FiSearch, FiX, FiCheck, FiXCircle } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiUsers, FiAward, FiCalendar, FiCheckCircle, FiAlertCircle, FiUploadCloud, FiSearch, FiX, FiCheck, FiXCircle, FiImage } from 'react-icons/fi';
+import { CloudinaryUpload } from '../common/CloudinaryUpload';
 import { generateTeamSlug } from '@/utils/slugUtils';
 
 // Input Wrapper Component for enhanced styling and error states
@@ -136,16 +137,8 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
     loadSeasonsForSport();
   }, [formData.sport, formData.league, sports, warning]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        handleChange('logoURL', reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  // Cloudinary upload replaces handleFileChange
+
 
   const validateField = (name: string, value: string) => {
     switch (name) {
@@ -365,42 +358,12 @@ function TeamForm({ formData, setFormData, onSubmit, submitLabel, user, onCancel
         </InputWrapper>
 
         <div className="col-span-2">
-          <InputWrapper label="Team Logo">
-            <div className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${formData.logoURL
-              ? 'border-green-300 dark:border-green-600 bg-green-50 dark:bg-green-900/20'
-              : 'border-gray-300 dark:border-gray-600 hover:border-blue-400'
-              }`}>
-              {formData.logoURL ? (
-                <div className="flex items-center justify-center gap-4">
-                  <img src={formData.logoURL} alt="Logo preview" className="w-20 h-20 object-cover rounded-xl shadow-lg" />
-                  <div>
-                    <p className="text-green-600 dark:text-green-400 font-bold text-sm">Logo uploaded</p>
-                    <button
-                      type="button"
-                      onClick={() => handleChange('logoURL', '')}
-                      className="text-red-500 hover:text-red-700 text-xs font-medium mt-1"
-                    >
-                      Remove logo
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <label className="cursor-pointer">
-                  <div className="flex flex-col items-center">
-                    <FiUploadCloud className="w-10 h-10 text-gray-400 mb-2" />
-                    <p className="text-gray-600 dark:text-gray-300 font-medium">Click to upload team logo</p>
-                    <p className="text-gray-400 text-sm mt-1">PNG, JPG up to 2MB</p>
-                  </div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                </label>
-              )}
-            </div>
-          </InputWrapper>
+          <CloudinaryUpload
+            label="Team Logo"
+            value={formData.logoURL}
+            onChange={(url) => handleChange('logoURL', url)}
+            description="Official team crest or logo (transparency preferred)"
+          />
         </div>
 
         {/* Team Theme Colors */}

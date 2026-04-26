@@ -4,6 +4,8 @@ import { fetchMerch, fetchUniversities, fetchTeams, createMerchT, saveMerchT, re
 import { RootState } from '@/store';
 
 import { Modal } from '@/components/common/Modal';
+import { CloudinaryUpload } from '../common/CloudinaryUpload';
+import { FiPlus, FiTrash2, FiImage } from 'react-icons/fi';
 
 // Merchandise Form Component
 function MerchandiseForm({ formData, setFormData, universities, teams, selectedUniversity, setSelectedUniversity, selectedTeam, setSelectedTeam, onSubmit, submitLabel }: any) {
@@ -71,23 +73,47 @@ function MerchandiseForm({ formData, setFormData, universities, teams, selectedU
             className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Image URL</label>
-          <input
-            type="text"
+        <div className="col-span-2">
+          <CloudinaryUpload
+            label="Main Product Image"
             value={formData.image}
-            onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            onChange={(url) => setFormData({ ...formData, image: url })}
+            description="Primary image shown in catalog and search results"
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Additional Images (comma-separated URLs or base64)</label>
-          <textarea
-            rows={3}
-            value={formData.images ? formData.images.join(', ') : ''}
-            onChange={(e) => setFormData({ ...formData, images: e.target.value.split(',').map(s => s.trim()).filter(s => s) })}
-            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-blue-500 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-          />
+        <div className="col-span-2">
+          <label className="block text-xs font-black text-gray-500 dark:text-gray-300 uppercase tracking-widest mb-4">
+            Product Gallery (Additional Images)
+          </label>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+            {formData.images && formData.images.map((img: string, idx: number) => (
+              <div key={idx} className="relative group aspect-square rounded-xl overflow-hidden border-2 border-gray-100 dark:border-gray-700">
+                <img src={img} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newImages = [...formData.images];
+                    newImages.splice(idx, 1);
+                    setFormData({ ...formData, images: newImages });
+                  }}
+                  className="absolute top-1 right-1 bg-red-500 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                >
+                  <FiTrash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+            <div className="aspect-square">
+              <CloudinaryUpload
+                label=""
+                value=""
+                onChange={(url) => {
+                  const newImages = [...(formData.images || []), url];
+                  setFormData({ ...formData, images: newImages });
+                }}
+                className="h-full"
+              />
+            </div>
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-700">Category</label>

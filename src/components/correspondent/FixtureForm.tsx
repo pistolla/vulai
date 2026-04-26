@@ -21,6 +21,7 @@ interface TeamOption {
   id: string;
   name: string;
   sport?: string;
+  sportId?: string;
   university?: string;
 }
 
@@ -134,6 +135,7 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
         id: t.id,
         name: t.name,
         sport: t.sport,
+        sportId: t.sportId,
         university: t.universityName || t.universityId
       }));
       setTeams(formattedTeams);
@@ -151,12 +153,16 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
     const selectedSport = sports.find((s: any) => s.id === sportId);
     if (selectedSport) {
       const filtered = teams.filter(t => 
-        !t.sport || t.sport.toLowerCase() === selectedSport.name.toLowerCase()
+        !t.sportId || t.sportId === sportId || 
+        (t.sport && t.sport.toLowerCase() === selectedSport.name.toLowerCase()) ||
+        !t.sport // Include teams with no sport assigned as a fallback
       );
-      setFilteredTeams(filtered);
+      setFilteredTeams(filtered.length > 0 ? filtered : teams);
       if (filtered.length === 0) {
-        info('No teams found', `No teams registered for ${selectedSport.name}. Create teams first.`);
+        console.warn(`[FixtureForm] No teams found for sport: ${selectedSport.name}. Showing all teams as fallback.`);
       }
+    } else {
+      setFilteredTeams(teams);
     }
   };
 

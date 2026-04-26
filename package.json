@@ -17,6 +17,7 @@
     "@xyflow/react": "^12.10.0",
     "animejs": "^3.2.1",
     "aos": "^2.3.4",
+    "cloudinary": "^2.10.0",
     "echarts": "^5.4.3",
     "feather-icons": "^4.29.2",
     "firebase": "^12.3.0",

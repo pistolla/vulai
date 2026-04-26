@@ -5,7 +5,8 @@ import { RootState } from '@/store';
 import Pagination from './Pagination';
 import ExportButtons from './ExportButtons';
 import { Modal } from '@/components/common/Modal';
-import { FiPlus, FiCalendar, FiEdit2, FiTrash2, FiClock, FiChevronRight, FiLoader, FiInfo, FiChevronDown, FiChevronUp, FiPower } from 'react-icons/fi';
+import { FiPlus, FiCalendar, FiEdit2, FiTrash2, FiClock, FiChevronRight, FiLoader, FiInfo, FiChevronDown, FiChevronUp, FiPower, FiImage } from 'react-icons/fi';
+import { CloudinaryUpload } from '../common/CloudinaryUpload';
 
 // Season Card Component with timeline visualization and active toggle
 function SeasonCard({ 
@@ -345,23 +346,12 @@ function SportForm({ formData, setFormData, onSubmit, submitLabel }: any) {
             <option value="individual">Individual Sport</option>
           </select>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Image URL</label>
-          <input
-            type="text"
-            value={formData.image}
-            onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-            className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-unill-purple-500 focus:ring-unill-purple-500"
-          />
-        </div>
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Base64 Image</label>
-          <textarea
-            rows={4}
-            placeholder="Paste base64 encoded image"
-            value={formData.base64Image}
-            onChange={(e) => setFormData({ ...formData, base64Image: e.target.value })}
-            className="w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-unill-purple-500 focus:ring-unill-purple-500 resize-none"
+          <CloudinaryUpload
+            label="Sport Icon / Image"
+            value={formData.image || formData.base64Image}
+            onChange={(url) => setFormData({ ...formData, image: url, base64Image: '' })}
+            description="High-quality icon or representative image for the sport"
           />
         </div>
         <div>

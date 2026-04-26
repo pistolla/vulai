@@ -3,7 +3,8 @@ import { apiService } from '@/services/apiService';
 import { University } from '@/models';
 
 import { Modal } from '@/components/common/Modal';
-import { FiCheckCircle, FiAlertCircle, FiUploadCloud } from 'react-icons/fi';
+import { FiCheckCircle, FiAlertCircle, FiUploadCloud, FiImage } from 'react-icons/fi';
+import { CloudinaryUpload } from '../common/CloudinaryUpload';
 
 // Input Wrapper Component for enhanced styling and error states
 const InputWrapper = ({ children, error, label, labelExtra }: { children: React.ReactNode; error?: string; label: string; labelExtra?: string }) => (
@@ -31,16 +32,8 @@ const InputWrapper = ({ children, error, label, labelExtra }: { children: React.
 function UniversityForm({ formData, setFormData, onSubmit, submitLabel }: any) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setFormData({ ...formData, logoURL: reader.result as string });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  // Cloudinary upload replaces handleFileChange
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,42 +91,14 @@ function UniversityForm({ formData, setFormData, onSubmit, submitLabel }: any) {
         </InputWrapper>
 
         <div className="col-span-2">
-          <InputWrapper label="Logo">
-            <div className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all ${formData.logoURL
-              ? 'border-green-300 dark:border-green-600 bg-green-50 dark:bg-green-900/20'
-              : 'border-gray-300 dark:border-gray-600 hover:border-blue-400'
-              }`}>
-              {formData.logoURL ? (
-                <div className="flex items-center justify-center gap-4">
-                  <img src={formData.logoURL} alt="Logo preview" className="w-20 h-20 object-cover rounded-xl shadow-lg" />
-                  <div>
-                    <p className="text-green-600 dark:text-green-400 font-bold text-sm">Logo uploaded</p>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, logoURL: '' })}
-                      className="text-red-500 hover:text-red-700 text-xs font-medium mt-1"
-                    >
-                      Remove logo
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <label className="cursor-pointer">
-                  <div className="flex flex-col items-center">
-                    <FiUploadCloud className="w-10 h-10 text-gray-400 mb-2" />
-                    <p className="text-gray-600 dark:text-gray-300 font-medium">Click to upload university logo</p>
-                    <p className="text-gray-400 text-sm mt-1">PNG, JPG up to 2MB</p>
-                  </div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                </label>
-              )}
-            </div>
-          </InputWrapper>
+        <div className="col-span-2">
+          <CloudinaryUpload
+            label="University Logo"
+            value={formData.logoURL}
+            onChange={(url) => setFormData({ ...formData, logoURL: url })}
+            description="Official university crest or logo"
+          />
+        </div>
         </div>
 
         <div className="col-span-2">
