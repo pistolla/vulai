@@ -247,12 +247,16 @@ export const FixtureDetail: React.FC<FixtureDetailProps> = ({ fixture, onClose }
                     {displayParticipants.map((p, i) => (
                         <React.Fragment key={i}>
                             <div className="text-center group">
-                                <div className={`w-20 h-20 md:w-28 md:h-28 mx-auto rounded-[2rem] md:rounded-[2.5rem] flex items-center justify-center mb-4 md:mb-6 shadow-2xl transition-all group-hover:scale-110 border-2 ${
+                                <div className={`w-20 h-20 md:w-28 md:h-28 mx-auto rounded-[2rem] md:rounded-[2.5rem] flex items-center justify-center mb-4 md:mb-6 shadow-2xl transition-all group-hover:scale-110 border-2 overflow-hidden ${
                                     i === 0 ? 'bg-indigo-600 border-indigo-400/30' : 
                                     i === 1 ? 'bg-cyan-600 border-cyan-400/30' : 
                                     'bg-emerald-600 border-emerald-400/30'
                                 }`}>
-                                    <span className="text-3xl md:text-4xl font-black text-white">{p.name?.charAt(0) || '?'}</span>
+                                    {p.logoURL || p.universityLogo ? (
+                                        <img src={p.logoURL || p.universityLogo} alt={p.name} className="w-full h-full object-contain p-2" />
+                                    ) : (
+                                        <span className="text-3xl md:text-4xl font-black text-white">{p.name?.charAt(0) || '?'}</span>
+                                    )}
                                 </div>
                                 <h3 className={`text-lg md:text-2xl font-black uppercase tracking-tighter truncate max-w-[120px] md:max-w-[180px] ${
                                     themeMounted && theme === 'light' ? 'text-gray-900' : 'text-white'

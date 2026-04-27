@@ -21,6 +21,8 @@ interface TeamOption {
     id: string;
     name: string;
     university?: string;
+    logoURL?: string;
+    universityLogo?: string;
 }
 
 export const QuickFixtureModal: React.FC<QuickFixtureModalProps> = ({ isOpen, onClose, league }) => {
@@ -72,12 +74,18 @@ export const QuickFixtureModal: React.FC<QuickFixtureModalProps> = ({ isOpen, on
                 filteredTeams = allTeams;
             }
             
-            // Format teams with university info
-            const formattedTeams: TeamOption[] = filteredTeams.map((t: any) => ({
-                id: t.id,
-                name: t.name,
-                university: t.universityName || t.universityId
-            }));
+            // Format teams with university info and logos
+            const allUnis = await apiService.getUniversities();
+            const formattedTeams: TeamOption[] = filteredTeams.map((t: any) => {
+                const uni = allUnis.find((u: any) => u.id === t.universityId);
+                return {
+                    id: t.id,
+                    name: t.name,
+                    university: t.universityName || t.universityId,
+                    logoURL: t.logoURL,
+                    universityLogo: uni?.logoURL
+                };
+            });
             setTeams(formattedTeams);
         } catch (error) {
             console.error('Failed to load teams:', error);
@@ -254,10 +262,24 @@ export const QuickFixtureModal: React.FC<QuickFixtureModalProps> = ({ isOpen, on
                 dispatch(setStages({ leagueId: league.id!, groupId, stages: updatedStages }));
             }
 
-            // 3. Create match with proper participant data
+            // 3. Create match with proper participant data including logos
             const participants: Participant[] = [
-                { refType: 'team', refId: homeTeamId, name: homeTeam?.name || 'Unknown', score: 0 },
-                { refType: 'team', refId: awayTeamId, name: awayTeam?.name || 'Unknown', score: 0 }
+                { 
+                    refType: 'team', 
+                    refId: homeTeamId, 
+                    name: homeTeam?.name || 'Unknown', 
+                    logoURL: homeTeam?.logoURL,
+                    universityLogo: homeTeam?.universityLogo,
+                    score: 0 
+                },
+                { 
+                    refType: 'team', 
+                    refId: awayTeamId, 
+                    name: awayTeam?.name || 'Unknown', 
+                    logoURL: awayTeam?.logoURL,
+                    universityLogo: awayTeam?.universityLogo,
+                    score: 0 
+                }
             ];
 
             const match: Omit<Match, 'id'> = {

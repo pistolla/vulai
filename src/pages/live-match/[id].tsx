@@ -25,6 +25,8 @@ interface MatchData {
   id: string;
   homeTeam: string;
   awayTeam: string;
+  homeLogo?: string;
+  awayLogo?: string;
   score: { home: number; away: number };
   status: string;
   minute: number;
@@ -118,27 +120,36 @@ export default function LiveMatchPage() {
 
     const loadMatchData = async () => {
       try {
-        const mockMatch: MatchData = {
-          id: id as string,
-          homeTeam: 'Eagles',
-          awayTeam: 'Lions',
-          score: { home: 2, away: 1 },
-          status: 'live',
-          minute: 67,
-          venue: 'University Stadium',
-          sport: 'football',
-          stats: {
-            possession: { home: 54, away: 46 },
-            shotsOnGoal: { home: 8, away: 5 },
-            fouls: { home: 12, away: 14 },
-            corners: { home: 6, away: 4 },
-            cards: {
-              home: { yellow: 2, red: 0 },
-              away: { yellow: 3, red: 1 }
+        const fixtureDoc = await getDoc(doc(db, 'fixtures', id as string));
+        if (fixtureDoc.exists()) {
+          const fixture = fixtureDoc.data();
+          const p1 = fixture.participants?.[0];
+          const p2 = fixture.participants?.[1];
+
+          const realMatch: MatchData = {
+            id: id as string,
+            homeTeam: p1?.name || fixture.homeTeamName || 'Home',
+            awayTeam: p2?.name || fixture.awayTeamName || 'Away',
+            homeLogo: p1?.logoURL || p1?.universityLogo,
+            awayLogo: p2?.logoURL || p2?.universityLogo,
+            score: fixture.score || { home: 0, away: 0 },
+            status: fixture.status || 'live',
+            minute: fixture.minute || 0,
+            venue: fixture.venue || 'Stadium',
+            sport: fixture.sport || 'football',
+            stats: fixture.stats || {
+              possession: { home: 50, away: 50 },
+              shotsOnGoal: { home: 0, away: 0 },
+              fouls: { home: 0, away: 0 },
+              corners: { home: 0, away: 0 },
+              cards: { home: { yellow: 0, red: 0 }, away: { yellow: 0, red: 0 } }
             }
-          }
-        };
-        setMatchData(mockMatch);
+          };
+          setMatchData(realMatch);
+        } else {
+          // Fallback or error
+          console.error('Fixture not found:', id);
+        }
 
         const telemetryInterval = setInterval(async () => {
           try {
@@ -289,6 +300,8 @@ export default function LiveMatchPage() {
           <MatchHeader
             homeTeam={matchData.homeTeam}
             awayTeam={matchData.awayTeam}
+            homeLogo={matchData.homeLogo}
+            awayLogo={matchData.awayLogo}
             score={matchData.score}
             minute={matchData.minute}
             status={matchData.status}

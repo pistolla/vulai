@@ -37,7 +37,7 @@ function ShimmerTableRow() {
 export default function UsersTab({ rows, approve, disapprove, deleteU, openAdd, adminData, viewProfile }: any) {
   const { loading } = useAppSelector(s => s.admin);
   const allUsers = rows.length > 0 ? rows : (adminData?.users || []);
-  const [activeTab, setActiveTab] = useState<'fans' | 'correspondents'>('fans');
+  const [activeTab, setActiveTab] = useState<'fans' | 'correspondents' | 'marketers'>('fans');
 
   const displayUsers = allUsers.filter((u: any) => u.role === activeTab.slice(0, -1)); // 'fan' or 'correspondent'
   const hasUsers = displayUsers.length > 0;
@@ -81,6 +81,12 @@ export default function UsersTab({ rows, approve, disapprove, deleteU, openAdd, 
           className={`px-4 py-2 rounded-lg font-medium ${activeTab === 'correspondents' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
         >
           Correspondents
+        </button>
+        <button
+          onClick={() => setActiveTab('marketers')}
+          className={`px-4 py-2 rounded-lg font-medium ${activeTab === 'marketers' ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
+        >
+          Marketers
         </button>
       </div>
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-2 sm:p-6">

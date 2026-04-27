@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'correspondent' | 'fan' | 'sport-team';
+export type UserRole = 'admin' | 'correspondent' | 'fan' | 'sport-team' | 'marketer';
 
 export interface AuthUser {
   uid: string;
@@ -11,6 +11,7 @@ export interface AuthUser {
   photoURL?: string;
   phoneNumber?: string;
   twoFactorEnabled?: boolean;
+  needsPasswordReset?: boolean;
 }
 
 /* Firestore document shapes */

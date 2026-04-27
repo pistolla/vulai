@@ -21,6 +21,7 @@ import GamesTab from '../../components/admin/GamesTab';
 import { ImportedDataTab } from '../../components/admin/ImportedDataTab';
 import LeaguesTab from '../../components/admin/LeaguesTab';
 import ContactTab from '../../components/admin/ContactTab';
+import { MarketingReviewTab } from '../../components/admin/MarketingReviewTab';
 import AutomationsTab from '../../components/admin/AutomationsTab';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/services/firebase';
@@ -70,7 +71,7 @@ export default function AdminDashboardPage() {
   const { live, upcoming } = useAppSelector(s => s.games);
 
   /* ---------- Local UI state ---------- */
-  type TabId = 'dashboard' | 'users' | 'universities' | 'teams' | 'players' | 'sports' | 'merchandise' | 'store' | 'manager' | 'orders' | 'contact' | 'games' | 'importedData' | 'leagues' | 'balance' | 'automations';
+  type TabId = 'dashboard' | 'users' | 'universities' | 'teams' | 'players' | 'sports' | 'merchandise' | 'store' | 'manager' | 'orders' | 'contact' | 'games' | 'importedData' | 'leagues' | 'balance' | 'automations' | 'marketing';
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [modals, setModals] = useState({
     addUser: false,
@@ -303,6 +304,7 @@ export default function AdminDashboardPage() {
     { id: 'games', label: 'Live Games', icon: FiCalendar },
     { id: 'importedData', label: 'Data Imports', icon: FiBox },
     { id: 'leagues', label: 'Leagues', icon: FiTarget },
+    { id: 'marketing', label: 'Marketing Review', icon: FiTarget },
     { id: 'automations', label: 'Automations', icon: FiCpu },
   ];
 
@@ -322,6 +324,7 @@ export default function AdminDashboardPage() {
       case 'games': return <GamesTab live={live} upcoming={upcoming} updateScore={updateScore} startG={startGame} endG={endGame} />;
       case 'importedData': return <ImportedDataTab />;
       case 'leagues': return <LeaguesTab adminData={adminData} />;
+      case 'marketing': return <MarketingReviewTab />;
       case 'automations': return <AutomationsTab />;
       default: return null;
     }
@@ -396,7 +399,8 @@ function AddUserForm({ close, universities, dispatch }: any) {
       const { register } = await import('@/services/firebase');
       await register(formData.email, formData.password, formData.role as any, {
         displayName: formData.name,
-        universityId: formData.university
+        universityId: formData.university,
+        needsPasswordReset: formData.role === 'marketer' // Only for marketers as requested, or you could do it for all
       });
       dispatch(fetchUsers());
       success('User created successfully', 'The new user can now log in', 'Assign roles or manage permissions');
@@ -453,6 +457,7 @@ function AddUserForm({ close, universities, dispatch }: any) {
             >
               <option value="fan">Fan</option>
               <option value="correspondent">Correspondent</option>
+              <option value="marketer">Marketer</option>
               <option value="admin">Admin</option>
             </select>
           </div>

@@ -203,6 +203,12 @@ export default function UserHeader({ theme = 'crimson' }: UserHeaderProps) {
                           <span>Admin Dashboard</span>
                         </a>
                       )}
+                      {user.role === 'marketer' && (
+                        <a href="/marketer/dashboard" className="flex items-center space-x-2 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" /></svg>
+                          <span>Marketer Dashboard</span>
+                        </a>
+                      )}
                       <hr className="my-1 border-gray-100 dark:border-gray-700" />
                       <button
                         onClick={handleLogout}

@@ -84,12 +84,16 @@ export const FixtureCard: React.FC<FixtureCardProps> = ({ fixture, leagueName, o
                     {displayParticipants.map((p, index) => (
                         <React.Fragment key={p.refId || index}>
                             <div className="flex flex-col items-center text-center max-w-[100px]">
-                                <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-3 shadow-lg transition-all group-hover:scale-110 border-2 ${
+                                <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-3 shadow-lg transition-all group-hover:scale-110 border-2 overflow-hidden ${
                                     index === 0 ? 'bg-gradient-to-br from-unill-purple-500 to-indigo-600 border-unill-purple-400/30' : 
                                     index === 1 ? 'bg-gradient-to-br from-cyan-500 to-blue-600 border-cyan-400/30' : 
                                     'bg-gradient-to-br from-emerald-500 to-teal-600 border-emerald-400/30'
                                 }`}>
-                                    <span className="text-xl font-black text-white">{p.name?.charAt(0) || '?'}</span>
+                                    {p.logoURL || p.universityLogo ? (
+                                        <img src={p.logoURL || p.universityLogo} alt={p.name} className="w-full h-full object-contain p-1" />
+                                    ) : (
+                                        <span className="text-xl font-black text-white">{p.name?.charAt(0) || '?'}</span>
+                                    )}
                                 </div>
                                 <p className={`font-black text-[11px] leading-tight mb-1 uppercase tracking-tight line-clamp-2 h-8 ${
                                     themeMounted && theme === 'light' ? 'text-gray-900' : 'text-white'

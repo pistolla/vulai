@@ -178,6 +178,8 @@ export interface Participant {
   refType: 'team' | 'individual';
   refId: string;
   name?: string;
+  logoURL?: string;
+  universityLogo?: string;
   score: number;
   stats?: Record<string, any>;
 }

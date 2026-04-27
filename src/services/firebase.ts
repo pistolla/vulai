@@ -84,6 +84,7 @@ const mapRawUser = (u: any): AuthUser => ({
   teamId: u.teamId,
   displayName: u.displayName,
   photoURL: u.photoURL,
+  needsPasswordReset: u.needsPasswordReset,
 });
 
 /* ---------- public API ---------- */
@@ -91,7 +92,7 @@ export const register = async (
   email: string,
   password: string,
   role: UserRole,
-  meta: { universityId?: string; teamId?: string; displayName?: string }
+  meta: { universityId?: string; teamId?: string; displayName?: string; needsPasswordReset?: boolean }
 ): Promise<AuthUser> => {
   const cred: UserCredential = await createUserWithEmailAndPassword(auth, email, password);
   await sendEmailVerification(cred.user); // Send verification email
@@ -99,8 +100,8 @@ export const register = async (
     email,
     role,
     universityId: meta.universityId,
-    displayName: meta.displayName || email.split('@')[0]
-
+    displayName: meta.displayName || email.split('@')[0],
+    needsPasswordReset: meta.needsPasswordReset
   };
   await setDoc(doc(db, 'users', cred.user.uid), profile);
   return mapRawUser({ uid: cred.user.uid, ...profile });

@@ -23,9 +23,14 @@ export default function LoginPage() {
   /* ---------- redirect if already authenticated ---------- */
   useEffect(() => {
     if (user) {
+      if (user.needsPasswordReset) {
+        router.replace('/set-password');
+        return;
+      }
       switch (user.role) {
         case 'admin': router.replace('/admin/page'); break;
         case 'correspondent': router.replace('/correspondent'); break;
+        case 'marketer': router.replace('/marketer/dashboard'); break;
         case 'fan': router.replace('/teams'); break;
         default: router.replace('/login');
       }
@@ -56,9 +61,14 @@ export default function LoginPage() {
           university: user.universityId
         })
       });
+      if (user.needsPasswordReset) {
+        router.replace('/set-password');
+        return;
+      }
       switch (user.role) {
         case 'admin': router.replace('/admin/page'); break;
         case 'correspondent': router.replace('/correspondent'); break;
+        case 'marketer': router.replace('/marketer/dashboard'); break;
         case 'fan': router.replace('/teams'); break;
         default: router.replace('/login');
       }
@@ -94,6 +104,7 @@ export default function LoginPage() {
       switch (user.role) {
         case 'admin': router.replace('/admin/page'); break;
         case 'correspondent': router.replace('/correspondent'); break;
+        case 'marketer': router.replace('/marketer/dashboard'); break;
         case 'fan': router.replace('/teams'); break;
         default: router.replace('/login');
       }

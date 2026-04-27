@@ -23,6 +23,8 @@ interface TeamOption {
   sport?: string;
   sportId?: string;
   university?: string;
+  logoURL?: string;
+  universityLogo?: string;
 }
 
 interface PlayerOption {
@@ -114,14 +116,22 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
     const updated = [...participants];
     updated[index] = { ...updated[index], ...data };
     
-    // Auto-update name if refId changed
+    // Auto-update name and logos if refId changed
     if (data.refId) {
       if (updated[index].refType === 'team') {
         const team = teams.find(t => t.id === data.refId);
-        if (team) updated[index].name = team.name;
+        if (team) {
+          updated[index].name = team.name;
+          updated[index].logoURL = team.logoURL;
+          updated[index].universityLogo = team.universityLogo;
+        }
       } else {
         const player = players.find(p => p.id === data.refId);
-        if (player) updated[index].name = player.name;
+        if (player) {
+          updated[index].name = player.name;
+          // Players don't have team logos in this context yet, 
+          // but we could extend this if needed
+        }
       }
     }
     
@@ -131,13 +141,19 @@ export const FixtureForm: React.FC<FixtureFormProps> = ({ fixture, match, league
   const loadTeams = async () => {
     try {
       const allTeams = await apiService.getTeams();
-      const formattedTeams: TeamOption[] = allTeams.map((t: any) => ({
-        id: t.id,
-        name: t.name,
-        sport: t.sport,
-        sportId: t.sportId,
-        university: t.universityName || t.universityId
-      }));
+      const allUnis = await apiService.getUniversities();
+      const formattedTeams: TeamOption[] = allTeams.map((t: any) => {
+        const uni = allUnis.find((u: any) => u.id === t.universityId);
+        return {
+          id: t.id,
+          name: t.name,
+          sport: t.sport,
+          sportId: t.sportId,
+          university: t.universityName || t.universityId,
+          logoURL: t.logoURL,
+          universityLogo: uni?.logoURL
+        };
+      });
       setTeams(formattedTeams);
       setFilteredTeams(formattedTeams);
     } catch (error) {
