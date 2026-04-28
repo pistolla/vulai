@@ -55,6 +55,7 @@ import {
   fetchImportedData,
   updateOrderStatusT,
   updateContactMessageStatusT,
+  updateUserRoleT,
 } from '@/store/adminThunk';
 
 export default function AdminDashboardPage() {
@@ -138,6 +139,16 @@ export default function AdminDashboardPage() {
       success('User deleted successfully', 'The user account has been removed', 'Add a new user if needed');
     } catch {
       showError('Failed to delete user', 'Please try again or contact support');
+    }
+  };
+
+  const updateRole = async (uid: string, role: string) => {
+    try {
+      await dispatch(updateUserRoleT({ uid, role })).unwrap();
+      dispatch(fetchUsers());
+      success('Role updated successfully', `User is now a ${role}`, 'View user list to see changes');
+    } catch {
+      showError('Failed to update role', 'Please try again or contact support');
     }
   };
 
@@ -311,7 +322,7 @@ export default function AdminDashboardPage() {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard': return <DashboardTab stats={stats} live={live} users={users} upcoming={upcoming} openGame={(g: any) => open('gameDetails', g)} adminData={adminData} />;
-      case 'users': return <UsersTab rows={users} approve={approveUser} disapprove={disapproveUser} deleteU={deleteUser} openAdd={() => open('addUser')} adminData={adminData} viewProfile={(uid: string) => open('profileModal', { uid, user: users.find((u: any) => u.uid === uid) })} />;
+      case 'users': return <UsersTab rows={users} approve={approveUser} disapprove={disapproveUser} deleteU={deleteUser} updateRole={updateRole} openAdd={() => open('addUser')} adminData={adminData} viewProfile={(uid: string) => open('profileModal', { uid, user: users.find((u: any) => u.uid === uid) })} />;
       case 'universities': return <UniversitiesTab adminData={adminData} create={createUniversity} update={updateUniversity} deleteU={deleteUniversity} />;
       case 'teams': return <TeamsTab adminData={adminData} create={createTeam} update={updateTeam} deleteU={deleteTeam} />;
       case 'balance': return <FinancialTab />;

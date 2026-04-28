@@ -34,7 +34,7 @@ function ShimmerTableRow() {
   );
 }
 
-export default function UsersTab({ rows, approve, disapprove, deleteU, openAdd, adminData, viewProfile }: any) {
+export default function UsersTab({ rows, approve, disapprove, deleteU, openAdd, adminData, viewProfile, updateRole }: any) {
   const { loading } = useAppSelector(s => s.admin);
   const allUsers = rows.length > 0 ? rows : (adminData?.users || []);
   const [activeTab, setActiveTab] = useState<'fans' | 'correspondents' | 'marketers'>('fans');
@@ -115,8 +115,19 @@ export default function UsersTab({ rows, approve, disapprove, deleteU, openAdd, 
                 <tr key={u.uid}>
                   <td className="px-6 py-4 whitespace-nowrap"><div className="flex items-center"><div className="w-10 h-10 bg-purple-200 dark:bg-purple-800 rounded-full flex items-center justify-center"><span className="text-purple-700 dark:text-purple-300 font-medium">{u.name.slice(0, 2).toUpperCase()}</span></div><div className="ml-4"><div className="text-sm font-medium text-gray-900 dark:text-white">{u.name}</div><div className="text-sm text-gray-500 dark:text-white">{u.university || '—'}</div></div></div></td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-white">{u.email}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-white">{u.role}</td>
-                  <td className="px-6 py-4 whitespace-nowrap"><span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${u.status === 'active' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-white' : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-white'}`}>{u.status}</span></td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <select 
+                      value={u.role} 
+                      onChange={(e) => updateRole(u.uid, e.target.value)}
+                      className="bg-transparent border-none focus:ring-0 text-sm text-gray-500 dark:text-white font-medium cursor-pointer hover:text-blue-600 transition-colors"
+                    >
+                      <option value="fan">Fan</option>
+                      <option value="correspondent">Correspondent</option>
+                      <option value="marketer">Marketer</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap"><span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${u.status === 'active' || u.status === true ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-white' : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-white'}`}>{u.status === true ? 'active' : u.status}</span></td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     {activeTab === 'correspondents' && <button onClick={() => viewProfile(u.uid)} className="text-blue-600 dark:text-white hover:text-blue-900 dark:hover:text-gray-300 mr-2">View Profile</button>}
                     {activeTab === 'correspondents' && u.status !== 'active' && <button onClick={() => approve(u.uid)} className="text-green-600 dark:text-white hover:text-green-900 dark:hover:text-gray-300 mr-2">Approve</button>}

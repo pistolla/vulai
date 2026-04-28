@@ -168,6 +168,9 @@ export const deleteUserDoc = async (uid: string) => {
   }
 };
 
+export const updateUserRole = async (uid: string, role: string) =>
+  updateDoc(doc(db, 'users', uid), { role });
+
 /* ---------- merchandise ---------- */
 export const loadMerch = async (): Promise<MerchItem[]> => {
   const snap = await getDocs(collection(db, 'merchandise'));
