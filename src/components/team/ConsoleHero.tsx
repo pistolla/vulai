@@ -11,6 +11,7 @@ interface ConsoleHeroProps {
     primaryColor: string;
     accentColor: string;
     sport: string;
+    teamLogo?: string;
 }
 
 export const ConsoleHero: React.FC<ConsoleHeroProps> = ({
@@ -22,7 +23,8 @@ export const ConsoleHero: React.FC<ConsoleHeroProps> = ({
     onTabChange,
     primaryColor,
     accentColor,
-    sport
+    sport,
+    teamLogo
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -144,10 +146,14 @@ export const ConsoleHero: React.FC<ConsoleHeroProps> = ({
                         {teamName}
                     </h1>
 
-                    {/* Team Level Badge */}
+                    {/* Team Level Badge with Logo */}
                     <div className="inline-flex items-center space-x-3 bg-white/80 dark:bg-black/50 backdrop-blur-xl border-2 px-6 py-3 rounded-full" style={{ borderColor: accentColor }}>
-                        <div className="w-12 h-12 rounded-full flex items-center justify-center font-black text-2xl" style={{ background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})` }}>
-                            {teamLevel}
+                        <div className="w-16 h-16 rounded-full flex items-center justify-center bg-white overflow-hidden shadow-lg" style={{ border: `2px solid ${accentColor}` }}>
+                            {teamLogo ? (
+                                <img src={teamLogo} alt={teamName} className="w-full h-full object-contain p-1" />
+                            ) : (
+                                <span className="font-black text-2xl" style={{ color: primaryColor }}>{teamName.substring(0, 2).toUpperCase()}</span>
+                            )}
                         </div>
                         <div className="text-left">
                             <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Team Level</div>

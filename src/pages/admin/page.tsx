@@ -407,12 +407,18 @@ function AddUserForm({ close, universities, dispatch }: any) {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     try {
-      const { register } = await import('@/services/firebase');
-      await register(formData.email, formData.password, formData.role as any, {
-        displayName: formData.name,
-        universityId: formData.university,
-        needsPasswordReset: formData.role === 'marketer' // Only for marketers as requested, or you could do it for all
+      const response = await fetch('/api/admin/create-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          needsPasswordReset: formData.role === 'marketer'
+        })
       });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create user');
+      }
       dispatch(fetchUsers());
       success('User created successfully', 'The new user can now log in', 'Assign roles or manage permissions');
       close();

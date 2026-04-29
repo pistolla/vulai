@@ -21,6 +21,8 @@ import { GameTicker } from '@/components/team/GameTicker';
 import { LiveEventPop } from '@/components/team/LiveEventPop';
 import { MerchQuickView } from '@/components/merch/MerchQuickView';
 import { TeamSkeleton } from '@/components/team/TeamSkeleton';
+import { FacebookEmbed } from '@/components/team/FacebookEmbed';
+import { useTeamChat } from '@/hooks/useTeamChat';
 
 export default function TeamPage() {
   const router = useRouter();
@@ -36,7 +38,9 @@ export default function TeamPage() {
   const user = useAppSelector((s: RootState) => s.auth.user);
 
   const [activeTab, setActiveTab] = useState('overview');
-  const [chatMessages, setChatMessages] = useState<any[]>([]);
+  
+  // Real-time Chat
+  const { messages, sendMessage, loading: chatLoading, isTyping } = useTeamChat(teamData?.id);
   
   // Prevent auto-scroll on mount - ensure we start at the top
   React.useEffect(() => {
@@ -82,17 +86,6 @@ export default function TeamPage() {
         opt.id === optionId ? { ...opt, votes: opt.votes + 1 } : opt
       )
     }));
-  };
-
-  const handleSendMessage = (text: string) => {
-    const newMessage = {
-      id: Date.now().toString(),
-      user: user?.displayName || user?.email || 'Anonymous',
-      text,
-      timestamp: Date.now(),
-      avatar: user?.photoURL
-    };
-    setChatMessages(prev => [...prev, newMessage]);
   };
 
   const handleFollow = (playerId: string) => {
@@ -162,6 +155,7 @@ export default function TeamPage() {
           primaryColor={themeColors.primary}
           accentColor={themeColors.accent}
           sport={teamData?.sport || 'General'}
+          teamLogo={teamData?.logoURL}
         />
 
         {/* Main Content */}
@@ -319,6 +313,11 @@ export default function TeamPage() {
                             ))}
                         </div>
                     </div>
+                    
+                    {/* Facebook Embed */}
+                    {teamData?.socialLinks?.facebook && (
+                        <FacebookEmbed facebookUrl={teamData.socialLinks.facebook} accentColor={themeColors.accent} />
+                    )}
                   </div>
                </div>
             </div>
@@ -391,18 +390,30 @@ export default function TeamPage() {
             </div>
           </div>
 
-          {/* Team Chat */}
-          <div className="mt-16">
-            <TeamChat
-              messages={chatMessages}
-              onSendMessage={handleSendMessage}
-              currentUser={user ? { name: user.displayName || user.email || 'User', avatar: user.photoURL } : undefined}
-              accentColor={themeColors.accent}
-            />
-          </div>
-
           {/* Recruitment Section skipped for brevity, similar refactor if needed */}
         </div>
+      </div>
+
+      {/* Floating Team Chat Widget */}
+      <div className="fixed bottom-6 right-6 z-50 w-full max-w-[380px]">
+         <div className="relative">
+             <button 
+                onClick={() => document.getElementById('chat-container')?.classList.toggle('hidden')}
+                className="absolute -top-16 right-0 bg-gradient-to-r p-4 rounded-full shadow-2xl text-white hover:scale-110 transition-transform flex items-center justify-center animate-bounce"
+                style={{ backgroundImage: `linear-gradient(135deg, ${themeColors.primary}, ${themeColors.accent})` }}
+             >
+                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+             </button>
+             <div id="chat-container" className="hidden shadow-2xl rounded-3xl overflow-hidden border-2" style={{ borderColor: themeColors.accent }}>
+                <TeamChat
+                  messages={messages}
+                  onSendMessage={(text) => sendMessage(user ? { name: user.displayName || user.email || 'User', avatar: user.photoURL } : { name: 'Anonymous' }, text)}
+                  currentUser={user ? { name: user.displayName || user.email || 'User', avatar: user.photoURL } : undefined}
+                  accentColor={themeColors.accent}
+                  isTyping={isTyping}
+                />
+             </div>
+         </div>
       </div>
     </Layout>
   );
