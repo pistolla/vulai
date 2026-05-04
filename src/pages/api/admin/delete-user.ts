@@ -4,15 +4,22 @@ import * as admin from 'firebase-admin';
 // Initialize Firebase Admin
 if (!admin.apps.length) {
     try {
-        admin.initializeApp({
-            credential: admin.credential.cert({
-                projectId: process.env.FIREBASE_PROJECT_ID,
-                clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-                privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-            }),
-        });
+        if (process.env.FIREBASE_PRIVATE_KEY && !process.env.FIREBASE_PRIVATE_KEY.includes('Your_Private_Key')) {
+            admin.initializeApp({
+                credential: admin.credential.cert({
+                    projectId: process.env.FIREBASE_PROJECT_ID,
+                    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+                    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+                }),
+            });
+        } else {
+            admin.initializeApp();
+        }
     } catch (error: any) {
-        console.error('Firebase admin initialization error', error.stack);
+        console.error('Firebase admin initialization error:', error.message);
+        if (!admin.apps.length) {
+             admin.initializeApp();
+        }
     }
 }
 

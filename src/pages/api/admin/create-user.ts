@@ -4,15 +4,25 @@ import * as admin from 'firebase-admin';
 // Initialize Firebase Admin
 if (!admin.apps.length) {
     try {
-        admin.initializeApp({
-            credential: admin.credential.cert({
-                projectId: process.env.FIREBASE_PROJECT_ID,
-                clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-                privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-            }),
-        });
+        // Check if we have real private keys, not the placeholder
+        if (process.env.FIREBASE_PRIVATE_KEY && !process.env.FIREBASE_PRIVATE_KEY.includes('Your_Private_Key')) {
+            admin.initializeApp({
+                credential: admin.credential.cert({
+                    projectId: process.env.FIREBASE_PROJECT_ID,
+                    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+                    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+                }),
+            });
+        } else {
+            console.warn('⚠️ FIREBASE_PRIVATE_KEY is missing or invalid. Falling back to default application credentials.');
+            admin.initializeApp();
+        }
     } catch (error: any) {
-        console.error('Firebase admin initialization error', error.stack);
+        console.error('Firebase admin initialization error:', error.message);
+        // If it still fails, initialize a blank app so at least we get Auth/Firestore permission errors instead of "App doesn't exist"
+        if (!admin.apps.length) {
+             admin.initializeApp();
+        }
     }
 }
 
