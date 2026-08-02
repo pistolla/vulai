@@ -6,7 +6,7 @@ interface MatchCardProps {
     awayTeam: string;
     homeScore?: number;
     awayScore?: number;
-    status: 'upcoming' | 'live' | 'completed';
+    status: 'upcoming' | 'live' | 'completed' | 'scheduled' | 'finished' | string;
     date: string;
     venue: string;
     isLive?: boolean;
@@ -24,13 +24,15 @@ export const MatchCard: React.FC<MatchCardProps> = ({
     isLive,
     accentColor
 }) => {
-    const statusConfig = {
+    const statusConfig: Record<string, { bg: string; label: string; icon: any }> = {
         upcoming: { bg: 'from-blue-600 to-blue-800', label: 'Upcoming', icon: FiClock },
+        scheduled: { bg: 'from-blue-600 to-blue-800', label: 'Upcoming', icon: FiClock },
         live: { bg: 'from-red-500 to-red-700', label: 'Live Now', icon: FiTrendingUp },
-        completed: { bg: 'from-gray-600 to-gray-800', label: 'Full Time', icon: null }
+        completed: { bg: 'from-gray-600 to-gray-800', label: 'Full Time', icon: null },
+        finished: { bg: 'from-gray-600 to-gray-800', label: 'Full Time', icon: null }
     };
 
-    const config = statusConfig[status];
+    const config = statusConfig[status?.toLowerCase()] || statusConfig.upcoming;
     const StatusIcon = config.icon;
 
     return (
@@ -67,7 +69,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
 
                     {/* Score / VS */}
                     <div className="flex-shrink-0 mx-8">
-                        {status === 'upcoming' ? (
+                        {(status === 'upcoming' || status === 'scheduled') ? (
                             <div className="text-center">
                                 <div className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-1">VS</div>
                                 <div className="h-px w-12 bg-gray-700" />
@@ -110,7 +112,7 @@ export const MatchCard: React.FC<MatchCardProps> = ({
                         color: 'white'
                     }}
                 >
-                    {status === 'live' ? 'Watch Live' : status === 'upcoming' ? 'Set Reminder' : 'View Highlights'}
+                    {status === 'live' ? 'Watch Live' : (status === 'upcoming' || status === 'scheduled') ? 'Set Reminder' : 'View Highlights'}
                 </button>
             </div>
 
