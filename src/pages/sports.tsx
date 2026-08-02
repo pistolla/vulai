@@ -97,7 +97,7 @@ const SportsPage: React.FC = () => {
   return (
     <Layout title="Sports Leaderboard" description="Explore comprehensive university sports programs including Football, Basketball, Volleyball, Rugby, Hockey, Badminton, Table Tennis, Chess, Athletics and more">
       {/* Hero Section */}
-      <section className={`pt-12 pb-6 bg-gradient-to-b from-black/30 to-transparent ${mounted && theme === 'light' ? 'bg-transparent' : ''}`}>
+      <section className={`pt-32 pb-8 bg-gradient-to-b from-black/30 to-transparent ${mounted && theme === 'light' ? 'bg-transparent' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-black mb-2 bg-gradient-to-r from-unill-yellow-400 to-unill-purple-400 bg-clip-text text-transparent uppercase tracking-tighter">
             Sports Leaderboard

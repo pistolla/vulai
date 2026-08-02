@@ -1,51 +1,44 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import * as admin from 'firebase-admin';
 
-// Initialize Firebase Admin
-if (!admin.apps.length) {
-    try {
-        if (process.env.FIREBASE_PRIVATE_KEY && !process.env.FIREBASE_PRIVATE_KEY.includes('Your_Private_Key')) {
-            admin.initializeApp({
-                credential: admin.credential.cert({
-                    projectId: process.env.FIREBASE_PROJECT_ID,
-                    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-                    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-                }),
-            });
-        } else {
-            admin.initializeApp();
-        }
-    } catch (error: any) {
-        console.error('Firebase admin initialization error:', error.message);
-        if (!admin.apps.length) {
-             admin.initializeApp();
-        }
-    }
-}
+/**
+ * Delete User — Proxy to Firebase Cloud Function
+ *
+ * Previously ran Firebase Admin locally. Now proxies to the deployed
+ * Firebase Function with admin token verification.
+ */
+
+const FUNCTIONS_BASE_URL = process.env.FUNCTIONS_BASE_URL
+  || 'http://127.0.0.1:5001/unill-20c41/europe-west1';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== 'DELETE') {
-        return res.status(405).json({ message: 'Method not allowed' });
+  if (req.method !== 'DELETE') {
+    return res.status(405).json({ message: 'Method not allowed' });
+  }
+
+  const { uid } = req.query;
+
+  if (!uid || typeof uid !== 'string') {
+    return res.status(400).json({ message: 'Missing or invalid uid provided' });
+  }
+
+  try {
+    const url = `${FUNCTIONS_BASE_URL}/adminDeleteUser?uid=${uid}`;
+
+    // Forward the authorization header if present
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (req.headers.authorization) {
+      headers['Authorization'] = req.headers.authorization;
     }
 
-    const { uid } = req.query;
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers,
+    });
 
-    if (!uid || typeof uid !== 'string') {
-        return res.status(400).json({ message: 'Missing or invalid uid provided' });
-    }
-
-    try {
-        // 1. Delete from Firebase Authentication
-        await admin.auth().deleteUser(uid);
-
-        // 2. Delete from Firestore (Optional: if you prefer to keep this logic server-side for consistency)
-        // For now, we will assume the client handles it or we do it here. 
-        // The plan said: "Delete user from Firestore (optional, if we move logic here... Decision: Move Firestore deletion to this API route for consistency)"
-        await admin.firestore().collection('users').doc(uid).delete();
-
-        return res.status(200).json({ message: 'User deleted successfully' });
-    } catch (error: any) {
-        console.error('Error deleting user:', error);
-        return res.status(500).json({ message: 'Internal server error', error: error.message });
-    }
+    const data = await response.json();
+    return res.status(response.status).json(data);
+  } catch (error: any) {
+    console.error('[Delete User Proxy] Error:', error);
+    return res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
 }

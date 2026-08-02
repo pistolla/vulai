@@ -46,6 +46,9 @@ module.exports = {
         'pulse-glow': 'pulse-glow 2s ease-in-out infinite alternate',
         'pulse-live': 'pulse-live 1.5s ease-in-out infinite',
         'fade-in': 'fadeIn 0.2s ease-in-out',
+        'shimmer': 'shimmer 2s infinite linear',
+        'xp-pop': 'xp-pop 1.5s ease-out forwards',
+        'reaction-burst': 'reaction-burst 0.5s ease-out forwards',
       },
       keyframes: {
         float: {
@@ -64,6 +67,21 @@ module.exports = {
           '0%': { opacity: '0', transform: 'translateY(-10px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
+        shimmer: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' }
+        },
+        'xp-pop': {
+          '0%': { opacity: '0', transform: 'scale(0.8) translateY(20px)' },
+          '20%': { opacity: '1', transform: 'scale(1.1) translateY(0)' },
+          '80%': { opacity: '1', transform: 'scale(1) translateY(0)' },
+          '100%': { opacity: '0', transform: 'scale(0.9) translateY(-20px)' }
+        },
+        'reaction-burst': {
+          '0%': { opacity: '1', transform: 'scale(1)' },
+          '50%': { opacity: '0.8', transform: 'scale(2.5) translateY(-20px)' },
+          '100%': { opacity: '0', transform: 'scale(3) translateY(-40px)' }
+        }
       },
     },
   },

@@ -324,3 +324,15 @@ a {
     padding: 1rem;
   }
 }
+
+/* Utilities for Timeline */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.will-change-transform {
+  will-change: transform, opacity;
+}

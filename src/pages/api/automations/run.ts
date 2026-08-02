@@ -1,5 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { runAutomations } from '@/services/automationService';
+
+/**
+ * Automations — Proxy to Firebase Cloud Function
+ *
+ * Previously ran automation logic locally. Now proxies to the deployed
+ * Firebase Function at europe-west1.
+ */
+
+const FUNCTIONS_BASE_URL = process.env.FUNCTIONS_BASE_URL
+  || 'http://127.0.0.1:5001/unill-20c41/europe-west1';
 
 type Data = {
   success: boolean;
@@ -16,16 +25,18 @@ export default async function handler(
   }
 
   try {
-    console.log('[API] Triggering global Fixture temporal sync execution...');
-    const changeCount = await runAutomations();
-    
-    res.status(200).json({ 
-      success: true, 
-      changes: changeCount,
-      message: `Successfully executed lifecycle checks. Applied ${changeCount} status shifts.` 
+    console.log('[API Proxy] Forwarding automation request to Cloud Function…');
+    const url = `${FUNCTIONS_BASE_URL}/automationsRun`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
     });
+
+    const data = await response.json();
+    return res.status(response.status).json(data);
   } catch (err: any) {
-    console.error('[API Error] Automation Execution Failed:', err);
-    res.status(500).json({ success: false, message: err.message });
+    console.error('[API Proxy] Automation error:', err);
+    return res.status(500).json({ success: false, message: err.message });
   }
 }
